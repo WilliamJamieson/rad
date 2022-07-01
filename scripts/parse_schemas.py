@@ -14,8 +14,23 @@ def get_contents(schema: Path):
         return yaml.safe_load(f)
 
 
+def extract_data_entry(data_key: str, prop):
+    if isinstance(prop, dict):
+        if data_key in prop:
+            return prop[data_key]
+        else:
+            data = extract_data(data_key, prop)
+            if len(data) > 0:
+                return data
+
+
 def extract_data(data_key: str, properties: dict):
-    return {key: prop.get(data_key, None) for key, prop in properties.items()}
+    data = {}
+    for key, prop in properties.items():
+        if (value := extract_data_entry(data_key, prop)) is not None:
+            data[key] = value
+
+    return data
 
 
 def get_data(data_key: str):
@@ -23,7 +38,10 @@ def get_data(data_key: str):
     for schema in get_schemas():
         contents = get_contents(schema)
 
-        data[contents["id"]] = extract_data(data_key, contents.get("properties", {}))
+        if "properties" in contents:
+            data_contents = extract_data(data_key, contents["properties"])
+            if len(data_contents) > 0:
+                data[contents["id"]] = data_contents
 
     return data
 

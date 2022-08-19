@@ -46,6 +46,21 @@ def get_data(data_key: str):
     return data
 
 
-if __name__ == "__main__":
-    print(get_data("archive_catalog"))
-    print(get_data("sdf"))
+if __name__ == "__main__":#
+    archive_catalog = get_data("archive_catalog")
+    sdf = get_data("sdf")
+
+    try:
+        import flatten_dict
+
+        print("archive_catalog:\n")
+        print(flatten_dict.flatten(archive_catalog, 'dot'))
+        print("\n")
+        print("sdf:\n")
+        print(flatten_dict.flatten(sdf, 'dot'))
+    except ImportError:
+        print("archive_catalog:\n")
+        print(archive_catalog)
+        print("\n")
+        print("sdf:\n")
+        print(sdf)

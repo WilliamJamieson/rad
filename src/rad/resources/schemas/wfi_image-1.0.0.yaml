@@ -15,6 +15,11 @@ properties:
       - $ref: common-1.0.0
       - type: object
         properties:
+          wcs:
+            title: WCS object
+            anyOf:
+              - tag: tag:stsci.edu:gwcs/wcs-1.1.0
+              - type: "null"
           photometry:
             tag: asdf://stsci.edu/datamodels/roman/tags/photometry-1.0.0
           source_detection:

@@ -62,23 +62,23 @@ configuration = conf["project"]
 # If your documentation needs a minimal Sphinx version, state it here.
 # needs_sphinx = '1.2'
 
-intersphinx_mapping["pypa-packaging"] = (  # noqa: E501, F405
+intersphinx_mapping["pypa-packaging"] = (  # noqa: F405
     "https://packaging.python.org/en/latest/",
     None,
 )
-intersphinx_mapping["asdf"] = (  # noqa: E501, F405
+intersphinx_mapping["asdf"] = (  # noqa: F405
     "https://asdf.readthedocs.io/en/latest/",
     None,
 )
-intersphinx_mapping["asdf-standard"] = (  # noqa: E501, F405
+intersphinx_mapping["asdf-standard"] = (  # noqa: F405
     "https://asdf-standard.readthedocs.io/en/latest/",
     None,
 )
-intersphinx_mapping["asdf-astropy"] = (  # noqa: E501, F405
+intersphinx_mapping["asdf-astropy"] = (  # noqa: F405
     "https://asdf-astropy.readthedocs.io/en/latest/",
     None,
 )
-intersphinx_mapping["pytest"] = (  # noqa: E501, F405
+intersphinx_mapping["pytest"] = (  # noqa: F405
     "https://docs.pytest.org/en/latest/",
     None,
 )

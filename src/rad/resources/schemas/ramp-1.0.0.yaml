@@ -117,14 +117,38 @@ properties:
     tag: tag:stsci.edu:asdf/core/ndarray-1.0.0
     datatype: uint32
     ndim: 2
-propertyOrder: [meta, data, pixeldq, groupdq, err, amp33, border_ref_pix_left,
-                border_ref_pix_right, border_ref_pix_top,
-                border_ref_pix_bottom, dq_border_ref_pix_left,
-                dq_border_ref_pix_right, dq_border_ref_pix_top,
-                dq_border_ref_pix_bottom]
+propertyOrder:
+  [
+    meta,
+    data,
+    pixeldq,
+    groupdq,
+    err,
+    amp33,
+    border_ref_pix_left,
+    border_ref_pix_right,
+    border_ref_pix_top,
+    border_ref_pix_bottom,
+    dq_border_ref_pix_left,
+    dq_border_ref_pix_right,
+    dq_border_ref_pix_top,
+    dq_border_ref_pix_bottom,
+  ]
 flowStyle: block
-required: [meta, data, pixeldq, groupdq, err, amp33, border_ref_pix_left,
-           border_ref_pix_right, border_ref_pix_top, border_ref_pix_bottom,
-           dq_border_ref_pix_left, dq_border_ref_pix_right,
-           dq_border_ref_pix_top, dq_border_ref_pix_bottom]
-...
+required:
+  [
+    meta,
+    data,
+    pixeldq,
+    groupdq,
+    err,
+    amp33,
+    border_ref_pix_left,
+    border_ref_pix_right,
+    border_ref_pix_top,
+    border_ref_pix_bottom,
+    dq_border_ref_pix_left,
+    dq_border_ref_pix_right,
+    dq_border_ref_pix_top,
+    dq_border_ref_pix_bottom,
+  ]

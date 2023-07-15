@@ -83,9 +83,28 @@ properties:
         enum: ["electron2 / s2"]
   cal_logs:
     tag: asdf://stsci.edu/datamodels/roman/tags/cal_logs-1.0.0
-propertyOrder: [meta, data, context, err, weight, var_poisson, var_rnoise, var_flat,
-                cal_logs]
+propertyOrder:
+  [
+    meta,
+    data,
+    context,
+    err,
+    weight,
+    var_poisson,
+    var_rnoise,
+    var_flat,
+    cal_logs,
+  ]
 flowStyle: block
-required: [meta, data, context, err, weight, var_poisson, var_rnoise, var_flat,
-           cal_logs]
-...
+required:
+  [
+    meta,
+    data,
+    context,
+    err,
+    weight,
+    var_poisson,
+    var_rnoise,
+    var_flat,
+    cal_logs,
+  ]

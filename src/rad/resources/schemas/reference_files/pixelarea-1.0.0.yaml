@@ -41,4 +41,3 @@ properties:
 required: [meta, data]
 flowStyle: block
 propertyOrder: [meta, data]
-...

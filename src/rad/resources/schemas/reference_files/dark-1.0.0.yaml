@@ -35,15 +35,16 @@ properties:
               ma_table_number:
                 title: Number of the multi-accumulation table used
                 type: integer
-            required: [ngroups, nframes, groupgap, ma_table_name, ma_table_number]
+            required:
+              [ngroups, nframes, groupgap, ma_table_name, ma_table_number]
         required: [exposure]
       - $ref: ref_exposure_type-1.0.0
       - $ref: ref_optical_element-1.0.0
   data:
     title: Dark current array
     description: |
-       The dark current array represents the integrated number of counts
-       due to the accumulation of dark current electrons in the pixels.
+      The dark current array represents the integrated number of counts
+      due to the accumulation of dark current electrons in the pixels.
     tag: tag:stsci.edu:asdf/unit/quantity-1.1.0
     properties:
       value:
@@ -72,4 +73,3 @@ properties:
 required: [meta, data, dq, err]
 flowStyle: block
 propertyOrder: [meta, data, dq, err]
-...

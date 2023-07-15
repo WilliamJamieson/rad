@@ -38,8 +38,9 @@ properties:
       destination: [ScienceCommon.gs_id, GuideWindow.gs_id]
   gs_catalog_version:
     title: The version of the Guide Star Catalog
-    description: The version of the catalog that the guide stars are selected, currently  "GSC 2.4.2", SDF should populate
-        this from the return value of CAT e.g. CAT=GSC242
+    description:
+      The version of the catalog that the guide stars are selected, currently  "GSC 2.4.2", SDF should populate
+      this from the return value of CAT e.g. CAT=GSC242
     type: string
     sdf:
       special_processing: VALUE_REQUIRED
@@ -210,7 +211,8 @@ properties:
       destination: [ScienceCommon.gs_para, GuideWindow.gs_para]
   gs_pattern_error:
     title: RMS of guide star position
-    description: RMS of guide star position in guide window from pattern matching (error on
+    description:
+      RMS of guide star position in guide window from pattern matching (error on
       centroid not explicitly calculated, the FACE information takes all the centroids and
       calculates the error across the guiding pattern)
     type: number
@@ -220,7 +222,8 @@ properties:
         origin: TBD
     archive_catalog:
       datatype: float
-      destination: [ScienceCommon.gs_pattern_error, GuideWindow.gs_pattern_error]
+      destination:
+        [ScienceCommon.gs_pattern_error, GuideWindow.gs_pattern_error]
   gw_window_xstart:
     title: Guide window x start position on the detector
     type: integer
@@ -280,18 +283,65 @@ properties:
         origin: Science Data Formatting
     archive_catalog:
       datatype: int
-      destination: [  ScienceCommon.gw_window_ysize]
-propertyOrder: [gw_id, gs_id, gs_catalog_version, gs_ra, gs_dec,
-               gs_ura, gs_udec, gs_mag, gs_umag, gw_fgs_mode,
-               data_start, data_end, gs_ctd_x, gs_ctd_y, gs_ctd_ux, gs_ctd_uy,
-               gs_epoch, gs_mura, gs_mudec, gs_para, gs_pattern_error, gw_window_xstart,
-               gw_window_ystart, gw_window_xstop, gw_window_ystop, gw_window_xsize,
-               gw_window_ysize]
+      destination: [ScienceCommon.gw_window_ysize]
+propertyOrder:
+  [
+    gw_id,
+    gs_id,
+    gs_catalog_version,
+    gs_ra,
+    gs_dec,
+    gs_ura,
+    gs_udec,
+    gs_mag,
+    gs_umag,
+    gw_fgs_mode,
+    data_start,
+    data_end,
+    gs_ctd_x,
+    gs_ctd_y,
+    gs_ctd_ux,
+    gs_ctd_uy,
+    gs_epoch,
+    gs_mura,
+    gs_mudec,
+    gs_para,
+    gs_pattern_error,
+    gw_window_xstart,
+    gw_window_ystart,
+    gw_window_xstop,
+    gw_window_ystop,
+    gw_window_xsize,
+    gw_window_ysize,
+  ]
 flowStyle: block
-required: [gw_id, gs_id, gs_catalog_version, gs_ra, gs_dec,
-           gs_ura, gs_udec, gs_mag, gs_umag, gw_fgs_mode,
-           data_start, data_end, gs_ctd_x, gs_ctd_y, gs_ctd_ux, gs_ctd_uy,
-           gs_epoch, gs_mura, gs_mudec, gs_para, gs_pattern_error, gw_window_xstart,
-           gw_window_ystart, gw_window_xstop, gw_window_ystop, gw_window_xsize,
-           gw_window_ysize]
-...
+required:
+  [
+    gw_id,
+    gs_id,
+    gs_catalog_version,
+    gs_ra,
+    gs_dec,
+    gs_ura,
+    gs_udec,
+    gs_mag,
+    gs_umag,
+    gw_fgs_mode,
+    data_start,
+    data_end,
+    gs_ctd_x,
+    gs_ctd_y,
+    gs_ctd_ux,
+    gs_ctd_uy,
+    gs_epoch,
+    gs_mura,
+    gs_mudec,
+    gs_para,
+    gs_pattern_error,
+    gw_window_xstart,
+    gw_window_ystart,
+    gw_window_xstop,
+    gw_window_ystop,
+    gw_window_xsize,
+    gw_window_ysize,
+  ]

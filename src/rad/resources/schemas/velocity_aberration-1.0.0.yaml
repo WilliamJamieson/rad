@@ -39,4 +39,3 @@ properties:
 flowStyle: block
 propertyOrder: [ra_offset, dec_offset, scale_factor]
 required: [ra_offset, dec_offset, scale_factor]
-...

@@ -14,4 +14,3 @@ archive_catalog:
   destination: [ScienceCommon.calibration_software_version]
 
 flowStyle: block
-...

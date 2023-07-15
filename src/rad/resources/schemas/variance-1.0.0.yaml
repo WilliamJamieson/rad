@@ -6,7 +6,6 @@ id: asdf://stsci.edu/datamodels/roman/schemas/variance-1.0.0
 title: |
   An object that is required to include the variance arrays.
 
-
 type: object
 properties:
   var_poisson:
@@ -25,4 +24,3 @@ properties:
     datatype: float32
     ndim: 3
 required: [var_poisson, var_rnoise, var_flat]
-...

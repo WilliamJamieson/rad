@@ -6,11 +6,11 @@ on:
       - main
       - "*"
     tags:
-      - '*'
+      - "*"
   pull_request:
   schedule:
     # Weekly Monday 9AM build
-    - cron: '0 9 * * 1'
+    - cron: "0 9 * * 1"
 
 jobs:
   check:

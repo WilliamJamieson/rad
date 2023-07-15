@@ -15,7 +15,8 @@ properties:
         origin: PSS:dms_target.target_name
     archive_catalog:
       datatype: nvarchar(100)
-      destination: [ScienceCommon.proposer_target_name, GuideWindow.proposer_target_name]
+      destination:
+        [ScienceCommon.proposer_target_name, GuideWindow.proposer_target_name]
   catalog_name:
     title: Standard astronomical catalog name for target
     type: string
@@ -86,7 +87,8 @@ properties:
         origin: PSS:dms_target.ra_proper_motion
     archive_catalog:
       datatype: float
-      destination: [ScienceCommon.proper_motion_ra, GuideWindow.proper_motion_ra]
+      destination:
+        [ScienceCommon.proper_motion_ra, GuideWindow.proper_motion_ra]
   proper_motion_dec:
     title: Target proper motion in Dec
     type: number
@@ -96,7 +98,8 @@ properties:
         origin: PSS:dms_target.dec_proper_motion
     archive_catalog:
       datatype: float
-      destination: [ScienceCommon.proper_motion_dec, GuideWindow.proper_motion_dec]
+      destination:
+        [ScienceCommon.proper_motion_dec, GuideWindow.proper_motion_dec]
   proper_motion_epoch:
     title: Target proper motion epoch
     type: string
@@ -106,7 +109,8 @@ properties:
         origin: PSS:dms_visit.epoch
     archive_catalog:
       datatype: nvarchar(10)
-      destination: [ScienceCommon.proper_motion_epoch, GuideWindow.proper_motion_epoch]
+      destination:
+        [ScienceCommon.proper_motion_epoch, GuideWindow.proper_motion_epoch]
   proposer_ra:
     title: Proposer's target RA
     type: number
@@ -140,11 +144,36 @@ properties:
     archive_catalog:
       datatype: nvarchar(8)
       destination: [ScienceCommon.source_type, GuideWindow.source_type]
-propertyOrder: [proposer_name, catalog_name, type, ra, dec, ra_uncertainty, dec_uncertainty,
-           proper_motion_ra, proper_motion_dec, proper_motion_epoch,
-           proposer_ra, proposer_dec, source_type]
+propertyOrder:
+  [
+    proposer_name,
+    catalog_name,
+    type,
+    ra,
+    dec,
+    ra_uncertainty,
+    dec_uncertainty,
+    proper_motion_ra,
+    proper_motion_dec,
+    proper_motion_epoch,
+    proposer_ra,
+    proposer_dec,
+    source_type,
+  ]
 flowStyle: block
-required: [proposer_name, catalog_name, type, ra, dec, ra_uncertainty, dec_uncertainty,
-           proper_motion_ra, proper_motion_dec, proper_motion_epoch,
-           proposer_ra, proposer_dec, source_type]
-...
+required:
+  [
+    proposer_name,
+    catalog_name,
+    type,
+    ra,
+    dec,
+    ra_uncertainty,
+    dec_uncertainty,
+    proper_motion_ra,
+    proper_motion_dec,
+    proper_motion_epoch,
+    proposer_ra,
+    proposer_dec,
+    source_type,
+  ]

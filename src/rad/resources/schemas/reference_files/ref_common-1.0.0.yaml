@@ -42,5 +42,14 @@ properties:
       detector:
         $ref: ../wfi_detector-1.0.0
     required: [name, detector]
-required: [reftype, author, description, pedigree, useafter, telescope, origin, instrument]
-...
+required:
+  [
+    reftype,
+    author,
+    description,
+    pedigree,
+    useafter,
+    telescope,
+    origin,
+    instrument,
+  ]

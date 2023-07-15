@@ -22,7 +22,8 @@ properties:
     title: Drizzle weight type for resample
     type: string
     enum: ["exptime", "ivm"]
-propertyOrder: [pixel_scale_ratio, pixfrac, pointings, product_exposure_time, weight_type]
+propertyOrder:
+  [pixel_scale_ratio, pixfrac, pointings, product_exposure_time, weight_type]
 flowStyle: block
-required: [pixel_scale_ratio, pixfrac, pointings, product_exposure_time, weight_type]
-...
+required:
+  [pixel_scale_ratio, pixfrac, pointings, product_exposure_time, weight_type]

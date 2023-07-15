@@ -3,7 +3,6 @@
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
 id: asdf://stsci.edu/datamodels/roman/schemas/wfi_mode-1.0.0
 
-
 title: |
   WFI observing configuration
 type: object
@@ -40,4 +39,3 @@ properties:
 propertyOrder: [detector, optical_element, name]
 flowStyle: block
 required: [detector, optical_element, name]
-...

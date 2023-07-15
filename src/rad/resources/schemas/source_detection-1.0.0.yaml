@@ -9,4 +9,3 @@ properties:
   tweakreg_catalog_name:
     type: string
 flowStyle: block
-...

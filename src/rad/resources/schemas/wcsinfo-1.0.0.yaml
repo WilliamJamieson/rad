@@ -86,7 +86,8 @@ properties:
     archive_catalog:
       datatype: nvarchar(max)
       destination: [ScienceCommon.s_region, GuideWindow.s_region]
-propertyOrder: [v2_ref, v3_ref, vparity, v3yangle, ra_ref, dec_ref, roll_ref, s_region]
+propertyOrder:
+  [v2_ref, v3_ref, vparity, v3yangle, ra_ref, dec_ref, roll_ref, s_region]
 flowStyle: block
-required: [v2_ref, v3_ref, vparity, v3yangle, ra_ref, dec_ref, roll_ref, s_region]
-...
+required:
+  [v2_ref, v3_ref, vparity, v3yangle, ra_ref, dec_ref, roll_ref, s_region]

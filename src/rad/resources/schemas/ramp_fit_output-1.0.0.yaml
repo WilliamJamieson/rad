@@ -104,9 +104,30 @@ properties:
       unit:
         tag: tag:astropy.org:astropy/units/unit-1.0.0
         enum: ["electron2 / s2"]
-required: [meta, slope, sigslope, yint, sigyint, pedestal, weights, crmag, var_poisson,
-           var_rnoise]
-propertyOrder: [meta, slope, sigslope, yint, sigyint, pedestal, weights, crmag, var_poisson,
-                var_rnoise]
+required:
+  [
+    meta,
+    slope,
+    sigslope,
+    yint,
+    sigyint,
+    pedestal,
+    weights,
+    crmag,
+    var_poisson,
+    var_rnoise,
+  ]
+propertyOrder:
+  [
+    meta,
+    slope,
+    sigslope,
+    yint,
+    sigyint,
+    pedestal,
+    weights,
+    crmag,
+    var_poisson,
+    var_rnoise,
+  ]
 flowStyle: block
-...

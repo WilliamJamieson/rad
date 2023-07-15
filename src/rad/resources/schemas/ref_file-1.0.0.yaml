@@ -5,7 +5,6 @@ id: asdf://stsci.edu/datamodels/roman/schemas/ref_file-1.0.0
 
 title: Reference file information
 
-
 type: object
 properties:
   crds:
@@ -21,7 +20,11 @@ properties:
             origin: TBD
         archive_catalog:
           datatype: nvarchar(120)
-          destination: [ScienceCommon.crds_software_version, GuideWindow.crds_software_version]
+          destination:
+            [
+              ScienceCommon.crds_software_version,
+              GuideWindow.crds_software_version,
+            ]
 
       context_used:
         title: CRDS context (.pmap) used to select ref files
@@ -32,7 +35,8 @@ properties:
             origin: TBD
         archive_catalog:
           datatype: nvarchar(120)
-          destination: [ScienceCommon.crds_context_used, GuideWindow.crds_context_used]
+          destination:
+            [ScienceCommon.crds_context_used, GuideWindow.crds_context_used]
   dark:
     title: Dark reference file information
     type: string
@@ -65,4 +69,3 @@ properties:
     type: string
 
 flowStyle: block
-...

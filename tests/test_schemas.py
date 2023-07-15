@@ -13,12 +13,24 @@ from .conftest import MANIFEST
 
 SCHEMA_URI_PREFIX = "asdf://stsci.edu/datamodels/roman/schemas/"
 METASCHEMA_URI = "asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0"
-SCHEMA_URIS = [u for u in asdf.get_config().resource_manager if u.startswith(SCHEMA_URI_PREFIX) and u != METASCHEMA_URI]
-REF_FILE_SCHEMA_URIS = [u["schema_uri"] for u in MANIFEST["tags"] if "/reference_files/" in u["schema_uri"]]
+SCHEMA_URIS = [
+    u
+    for u in asdf.get_config().resource_manager
+    if u.startswith(SCHEMA_URI_PREFIX) and u != METASCHEMA_URI
+]
+REF_FILE_SCHEMA_URIS = [
+    u["schema_uri"] for u in MANIFEST["tags"] if "/reference_files/" in u["schema_uri"]
+]
 WFI_OPTICAL_ELEMENTS = list(
-    asdf.schema.load_schema("asdf://stsci.edu/datamodels/roman/schemas/wfi_optical_element-1.0.0")["enum"]
+    asdf.schema.load_schema(
+        "asdf://stsci.edu/datamodels/roman/schemas/wfi_optical_element-1.0.0"
+    )["enum"]
 )
-EXPOSURE_TYPE_ELEMENTS = list(asdf.schema.load_schema("asdf://stsci.edu/datamodels/roman/schemas/exposure_type-1.0.0")["enum"])
+EXPOSURE_TYPE_ELEMENTS = list(
+    asdf.schema.load_schema(
+        "asdf://stsci.edu/datamodels/roman/schemas/exposure_type-1.0.0"
+    )["enum"]
+)
 
 
 @pytest.fixture(scope="session", params=SCHEMA_URIS)
@@ -81,14 +93,16 @@ def test_property_order(schema, manifest):
                         "missing properties: " + missing_list + "\n"
                         "extra properties: " + extra_list
                     )
-                    assert False, message
+                    raise AssertionError(message)
 
         asdf.treeutil.walk(schema, callback)
     else:
 
         def callback(node):
             if isinstance(node, Mapping):
-                assert "propertyOrder" not in node, "Only schemas associated with a tag may specify propertyOrder"
+                assert (
+                    "propertyOrder" not in node
+                ), "Only schemas associated with a tag may specify propertyOrder"
 
         asdf.treeutil.walk(schema, callback)
 
@@ -102,7 +116,7 @@ def test_required(schema):
             if not required_names.issubset(property_names):
                 missing_list = ", ".join(required_names - property_names)
                 message = "required references names that do not exist: " + missing_list
-                assert False, message
+                raise AssertionError(message)
 
     asdf.treeutil.walk(schema, callback)
 
@@ -120,12 +134,16 @@ def test_flowstyle(schema, manifest):
 
         asdf.treeutil.walk(schema, callback)
 
-        assert found_flowstyle, "Schemas associated with a tag must specify flowStyle: block"
+        assert (
+            found_flowstyle
+        ), "Schemas associated with a tag must specify flowStyle: block"
     else:
 
         def callback(node):
             if isinstance(node, Mapping):
-                assert "flowStyle" not in node, "Only schemas associated with a tag may specify flowStyle"
+                assert (
+                    "flowStyle" not in node
+                ), "Only schemas associated with a tag may specify flowStyle"
 
         asdf.treeutil.walk(schema, callback)
 
@@ -138,12 +156,13 @@ def test_tag(schema, valid_tag_uris):
     asdf.treeutil.walk(schema, callback)
 
 
-# Confirm that the optical_element filter in wfi_img_photom.yml matches WFI_OPTICAL_ELEMENTS
+# Confirm that the optical_element filter in wfi_img_photom.yml
+# matches WFI_OPTICAL_ELEMENTS
 def test_matched_optical_element_entries():
     phot_table_keys = list(
-        asdf.schema.load_schema("asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom-1.0.0")["properties"][
-            "phot_table"
-        ]["patternProperties"]
+        asdf.schema.load_schema(
+            "asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom-1.0.0"
+        )["properties"]["phot_table"]["patternProperties"]
     )
     r = re.compile(phot_table_keys[0])
     for element_str in WFI_OPTICAL_ELEMENTS:
@@ -152,9 +171,9 @@ def test_matched_optical_element_entries():
 
 # Confirm that the p_keyword version of exposure type match the enum version
 def test_matched_p_exptype_entries():
-    p_exptype = asdf.schema.load_schema("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type-1.0.0")[
-        "properties"
-    ]["exposure"]["properties"]["p_exptype"]["pattern"]
+    p_exptype = asdf.schema.load_schema(
+        "asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type-1.0.0"
+    )["properties"]["exposure"]["properties"]["p_exptype"]["pattern"]
     r = re.compile(p_exptype)
     for element_str in EXPOSURE_TYPE_ELEMENTS:
         assert r.search(element_str + "|")

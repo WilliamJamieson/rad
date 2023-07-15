@@ -79,13 +79,8 @@ asdf_schema_tests_enabled = 'true'
 asdf_schema_skip_tests = 'src/rad/resources/schemas/rad_schema-1.0.0.yaml'
 asdf_schema_root = 'src/rad/resources/schemas'
 
-[tool.isort]
-profile = "black"
-filter_files = true
-line_length = 130
-
 [tool.black]
-line-length = 130
+line-length = 88
 force-exclude = '''
 ^/(
   (
@@ -98,7 +93,10 @@ force-exclude = '''
 '''
 
 [tool.ruff]
-line-length = 130
+target-version = "py39"
+line-length = 88
+src = ["src", "tests", "docs"]
+select = ["E", "F", "B", "I", "UP"]
 
 [tool.codespell]
 skip="*.pdf,*.fits,*.asdf,.tox,build,./tags,.git,docs/_build"

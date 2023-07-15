@@ -8,7 +8,9 @@ import re
 from datetime import date
 from pathlib import Path
 
-UNRELEASED_VERSION_RE = re.compile(r"\A(?P<version>[0-9]+\.[0-9]+\.[0-9]+) \(unreleased\)$", re.MULTILINE)
+UNRELEASED_VERSION_RE = re.compile(
+    r"\A(?P<version>[0-9]+\.[0-9]+\.[0-9]+) \(unreleased\)$", re.MULTILINE
+)
 
 
 def main():

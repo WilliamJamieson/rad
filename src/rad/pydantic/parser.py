@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.resources
 from pathlib import Path
 from typing import Any, Callable, DefaultDict, Iterable, Mapping, Sequence
-from urllib.parse import ParseResult, urlparse
+from urllib.parse import ParseResult
 
 import yaml
 from asdf.config import get_config
@@ -14,7 +14,7 @@ from datamodel_code_generator.model import pydantic as pydantic_model
 from datamodel_code_generator.parser import DefaultPutDict, LiteralType
 from datamodel_code_generator.parser.base import get_special_path, title_to_class_name
 from datamodel_code_generator.parser.jsonschema import JsonSchemaObject, JsonSchemaParser, get_model_by_path
-from datamodel_code_generator.reference import ID_PATTERN, ModelResolver, get_relative_path, is_url
+from datamodel_code_generator.reference import ModelResolver, get_relative_path
 from datamodel_code_generator.types import DataType, DataTypeManager, StrictTypes
 
 from rad import resources
@@ -29,66 +29,19 @@ DATAMODELS_TAG_URI_MAP = {tag["tag_uri"]: tag["schema_uri"] for tag in DATAMODEL
 
 class AsdfModelResolver(ModelResolver):
     def resolve_ref(self, path: Sequence[str] | str) -> str:
+        manager = get_config().resource_manager
+
         if isinstance(path, str):
             joined_path = path
         else:
             joined_path = self.join_path(path)
-        if joined_path == "#":
-            return f"{'/'.join(self.current_root)}#"
-        if self.current_base_path and not self.base_url and joined_path[0] != "#" and not is_url(joined_path):
-            # resolve local file path
-            file_path, *object_part = joined_path.split("#", 1)
-            manager = get_config().resource_manager
 
-            if file_path in manager:
-                resolved_file_path = manager._mappings_by_uri[file_path]._delegate._uri_to_file[file_path]
-            else:
-                resolved_file_path = Path(self.current_base_path, file_path).resolve()
+        if joined_path in manager:
+            resolved_file_path = manager._mappings_by_uri[joined_path]._delegate._uri_to_file[joined_path]
 
-            joined_path = get_relative_path(self._base_path, resolved_file_path).as_posix()
-            if object_part:
-                joined_path += f"#{object_part[0]}"
-        if ID_PATTERN.match(joined_path):
-            ref: str = self.ids["/".join(self.current_root)][joined_path]
-        else:
-            if "#" not in joined_path:
-                joined_path += "#"
-            elif joined_path[0] == "#":
-                joined_path = f'{"/".join(self.current_root)}{joined_path}'
+            return get_relative_path(self._base_path, resolved_file_path).as_posix() + "#"
 
-            delimiter = joined_path.index("#")
-            file_path = "".join(joined_path[:delimiter])
-            ref = f"{''.join(joined_path[:delimiter])}#{''.join(joined_path[delimiter + 1:])}"
-            if self.root_id_base_path and not (is_url(joined_path) or Path(self._base_path, file_path).is_file()):
-                ref = f"{self.root_id_base_path}/{ref}"
-
-        if self.base_url:
-            from .http import join_url
-
-            joined_url = join_url(self.base_url, ref)
-            if "#" in joined_url:
-                return joined_url
-            return f"{joined_url}#"
-
-        if is_url(ref):
-            file_part, path_part = ref.split("#", 1)
-            if file_part == self.root_id:
-                return f'{"/".join(self.current_root)}#{path_part}'
-            target_url: ParseResult = urlparse(file_part)
-            if not (self.root_id and self.current_base_path):
-                return ref
-            root_id_url: ParseResult = urlparse(self.root_id)
-            if (target_url.scheme, target_url.netloc) == (
-                root_id_url.scheme,
-                root_id_url.netloc,
-            ):  # pragma: no cover
-                target_url_path = Path(target_url.path)
-                relative_target_base = get_relative_path(Path(root_id_url.path).parent, target_url_path.parent)
-                target_path = self.current_base_path / relative_target_base / target_url_path.name
-                if target_path.exists():
-                    return f"{target_path.resolve().relative_to(self._base_path)}#{path_part}"
-
-        return ref
+        return super().resolve_ref(path)
 
 
 def name_from_tag_uri(tag_uri):

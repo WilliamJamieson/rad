@@ -8,6 +8,15 @@ else:
     import importlib.resources as importlib_resources
 
 
+class RadResourceMapping(DirectoryResourceMapping):
+    @property
+    def root(self):
+        return self._root
+
+    def get_file_path(self, uri):
+        return self._uri_to_file[uri]
+
+
 def get_resource_mappings():
     """
     Get the resource mapping instances for the datamodel schemas
@@ -23,7 +32,7 @@ def get_resource_mappings():
     resources_root = importlib_resources.files(resources)
 
     return [
-        DirectoryResourceMapping(resources_root / "schemas", "asdf://stsci.edu/datamodels/roman/schemas/", recursive=True),
-        DirectoryResourceMapping(resources_root / "manifests", "asdf://stsci.edu/datamodels/roman/manifests/"),
-        DirectoryResourceMapping(resources_root / "meta_schemas", "asdf://stsci.edu/datamodels/roman/meta_schemas/"),
+        RadResourceMapping(resources_root / "schemas", "asdf://stsci.edu/datamodels/roman/schemas/", recursive=True),
+        RadResourceMapping(resources_root / "manifests", "asdf://stsci.edu/datamodels/roman/manifests/"),
+        RadResourceMapping(resources_root / "meta_schemas", "asdf://stsci.edu/datamodels/roman/meta_schemas/"),
     ]

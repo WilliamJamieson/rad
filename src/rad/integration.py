@@ -25,4 +25,5 @@ def get_resource_mappings():
     return [
         DirectoryResourceMapping(resources_root / "schemas", "asdf://stsci.edu/datamodels/roman/schemas/", recursive=True),
         DirectoryResourceMapping(resources_root / "manifests", "asdf://stsci.edu/datamodels/roman/manifests/"),
+        DirectoryResourceMapping(resources_root / "meta_schemas", "asdf://stsci.edu/datamodels/roman/meta_schemas/"),
     ]

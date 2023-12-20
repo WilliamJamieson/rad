@@ -253,8 +253,6 @@ class AsdfSchemaParser(JsonSchemaParser):
 
     def parse_raw(self) -> None:
         for source, path_parts in self._get_context_source_path_parts():
-            if str(source.path) == "rad_schema-1.0.0.yaml":
-                continue
             self.raw_obj = load_yaml(source.text)
             if self.custom_class_name_generator:
                 obj_name = class_name_from_tag_uri(self.raw_obj.get("id", "NoID"))

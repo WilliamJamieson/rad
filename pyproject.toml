@@ -14,6 +14,8 @@ classifiers = [
 dependencies = [
     'asdf >=2.14.2',
     'asdf-astropy >=0.4.0',
+    'datamodel-code-generator >=0.25',
+    'pydantic >=2.5',
 ]
 dynamic = ['version']
 

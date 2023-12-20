@@ -2,9 +2,9 @@ import astropy.units as u
 import numpy as np
 import pytest
 from pydantic import BaseModel, ValidationError
-from roman_datamodels.pydantic._adaptors._adaptor_tags import asdf_tags
-from roman_datamodels.pydantic._adaptors._astropy_quantity import AstropyQuantity
-from roman_datamodels.pydantic._adaptors._astropy_unit import _get_unit_symbol
+from roman_datamodels.pydantic._adaptors.adaptor_tags import asdf_tags
+from roman_datamodels.pydantic._adaptors.astropy_quantity import AstropyQuantity
+from roman_datamodels.pydantic._adaptors.astropy_unit import _get_unit_symbol
 
 dtypes = (
     None,

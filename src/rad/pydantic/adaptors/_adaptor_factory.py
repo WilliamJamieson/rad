@@ -37,7 +37,7 @@ def adaptor_factory(obj, _context):
 
     if obj.tag == asdf_tags.ASTROPY_TIME:
         ctx.type = "AstropyTime"
-        ctx.import_ = Import(from_="rad.pydantic._adaptors", import_="AstropyTime")
+        ctx.import_ = Import(from_="rad.pydantic.adaptors", import_="AstropyTime")
 
         return ctx
 
@@ -45,7 +45,7 @@ def adaptor_factory(obj, _context):
         type_, import_ = _ndarray_factory(obj, "NdArray")
 
         ctx.type = f"NdArray[{type_}]"
-        ctx.import_ = Import(from_="rad.pydantic._adaptors", import_=import_)
+        ctx.import_ = Import(from_="rad.pydantic.adaptors", import_=import_)
 
         return ctx
 
@@ -53,7 +53,7 @@ def adaptor_factory(obj, _context):
         type_, import_ = _unit_factory(obj, "AstropyUnit")
 
         ctx.type = f"AstropyUnit[{type_}]"
-        ctx.import_ = Import(from_="rad.pydantic._adaptors", import_=import_)
+        ctx.import_ = Import(from_="rad.pydantic.adaptors", import_=import_)
 
         return ctx
 
@@ -73,7 +73,7 @@ def adaptor_factory(obj, _context):
         unit, import_ = _unit_factory(unit, import_)
 
         ctx.type = f"AstropyQuantity[{value}, {unit}]"
-        ctx.import_ = Import(from_="rad.pydantic._adaptors", import_=import_)
+        ctx.import_ = Import(from_="rad.pydantic.adaptors", import_=import_)
 
         return ctx
 

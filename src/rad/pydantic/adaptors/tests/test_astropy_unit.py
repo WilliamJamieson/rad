@@ -1,8 +1,8 @@
 import astropy.units as u
 import pytest
 from pydantic import BaseModel, ValidationError
-from roman_datamodels.pydantic._adaptors._adaptor_tags import asdf_tags
-from roman_datamodels.pydantic._adaptors._astropy_unit import AstropyUnit, _get_unit_symbol
+from roman_datamodels.pydantic.adaptors._adaptor_tags import asdf_tags
+from roman_datamodels.pydantic.adaptors._astropy_unit import AstropyUnit, _get_unit_symbol
 
 units_no_dimensionless = tuple(
     sorted(

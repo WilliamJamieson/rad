@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import importlib.resources
 from pathlib import Path
-from typing import Any, Callable, DefaultDict, Iterable, Mapping, Sequence
+from typing import Any, Callable, ClassVar, DefaultDict, Iterable, Mapping, Sequence
 from urllib.parse import ParseResult
 
 import yaml
@@ -11,8 +11,7 @@ from datamodel_code_generator.format import PythonVersion
 from datamodel_code_generator.model import DataModel, DataModelFieldBase
 from datamodel_code_generator.model import pydantic as pydantic_model
 from datamodel_code_generator.parser import DefaultPutDict, LiteralType
-from datamodel_code_generator.parser.base import get_special_path
-from datamodel_code_generator.parser.jsonschema import JsonSchemaObject, JsonSchemaParser, get_model_by_path
+from datamodel_code_generator.parser.jsonschema import JsonSchemaObject, JsonSchemaParser
 from datamodel_code_generator.reference import ModelResolver, get_relative_path
 from datamodel_code_generator.types import DataType, DataTypeManager, StrictTypes
 
@@ -103,6 +102,8 @@ RadSchemaObject.model_rebuild()
 
 class RadSchemaParser(JsonSchemaParser):
     """Modifications to the JsonSchemaParser to support Rad schemas"""
+
+    SCHEMA_OBJECT_TYPE: ClassVar = RadSchemaObject
 
     def __init__(
         self,
@@ -305,71 +306,6 @@ class RadSchemaParser(JsonSchemaParser):
         """
         self._current_source_path = Path(remove_uri_version(str(value)))
 
-    def parse_combined_schema(
-        self,
-        name: str,
-        obj: JsonSchemaObject,
-        path: list[str],
-        target_attribute_name: str,
-    ) -> list[DataType]:
-        """
-        This is a copy of the JsonSchemaParser.parse_combined_schema method, but with the
-        JsonSchemaObject replaced with RadSchemaObject to enable the custom processing of
-        our Json schema extension
-        """
-        base_object = obj.dict(exclude={target_attribute_name}, exclude_unset=True, by_alias=True)
-        combined_schemas: list[JsonSchemaObject] = []
-        refs = []
-        for index, target_attribute in enumerate(getattr(obj, target_attribute_name, [])):
-            if target_attribute.ref:
-                combined_schemas.append(target_attribute)
-                refs.append(index)
-            else:
-                combined_schemas.append(
-                    RadSchemaObject.parse_obj(
-                        self._deep_merge(
-                            base_object,
-                            target_attribute.dict(exclude_unset=True, by_alias=True),
-                        )
-                    )
-                )
-
-        parsed_schemas = self.parse_list_item(
-            name,
-            combined_schemas,
-            path,
-            obj,
-            singular_name=False,
-        )
-        common_path_keyword = f"{target_attribute_name}Common"
-        return [
-            self._parse_object_common_part(
-                name,
-                obj,
-                [*get_special_path(common_path_keyword, path), str(i)],
-                ignore_duplicate_model=True,
-                fields=[],
-                base_classes=[d.reference],
-                required=[],
-            )
-            if i in refs and d.reference
-            else d
-            for i, d in enumerate(parsed_schemas)
-        ]
-
-    def parse_raw_obj(
-        self,
-        name: str,
-        raw: dict[str, Any],
-        path: list[str],
-    ) -> None:
-        """
-        This is a copy of the JsonSchemaParser.parse_raw_obj method, but with the
-        JsonSchemaObject replaced with RadSchemaObject to enable the custom processing of
-        our Json schema extension
-        """
-        self.parse_obj(name, RadSchemaObject.parse_obj(raw), path)
-
     def _parse_file(
         self,
         raw: dict[str, Any],
@@ -384,59 +320,4 @@ class RadSchemaParser(JsonSchemaParser):
         """
         obj_name = class_name_from_uri(raw.get("id", "NoID"))
 
-        object_paths = [o for o in object_paths or [] if o]
-        if object_paths:
-            path = [*path_parts, f"#/{object_paths[0]}", *object_paths[1:]]
-        else:
-            path = path_parts
-        with self.model_resolver.current_root_context(path_parts):
-            obj_name = self.model_resolver.add(path, obj_name, unique=False, class_name=True).name
-            with self.root_id_context(raw):
-                # Some jsonschema docs include attribute self to have include version details
-                raw.pop("self", None)
-                # parse $id before parsing $ref
-                root_obj = RadSchemaObject.parse_obj(raw)
-                self.parse_id(root_obj, path_parts)
-                definitions: dict[Any, Any] | None = None
-                for schema_path, split_schema_path in self.schema_paths:
-                    try:
-                        definitions = get_model_by_path(raw, split_schema_path)
-                        if definitions:
-                            break
-                    except KeyError:
-                        continue
-                if definitions is None:
-                    definitions = {}
-
-                for key, model in definitions.items():
-                    obj = RadSchemaObject.parse_obj(model)
-                    self.parse_id(obj, [*path_parts, schema_path, key])
-
-                if object_paths:
-                    models = get_model_by_path(raw, object_paths)
-                    model_name = object_paths[-1]
-                    self.parse_obj(model_name, RadSchemaObject.parse_obj(models), path)
-                else:
-                    self.parse_obj(obj_name, root_obj, path_parts or ["#"])
-                for key, model in definitions.items():
-                    path = [*path_parts, schema_path, key]
-                    reference = self.model_resolver.get(path)
-                    if not reference or not reference.loaded:
-                        self.parse_raw_obj(key, model, path)
-
-                key = tuple(path_parts)
-                reserved_refs = set(self.reserved_refs.get(key) or [])
-                while reserved_refs:
-                    for reserved_path in sorted(reserved_refs):
-                        reference = self.model_resolver.get(reserved_path)
-                        if not reference or reference.loaded:
-                            continue
-                        object_paths = reserved_path.split("#/", 1)[-1].split("/")
-                        path = reserved_path.split("/")
-                        models = get_model_by_path(raw, object_paths)
-                        model_name = object_paths[-1]
-                        self.parse_obj(model_name, RadSchemaObject.parse_obj(models), path)
-                    previous_reserved_refs = reserved_refs
-                    reserved_refs = set(self.reserved_refs.get(key) or [])
-                    if previous_reserved_refs == reserved_refs:
-                        break
+        super()._parse_file(raw, obj_name, path_parts, object_paths)

@@ -17,7 +17,7 @@ from datamodel_code_generator.reference import ModelResolver, get_relative_path
 from datamodel_code_generator.types import DataType, DataTypeManager, StrictTypes
 
 from rad import resources
-from rad.pydantic.adaptors._adaptor_factory import adaptor_factory, has_adaptor
+from rad.pydantic.adaptors import adaptor_factory, has_adaptor
 
 DATAMODELS_MANIFEST_PATH = importlib.resources.files(resources) / "manifests" / "datamodels-1.0.yaml"
 DATAMODELS_MANIFEST = yaml.safe_load(DATAMODELS_MANIFEST_PATH.read_bytes())

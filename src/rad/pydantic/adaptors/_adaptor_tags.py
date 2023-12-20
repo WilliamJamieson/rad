@@ -12,4 +12,4 @@ class asdf_tags(StrEnum):
     ASTROPY_TIME = "tag:stsci.edu:asdf/time/time-1.1.0"
     ASTROPY_UNIT = "tag:astropy.org:astropy/units/unit-1.0.0"
     ASTROPY_QUANTITY = "tag:stsci.edu:asdf/unit/quantity-1.1.0"
-    ASDF_NDARRAY = "tag:stsci.edu:asdf/core/ndarray-1.0.0"
+    ND_ARRAY = "tag:stsci.edu:asdf/core/ndarray-1.0.0"

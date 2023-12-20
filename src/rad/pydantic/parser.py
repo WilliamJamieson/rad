@@ -7,12 +7,11 @@ from urllib.parse import ParseResult
 
 import yaml
 from asdf.config import get_config
-from datamodel_code_generator import InvalidClassNameError, load_yaml
 from datamodel_code_generator.format import PythonVersion
 from datamodel_code_generator.model import DataModel, DataModelFieldBase
 from datamodel_code_generator.model import pydantic as pydantic_model
 from datamodel_code_generator.parser import DefaultPutDict, LiteralType
-from datamodel_code_generator.parser.base import get_special_path, title_to_class_name
+from datamodel_code_generator.parser.base import get_special_path
 from datamodel_code_generator.parser.jsonschema import JsonSchemaObject, JsonSchemaParser, get_model_by_path
 from datamodel_code_generator.reference import ModelResolver, get_relative_path
 from datamodel_code_generator.types import DataType, DataTypeManager, StrictTypes
@@ -44,37 +43,22 @@ class AsdfModelResolver(ModelResolver):
         return super().resolve_ref(path)
 
 
-def name_from_tag_uri(tag_uri):
-    """
-    Compute the name of the schema from the tag_uri.
-
-    Parameters
-    ----------
-    tag_uri : str
-        The tag_uri to find the name from
-    """
-    return tag_uri.split("/")[-1].split("-")[0]
+def remove_uri_version(uri):
+    return uri.split("-")[0]
 
 
-def class_name_from_tag_uri(tag_uri):
-    """
-    Construct the class name for the STNode class from the tag_uri
+def class_name_from_uri(uri):
+    uri = remove_uri_version(uri)
 
-    Parameters
-    ----------
-    tag_uri : str
-        The tag_uri found in the RAD manifest
-
-    Returns
-    -------
-    string name for the class
-    """
-    tag_name = name_from_tag_uri(tag_uri)
-    class_name = "".join([p.capitalize() for p in tag_name.split("_")])
-    if tag_uri.startswith("asdf://stsci.edu/datamodels/roman/tags/reference_files/"):
+    class_name = "".join([p.capitalize() for p in uri.split("/")[-1].split("_")])
+    if uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/"):
         class_name += "Ref"
 
     return class_name
+
+
+def class_name_generator(name: str) -> str:
+    return name
 
 
 class AsdfSchemaObject(JsonSchemaObject):
@@ -147,7 +131,6 @@ class AsdfSchemaParser(JsonSchemaParser):
         disable_appending_item_suffix: bool = False,
         strict_types: Sequence[StrictTypes] | None = None,
         empty_enum_field_name: str | None = None,
-        custom_class_name_generator: Callable[[str], str] | None = None,
         field_extra_keys: set[str] | None = None,
         field_include_all_keys: bool = False,
         field_extra_keys_without_x_prefix: set[str] | None = None,
@@ -172,6 +155,7 @@ class AsdfSchemaParser(JsonSchemaParser):
         custom_formatters: list[str] | None = None,
         custom_formatters_kwargs: dict[str, Any] | None = None,
     ) -> None:
+        custom_class_name_generator: Callable[[str], str] | None = class_name_generator
         super().__init__(
             source=source,
             data_model_type=data_model_type,
@@ -251,24 +235,13 @@ class AsdfSchemaParser(JsonSchemaParser):
             capitalise_enum_members=capitalise_enum_members,
         )
 
-    def parse_raw(self) -> None:
-        for source, path_parts in self._get_context_source_path_parts():
-            self.raw_obj = load_yaml(source.text)
-            if self.custom_class_name_generator:
-                obj_name = class_name_from_tag_uri(self.raw_obj.get("id", "NoID"))
-            else:
-                if self.class_name:
-                    obj_name = self.class_name
-                else:
-                    # backward compatible
-                    obj_name = self.raw_obj.get("title", "Model")
-                    if not self.model_resolver.validate_name(obj_name):
-                        obj_name = title_to_class_name(obj_name)
-                if not self.model_resolver.validate_name(obj_name):
-                    raise InvalidClassNameError(obj_name)
-            self._parse_file(self.raw_obj, obj_name, path_parts)
+    @property
+    def current_source_path(self) -> Path:
+        return self._current_source_path
 
-        self._resolve_unparsed_json_pointer()
+    @current_source_path.setter
+    def current_source_path(self, value: Path) -> None:
+        self._current_source_path = Path(remove_uri_version(str(value)))
 
     def parse_combined_schema(
         self,
@@ -284,20 +257,6 @@ class AsdfSchemaParser(JsonSchemaParser):
             if target_attribute.ref:
                 combined_schemas.append(target_attribute)
                 refs.append(index)
-                # TODO: support partial ref
-                # {
-                #   "type": "integer",
-                #   "oneOf": [
-                #     { "minimum": 5 },
-                #     { "$ref": "#/definitions/positive" }
-                #   ],
-                #    "definitions": {
-                #     "positive": {
-                #       "minimum": 0,
-                #       "exclusiveMinimum": true
-                #     }
-                #    }
-                # }
             else:
                 combined_schemas.append(
                     AsdfSchemaObject.parse_obj(
@@ -339,14 +298,6 @@ class AsdfSchemaParser(JsonSchemaParser):
     ) -> None:
         self.parse_obj(name, AsdfSchemaObject.parse_obj(raw), path)
 
-    @property
-    def current_source_path(self) -> Path:
-        return self._current_source_path
-
-    @current_source_path.setter
-    def current_source_path(self, value: Path) -> None:
-        self._current_source_path = Path(str(value).split("-")[0])
-
     def _parse_file(
         self,
         raw: dict[str, Any],
@@ -354,6 +305,8 @@ class AsdfSchemaParser(JsonSchemaParser):
         path_parts: list[str],
         object_paths: list[str] | None = None,
     ) -> None:
+        obj_name = class_name_from_uri(raw.get("id", "NoID"))
+
         object_paths = [o for o in object_paths or [] if o]
         if object_paths:
             path = [*path_parts, f"#/{object_paths[0]}", *object_paths[1:]]

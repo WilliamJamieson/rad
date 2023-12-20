@@ -8,10 +8,6 @@ from rad.pydantic.parser import AsdfSchemaParser
 path = Path(__file__).parent.parent / "resources" / "schemas"
 
 
-def class_name_generator(name: str) -> str:
-    return name
-
-
 data_model_types = get_data_model_types(DataModelType.PydanticV2BaseModel, target_python_version=PythonVersion.PY_311)
 parser = AsdfSchemaParser(
     path,
@@ -22,7 +18,6 @@ parser = AsdfSchemaParser(
     dump_resolve_reference_action=data_model_types.dump_resolve_reference_action,
     use_annotated=True,
     field_constraints=True,
-    custom_class_name_generator=class_name_generator,
 )
 result = parser.parse()
 

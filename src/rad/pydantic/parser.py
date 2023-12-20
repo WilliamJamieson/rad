@@ -26,7 +26,35 @@ DATAMODELS_MANIFEST = yaml.safe_load(DATAMODELS_MANIFEST_PATH.read_bytes())
 DATAMODELS_TAG_URI_MAP = {tag["tag_uri"]: tag["schema_uri"] for tag in DATAMODELS_MANIFEST["tags"]}
 
 
-class AsdfModelResolver(ModelResolver):
+def remove_uri_version(uri):
+    """
+    Remove the version from the uri, this is helpful because the version number forces
+    module names to not be valid python module names, and we don't need the version
+    for the models anyway.
+    """
+    return uri.split("-")[0]
+
+
+def class_name_from_uri(uri):
+    """Turn the uri/id into a valid python class name"""
+
+    uri = remove_uri_version(uri)
+
+    class_name = "".join([p.capitalize() for p in uri.split("/")[-1].split("_")])
+    if uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/"):
+        class_name += "Ref"
+
+    return class_name
+
+
+def class_name_generator(name: str) -> str:
+    """Identity function to supersede the default class name generator"""
+    return name
+
+
+class RadModelResolver(ModelResolver):
+    """Modifications to the standard ModelResolver to support Rad $ref conventions"""
+
     def resolve_ref(self, path: Sequence[str] | str) -> str:
         manager = get_config().resource_manager
 
@@ -43,36 +71,21 @@ class AsdfModelResolver(ModelResolver):
         return super().resolve_ref(path)
 
 
-def remove_uri_version(uri):
-    return uri.split("-")[0]
+class RadSchemaObject(JsonSchemaObject):
+    """Modifications to the JsonSchemaObject to support reading Rad schemas"""
 
-
-def class_name_from_uri(uri):
-    uri = remove_uri_version(uri)
-
-    class_name = "".join([p.capitalize() for p in uri.split("/")[-1].split("_")])
-    if uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/"):
-        class_name += "Ref"
-
-    return class_name
-
-
-def class_name_generator(name: str) -> str:
-    return name
-
-
-class AsdfSchemaObject(JsonSchemaObject):
-    items: list[AsdfSchemaObject] | AsdfSchemaObject | bool | None = None
-    additionalProperties: AsdfSchemaObject | bool | None = None
-    patternProperties: dict[str, AsdfSchemaObject] | None = None
-    oneOf: list[AsdfSchemaObject] = []
-    anyOf: list[AsdfSchemaObject] = []
-    allOf: list[AsdfSchemaObject] = []
-    properties: dict[str, AsdfSchemaObject | bool] | None = None
+    items: list[RadSchemaObject] | RadSchemaObject | bool | None = None
+    additionalProperties: RadSchemaObject | bool | None = None
+    patternProperties: dict[str, RadSchemaObject] | None = None
+    oneOf: list[RadSchemaObject] = []
+    anyOf: list[RadSchemaObject] = []
+    allOf: list[RadSchemaObject] = []
+    properties: dict[str, RadSchemaObject | bool] | None = None
     tag: str | None = None
     astropy_type: str | None = None
 
     def model_post_init(self, __context: Any) -> None:
+        """Custom post processing for RadSchemaObject"""
         if self.tag is not None:
             if self.tag in DATAMODELS_TAG_URI_MAP:
                 if self.ref is None:
@@ -85,10 +98,12 @@ class AsdfSchemaObject(JsonSchemaObject):
             self.allOf = []
 
 
-AsdfSchemaObject.model_rebuild()
+RadSchemaObject.model_rebuild()
 
 
-class AsdfSchemaParser(JsonSchemaParser):
+class RadSchemaParser(JsonSchemaParser):
+    """Modifications to the JsonSchemaParser to support Rad schemas"""
+
     def __init__(
         self,
         source: str | Path | list[Path] | ParseResult,
@@ -155,6 +170,14 @@ class AsdfSchemaParser(JsonSchemaParser):
         custom_formatters: list[str] | None = None,
         custom_formatters_kwargs: dict[str, Any] | None = None,
     ) -> None:
+        """
+        Note this exactly replcates the JsonSchemaParser constructor, but with the
+        custom_class_name_generator argument removed.
+
+        This is done so we can override the custom_class_name_generator argument with
+        our own default and pass the correct inputs to the model_resolver constructor
+        in order to override it with our own custom implementation.
+        """
         custom_class_name_generator: Callable[[str], str] | None = class_name_generator
         super().__init__(
             source=source,
@@ -221,7 +244,7 @@ class AsdfSchemaParser(JsonSchemaParser):
             custom_formatters=custom_formatters,
             custom_formatters_kwargs=custom_formatters_kwargs,
         )
-        self.model_resolver = AsdfModelResolver(
+        self.model_resolver = RadModelResolver(
             base_url=self.model_resolver.base_url,
             singular_name_suffix=self.model_resolver.singular_name_suffix,
             aliases=aliases,
@@ -235,12 +258,51 @@ class AsdfSchemaParser(JsonSchemaParser):
             capitalise_enum_members=capitalise_enum_members,
         )
 
+    def get_data_type(self, obj: JsonSchemaObject) -> DataType:
+        """Short circuit to enable reaching to ASDF types outside of RAD"""
+        if has_adaptor(obj):
+            return adaptor_factory(obj, self.data_type_manager.data_type())
+        return super().get_data_type(obj)
+
+    def parse_item(
+        self,
+        name: str,
+        item: JsonSchemaObject,
+        path: list[str],
+        singular_name: bool = False,
+        parent: JsonSchemaObject | None = None,
+    ) -> DataType:
+        """Short circuit to enable reaching to ASDF types outside of RAD"""
+        if has_adaptor(item):
+            return adaptor_factory(item, self.data_type_manager.data_type())
+        return super().parse_item(name, item, path, singular_name, parent)
+
+    def parse_object(
+        self,
+        name: str,
+        obj: JsonSchemaObject,
+        path: list[str],
+        singular_name: bool = False,
+        unique: bool = True,
+    ) -> DataType:
+        """Short circuit to enable reaching to ASDF types outside of RAD"""
+        if has_adaptor(obj):
+            return adaptor_factory(obj, self.data_type_manager.data_type())
+        return super().parse_object(name, obj, path, singular_name, unique)
+
     @property
     def current_source_path(self) -> Path:
+        """Override the current_source_path to remove the version from the path"""
         return self._current_source_path
 
     @current_source_path.setter
     def current_source_path(self, value: Path) -> None:
+        """
+        Override the current_source_path to remove the version from the path
+
+        The version number plays havoc with the module names, and we don't need it
+        in those name in any case.
+        """
         self._current_source_path = Path(remove_uri_version(str(value)))
 
     def parse_combined_schema(
@@ -250,6 +312,11 @@ class AsdfSchemaParser(JsonSchemaParser):
         path: list[str],
         target_attribute_name: str,
     ) -> list[DataType]:
+        """
+        This is a copy of the JsonSchemaParser.parse_combined_schema method, but with the
+        JsonSchemaObject replaced with RadSchemaObject to enable the custom processing of
+        our Json schema extension
+        """
         base_object = obj.dict(exclude={target_attribute_name}, exclude_unset=True, by_alias=True)
         combined_schemas: list[JsonSchemaObject] = []
         refs = []
@@ -259,7 +326,7 @@ class AsdfSchemaParser(JsonSchemaParser):
                 refs.append(index)
             else:
                 combined_schemas.append(
-                    AsdfSchemaObject.parse_obj(
+                    RadSchemaObject.parse_obj(
                         self._deep_merge(
                             base_object,
                             target_attribute.dict(exclude_unset=True, by_alias=True),
@@ -296,7 +363,12 @@ class AsdfSchemaParser(JsonSchemaParser):
         raw: dict[str, Any],
         path: list[str],
     ) -> None:
-        self.parse_obj(name, AsdfSchemaObject.parse_obj(raw), path)
+        """
+        This is a copy of the JsonSchemaParser.parse_raw_obj method, but with the
+        JsonSchemaObject replaced with RadSchemaObject to enable the custom processing of
+        our Json schema extension
+        """
+        self.parse_obj(name, RadSchemaObject.parse_obj(raw), path)
 
     def _parse_file(
         self,
@@ -305,6 +377,11 @@ class AsdfSchemaParser(JsonSchemaParser):
         path_parts: list[str],
         object_paths: list[str] | None = None,
     ) -> None:
+        """
+        This is a copy of the JsonSchemaParser._parse_file method, but with the
+        JsonSchemaObject replaced with RadSchemaObject to enable the custom processing of
+        our Json schema extension
+        """
         obj_name = class_name_from_uri(raw.get("id", "NoID"))
 
         object_paths = [o for o in object_paths or [] if o]
@@ -318,7 +395,7 @@ class AsdfSchemaParser(JsonSchemaParser):
                 # Some jsonschema docs include attribute self to have include version details
                 raw.pop("self", None)
                 # parse $id before parsing $ref
-                root_obj = AsdfSchemaObject.parse_obj(raw)
+                root_obj = RadSchemaObject.parse_obj(raw)
                 self.parse_id(root_obj, path_parts)
                 definitions: dict[Any, Any] | None = None
                 for schema_path, split_schema_path in self.schema_paths:
@@ -332,13 +409,13 @@ class AsdfSchemaParser(JsonSchemaParser):
                     definitions = {}
 
                 for key, model in definitions.items():
-                    obj = AsdfSchemaObject.parse_obj(model)
+                    obj = RadSchemaObject.parse_obj(model)
                     self.parse_id(obj, [*path_parts, schema_path, key])
 
                 if object_paths:
                     models = get_model_by_path(raw, object_paths)
                     model_name = object_paths[-1]
-                    self.parse_obj(model_name, AsdfSchemaObject.parse_obj(models), path)
+                    self.parse_obj(model_name, RadSchemaObject.parse_obj(models), path)
                 else:
                     self.parse_obj(obj_name, root_obj, path_parts or ["#"])
                 for key, model in definitions.items():
@@ -358,37 +435,8 @@ class AsdfSchemaParser(JsonSchemaParser):
                         path = reserved_path.split("/")
                         models = get_model_by_path(raw, object_paths)
                         model_name = object_paths[-1]
-                        self.parse_obj(model_name, AsdfSchemaObject.parse_obj(models), path)
+                        self.parse_obj(model_name, RadSchemaObject.parse_obj(models), path)
                     previous_reserved_refs = reserved_refs
                     reserved_refs = set(self.reserved_refs.get(key) or [])
                     if previous_reserved_refs == reserved_refs:
                         break
-
-    def get_data_type(self, obj: JsonSchemaObject) -> DataType:
-        if has_adaptor(obj):
-            return adaptor_factory(obj, self.data_type_manager.data_type())
-        return super().get_data_type(obj)
-
-    def parse_item(
-        self,
-        name: str,
-        item: JsonSchemaObject,
-        path: list[str],
-        singular_name: bool = False,
-        parent: JsonSchemaObject | None = None,
-    ) -> DataType:
-        if has_adaptor(item):
-            return adaptor_factory(item, self.data_type_manager.data_type())
-        return super().parse_item(name, item, path, singular_name, parent)
-
-    def parse_object(
-        self,
-        name: str,
-        obj: JsonSchemaObject,
-        path: list[str],
-        singular_name: bool = False,
-        unique: bool = True,
-    ) -> DataType:
-        if has_adaptor(obj):
-            return adaptor_factory(obj, self.data_type_manager.data_type())
-        return super().parse_object(name, obj, path, singular_name, unique)

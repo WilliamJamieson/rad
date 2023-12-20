@@ -3,13 +3,13 @@ from pathlib import Path
 from datamodel_code_generator import DataModelType, PythonVersion
 from datamodel_code_generator.model import get_data_model_types
 
-from rad.pydantic.parser import AsdfSchemaParser
+from rad.pydantic.parser import RadSchemaParser
 
 path = Path(__file__).parent.parent / "resources" / "schemas"
 
 
 data_model_types = get_data_model_types(DataModelType.PydanticV2BaseModel, target_python_version=PythonVersion.PY_311)
-parser = AsdfSchemaParser(
+parser = RadSchemaParser(
     path,
     data_model_type=data_model_types.data_model,
     data_model_root_type=data_model_types.root_model,

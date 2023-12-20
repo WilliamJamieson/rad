@@ -22,7 +22,7 @@ properties:
       destination: [ScienceCommon.exposure_id, GuideWindow.exposure_id]
 
   type:
-    $ref: exposure_type-1.0.0
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure_type-1.0.0
     sdf:
       special_processing: VALUE_REQUIRED
       source:

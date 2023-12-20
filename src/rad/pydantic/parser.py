@@ -18,6 +18,7 @@ from datamodel_code_generator.reference import ID_PATTERN, ModelResolver, get_re
 from datamodel_code_generator.types import DataType, DataTypeManager, StrictTypes
 
 from rad import resources
+from rad.pydantic._adaptors._adaptor_factory import adaptor_factory, has_adaptor
 
 DATAMODELS_MANIFEST_PATH = importlib.resources.files(resources) / "manifests" / "datamodels-1.0.yaml"
 DATAMODELS_MANIFEST = yaml.safe_load(DATAMODELS_MANIFEST_PATH.read_bytes())
@@ -132,13 +133,19 @@ class AsdfSchemaObject(JsonSchemaObject):
     allOf: list[AsdfSchemaObject] = []
     properties: dict[str, AsdfSchemaObject | bool] | None = None
     tag: str | None = None
+    astropy_type: str | None = None
 
     def model_post_init(self, __context: Any) -> None:
         if self.tag is not None:
-            if self.ref is None:
-                self.ref = DATAMODELS_TAG_URI_MAP[self.tag]
-            else:
-                raise ValueError("Cannot set both tag and ref")
+            if self.tag in DATAMODELS_TAG_URI_MAP:
+                if self.ref is None:
+                    self.ref = DATAMODELS_TAG_URI_MAP[self.tag]
+                else:
+                    raise ValueError("Cannot set both tag and ref")
+
+        if self.astropy_type is not None:
+            self.custom_type_path = self.astropy_type
+            self.allOf = []
 
 
 AsdfSchemaObject.model_rebuild()
@@ -293,6 +300,8 @@ class AsdfSchemaParser(JsonSchemaParser):
 
     def parse_raw(self) -> None:
         for source, path_parts in self._get_context_source_path_parts():
+            if str(source.path) == "rad_schema-1.0.0.yaml":
+                continue
             self.raw_obj = load_yaml(source.text)
             if self.custom_class_name_generator:
                 obj_name = class_name_from_tag_uri(self.raw_obj.get("id", "NoID"))
@@ -450,3 +459,32 @@ class AsdfSchemaParser(JsonSchemaParser):
                     reserved_refs = set(self.reserved_refs.get(key) or [])
                     if previous_reserved_refs == reserved_refs:
                         break
+
+    def get_data_type(self, obj: JsonSchemaObject) -> DataType:
+        if has_adaptor(obj):
+            return adaptor_factory(obj, self.data_type_manager.data_type())
+        return super().get_data_type(obj)
+
+    def parse_item(
+        self,
+        name: str,
+        item: JsonSchemaObject,
+        path: list[str],
+        singular_name: bool = False,
+        parent: JsonSchemaObject | None = None,
+    ) -> DataType:
+        if has_adaptor(item):
+            return adaptor_factory(item, self.data_type_manager.data_type())
+        return super().parse_item(name, item, path, singular_name, parent)
+
+    def parse_object(
+        self,
+        name: str,
+        obj: JsonSchemaObject,
+        path: list[str],
+        singular_name: bool = False,
+        unique: bool = True,
+    ) -> DataType:
+        if has_adaptor(obj):
+            return adaptor_factory(obj, self.data_type_manager.data_type())
+        return super().parse_object(name, obj, path, singular_name, unique)

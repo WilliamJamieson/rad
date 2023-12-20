@@ -5,6 +5,8 @@ id: asdf://stsci.edu/datamodels/roman/schemas/tagged_scalars/file_date-1.0.0
 
 title: Date this file was created (UTC)
 
+astropy_type: rad.pydantic._adaptors.AstropyTime
+
 allOf:
   - $ref: http://stsci.edu/schemas/asdf/time/time-1.1.0
 

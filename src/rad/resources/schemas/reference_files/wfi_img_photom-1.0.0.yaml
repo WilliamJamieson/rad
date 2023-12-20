@@ -11,7 +11,7 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: ref_common-1.0.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-1.0.0
       - type: object
         properties:
           reftype:
@@ -29,8 +29,8 @@ properties:
             anyOf:
               - tag: tag:stsci.edu:asdf/unit/quantity-1.1.0
                 properties:
-                  value:
-                    type: number
+                  datatype:
+                    enum: ["float64"]
                   unit:
                     tag: tag:stsci.edu:asdf/unit/unit-1.0.0
                     enum: [MJy.sr**-1]
@@ -40,8 +40,8 @@ properties:
             anyOf:
               - tag: tag:stsci.edu:asdf/unit/quantity-1.1.0
                 properties:
-                  value:
-                    type: number
+                  datatype:
+                    enum: ["float64"]
                   unit:
                     tag: tag:stsci.edu:asdf/unit/unit-1.0.0
                     enum: [MJy.sr**-1]
@@ -51,8 +51,8 @@ properties:
             anyOf:
               - tag: tag:stsci.edu:asdf/unit/quantity-1.1.0
                 properties:
-                  value:
-                    type: number
+                  datatype:
+                    enum: ["float64"]
                   unit:
                     tag: tag:stsci.edu:asdf/unit/unit-1.0.0
                     enum: [sr]

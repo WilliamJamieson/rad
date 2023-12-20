@@ -1,6 +1,8 @@
 from datamodel_code_generator.imports import Import
 from datamodel_code_generator.types import DataType
 
+from rad.pydantic.parser._schema import RadSchemaObject
+
 from ._adaptor_tags import asdf_tags
 from ._astropy_quantity import AstropyQuantity
 from ._astropy_time import AstropyTime
@@ -26,7 +28,7 @@ IMPORT_ = {
 }
 
 
-def has_adaptor(obj) -> bool:
+def has_adaptor(obj: RadSchemaObject) -> bool:
     """
     Determine if we have an adaptor for the given tag
 
@@ -42,7 +44,7 @@ def has_adaptor(obj) -> bool:
     return obj.tag in asdf_tags
 
 
-def adaptor_factory(obj, data_type: DataType) -> DataType:
+def adaptor_factory(obj: RadSchemaObject, data_type: DataType) -> DataType:
     """
     Create the data type for the given tag
 
@@ -94,7 +96,7 @@ def adaptor_factory(obj, data_type: DataType) -> DataType:
     return d_type
 
 
-def _ndarray_factory(obj, import_: str) -> tuple[str, str]:
+def _ndarray_factory(obj: RadSchemaObject, import_: str) -> tuple[str, str]:
     """
     Factory to get the type and import for an ndarray
 
@@ -128,7 +130,7 @@ def _ndarray_factory(obj, import_: str) -> tuple[str, str]:
     return f"{dtype}, {extras.get('ndim', None)}", import_
 
 
-def _unit_factory(unit, import_: str) -> tuple[str, str]:
+def _unit_factory(obj: RadSchemaObject, import_: str) -> tuple[str, str]:
     """
     Factory to get the type and import for an astropy unit
 
@@ -153,24 +155,24 @@ def _unit_factory(unit, import_: str) -> tuple[str, str]:
     # it is possible for there to be no additional unit specification
     # it is also assumed that unit specification will be an enumerated list of
     # valid astropy unit string(s)
-    if unit is not None and unit.enum is not None:
+    if obj is not None and obj.enum is not None:
         import_ += ", Unit"
 
         # Transform the enum units into a python code snippet
-        units = [f'Unit("{u}")' for u in unit.enum]
+        units = [f'Unit("{u}")' for u in obj.enum]
 
         # Reduce the units to a single unit if possible
         if len(units) == 1:
-            unit = units[0]
+            obj = units[0]
         else:
-            unit = f"({', '.join(units)})"
+            obj = f"({', '.join(units)})"
     else:
-        unit = None
+        obj = None
 
-    return unit, import_
+    return obj, import_
 
 
-def _quantity_factory(properties, import_: str) -> tuple[str, str]:
+def _quantity_factory(obj: RadSchemaObject, import_: str) -> tuple[str, str]:
     """
     Factory to get the type and import for an astropy quantity
 
@@ -195,18 +197,18 @@ def _quantity_factory(properties, import_: str) -> tuple[str, str]:
     # Scalar quantities are represented using only "datatype" and "unit", with no "value" key.
     # Non-scalar quantities are represented using "value" and "unit", with no "datatype" key.
     #   the "value" key is an ndarray representation
-    if "datatype" in properties:
+    if "datatype" in obj:
         import_ += ", np"
 
         # Scalar quantities have datatype defined as an enum and ndim = 0
-        value = f"np.{properties['datatype'].enum[0]}, 0"  # scalar ndim = 0
+        value = f"np.{obj['datatype'].enum[0]}, 0"  # scalar ndim = 0
     else:
         # Treat the value as an ndarray
-        value = properties.get("value", "None, None")
+        value = obj.get("value", "None, None")
         if value is not None:
             value, import_ = _ndarray_factory(value, import_)
 
-    unit = properties.get("unit", None)
+    unit = obj.get("unit", None)
     unit, import_ = _unit_factory(unit, import_)
 
     return f"{value}, {unit}", import_

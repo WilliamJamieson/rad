@@ -1,104 +1,23 @@
 from __future__ import annotations
 
-import importlib.resources
 from pathlib import Path
 from typing import Any, Callable, DefaultDict, Iterable, Mapping, Sequence
 from urllib.parse import ParseResult
 
-import yaml
-from asdf.config import get_config
 from datamodel_code_generator.format import PythonVersion
 from datamodel_code_generator.model import DataModel, DataModelFieldBase
 from datamodel_code_generator.model import pydantic as pydantic_model
 from datamodel_code_generator.parser import DefaultPutDict, LiteralType
 from datamodel_code_generator.parser.base import get_special_path
-from datamodel_code_generator.parser.jsonschema import JsonSchemaObject, JsonSchemaParser, get_model_by_path
-from datamodel_code_generator.reference import ModelResolver, get_relative_path
+from datamodel_code_generator.parser.jsonschema import JsonSchemaParser, get_model_by_path
 from datamodel_code_generator.types import DataType, DataTypeManager, StrictTypes
 
-from rad import resources
 from rad.pydantic.adaptors import adaptor_factory, has_adaptor
 
-DATAMODELS_MANIFEST_PATH = importlib.resources.files(resources) / "manifests" / "datamodels-1.0.yaml"
-DATAMODELS_MANIFEST = yaml.safe_load(DATAMODELS_MANIFEST_PATH.read_bytes())
+from ._reslover import RadModelResolver
+from ._schema import RadSchemaObject
 
-
-DATAMODELS_TAG_URI_MAP = {tag["tag_uri"]: tag["schema_uri"] for tag in DATAMODELS_MANIFEST["tags"]}
-
-
-def remove_uri_version(uri):
-    """
-    Remove the version from the uri, this is helpful because the version number forces
-    module names to not be valid python module names, and we don't need the version
-    for the models anyway.
-    """
-    return uri.split("-")[0]
-
-
-def class_name_from_uri(uri):
-    """Turn the uri/id into a valid python class name"""
-
-    uri = remove_uri_version(uri)
-
-    class_name = "".join([p.capitalize() for p in uri.split("/")[-1].split("_")])
-    if uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/"):
-        class_name += "Ref"
-
-    return class_name
-
-
-def class_name_generator(name: str) -> str:
-    """Identity function to supersede the default class name generator"""
-    return name
-
-
-class RadModelResolver(ModelResolver):
-    """Modifications to the standard ModelResolver to support Rad $ref conventions"""
-
-    def resolve_ref(self, path: Sequence[str] | str) -> str:
-        manager = get_config().resource_manager
-
-        if isinstance(path, str):
-            joined_path = path
-        else:
-            joined_path = self.join_path(path)
-
-        if joined_path in manager:
-            resolved_file_path = manager._mappings_by_uri[joined_path]._delegate._uri_to_file[joined_path]
-
-            return get_relative_path(self._base_path, resolved_file_path).as_posix() + "#"
-
-        return super().resolve_ref(path)
-
-
-class RadSchemaObject(JsonSchemaObject):
-    """Modifications to the JsonSchemaObject to support reading Rad schemas"""
-
-    items: list[RadSchemaObject] | RadSchemaObject | bool | None = None
-    additionalProperties: RadSchemaObject | bool | None = None
-    patternProperties: dict[str, RadSchemaObject] | None = None
-    oneOf: list[RadSchemaObject] = []
-    anyOf: list[RadSchemaObject] = []
-    allOf: list[RadSchemaObject] = []
-    properties: dict[str, RadSchemaObject | bool] | None = None
-    tag: str | None = None
-    astropy_type: str | None = None
-
-    def model_post_init(self, __context: Any) -> None:
-        """Custom post processing for RadSchemaObject"""
-        if self.tag is not None:
-            if self.tag in DATAMODELS_TAG_URI_MAP:
-                if self.ref is None:
-                    self.ref = DATAMODELS_TAG_URI_MAP[self.tag]
-                else:
-                    raise ValueError("Cannot set both tag and ref")
-
-        if self.astropy_type is not None:
-            self.custom_type_path = self.astropy_type
-            self.allOf = []
-
-
-RadSchemaObject.model_rebuild()
+__all__ = ["RadSchemaParser"]
 
 
 class RadSchemaParser(JsonSchemaParser):
@@ -258,7 +177,7 @@ class RadSchemaParser(JsonSchemaParser):
             capitalise_enum_members=capitalise_enum_members,
         )
 
-    def get_data_type(self, obj: JsonSchemaObject) -> DataType:
+    def get_data_type(self, obj: RadSchemaObject) -> DataType:
         """Short circuit to enable reaching to ASDF types outside of RAD"""
         if has_adaptor(obj):
             return adaptor_factory(obj, self.data_type_manager.data_type())
@@ -267,10 +186,10 @@ class RadSchemaParser(JsonSchemaParser):
     def parse_item(
         self,
         name: str,
-        item: JsonSchemaObject,
+        item: RadSchemaObject,
         path: list[str],
         singular_name: bool = False,
-        parent: JsonSchemaObject | None = None,
+        parent: RadSchemaObject | None = None,
     ) -> DataType:
         """Short circuit to enable reaching to ASDF types outside of RAD"""
         if has_adaptor(item):
@@ -280,7 +199,7 @@ class RadSchemaParser(JsonSchemaParser):
     def parse_object(
         self,
         name: str,
-        obj: JsonSchemaObject,
+        obj: RadSchemaObject,
         path: list[str],
         singular_name: bool = False,
         unique: bool = True,
@@ -308,7 +227,7 @@ class RadSchemaParser(JsonSchemaParser):
     def parse_combined_schema(
         self,
         name: str,
-        obj: JsonSchemaObject,
+        obj: RadSchemaObject,
         path: list[str],
         target_attribute_name: str,
     ) -> list[DataType]:
@@ -318,7 +237,7 @@ class RadSchemaParser(JsonSchemaParser):
         our Json schema extension
         """
         base_object = obj.dict(exclude={target_attribute_name}, exclude_unset=True, by_alias=True)
-        combined_schemas: list[JsonSchemaObject] = []
+        combined_schemas: list[RadSchemaObject] = []
         refs = []
         for index, target_attribute in enumerate(getattr(obj, target_attribute_name, [])):
             if target_attribute.ref:
@@ -440,3 +359,29 @@ class RadSchemaParser(JsonSchemaParser):
                     reserved_refs = set(self.reserved_refs.get(key) or [])
                     if previous_reserved_refs == reserved_refs:
                         break
+
+
+def remove_uri_version(uri):
+    """
+    Remove the version from the uri, this is helpful because the version number forces
+    module names to not be valid python module names, and we don't need the version
+    for the models anyway.
+    """
+    return uri.split("-")[0]
+
+
+def class_name_from_uri(uri):
+    """Turn the uri/id into a valid python class name"""
+
+    uri = remove_uri_version(uri)
+
+    class_name = "".join([p.capitalize() for p in uri.split("/")[-1].split("_")])
+    if uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/"):
+        class_name += "Ref"
+
+    return class_name
+
+
+def class_name_generator(name: str) -> str:
+    """Identity function to supersede the default class name generator"""
+    return name

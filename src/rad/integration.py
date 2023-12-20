@@ -13,6 +13,10 @@ class RadResourceMapping(DirectoryResourceMapping):
     def root(self):
         return self._root
 
+    @property
+    def uri_prefix(self):
+        return self._uri_prefix
+
     def get_file_path(self, uri):
         return self._uri_to_file[uri]
 

@@ -223,6 +223,7 @@ class RadSchemaParser(JsonSchemaParser):
         in those name in any case.
         """
         self._current_source_path = Path(remove_uri_version(str(value)))
+        # self._current_source_path = value
 
     def parse_combined_schema(
         self,

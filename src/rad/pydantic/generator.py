@@ -30,6 +30,8 @@ def create_rad_schema_parser(path: Path) -> RadSchemaParser:
         use_annotated=True,
         field_constraints=True,
         base_class="rad.pydantic.datamodel.RadDataModel",
+        custom_template_dir=Path(__file__).parent / "parser" / "custom_templates",
+        additional_imports=["typing.ClassVar"],
     )
 
 

@@ -196,6 +196,13 @@ class RadSchemaParser(JsonSchemaParser):
             return adaptor_factory(item, self.data_type_manager.data_type())
         return super().parse_item(name, item, path, singular_name, parent)
 
+    def set_title(self, name: str, obj: RadSchemaObject) -> None:
+        if obj.title:
+            self.extra_template_data[name]["title"] = obj.title
+
+        if obj.tag_uri:
+            self.extra_template_data[name]["tag_uri"] = obj.tag_uri
+
     def parse_object(
         self,
         name: str,

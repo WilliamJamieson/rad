@@ -6,6 +6,7 @@ from asdf.config import get_config
 from datamodel_code_generator import DataModelType, PythonVersion
 from datamodel_code_generator.model import get_data_model_types
 from datamodel_code_generator.parser.base import Result
+from datamodel_code_generator.reference import get_relative_path
 
 from rad.pydantic.parser import RadSchemaParser
 
@@ -60,6 +61,34 @@ def create_code(file: Result, version: str, use_timestamp: bool) -> str:
     return header + file.body
 
 
+def class_name_from_module(module: str, name: str):
+    class_name = "".join([p.capitalize() for p in name.split("/")[-1].split("_")])
+    if "reference_files" in module:
+        class_name += "Ref"
+
+    return class_name
+
+
+def create_base_module(module_paths: dict[str, list[str]]) -> str:
+    code = ""
+    all_classes = []
+    for module, names in module_paths.items():
+        module_name = f".{module}" if module else ""
+        names = sorted(names)
+        for name in names:
+            class_name = class_name_from_module(module, name)
+            code += f"from {module_name}.{name} import {class_name}\n"
+            all_classes.append(class_name)
+
+    code += "\n"
+    code += "__all__ = [\n"
+    for class_name in all_classes:
+        code += f'    "{class_name}",\n'
+    code += "]\n"
+
+    return code
+
+
 def write_files(
     path: Path,
     result: dict[tuple[str], Result],
@@ -67,9 +96,26 @@ def write_files(
     use_timestamp: bool = True,
 ) -> None:
     version = version or "1.0.0"
+
+    module_paths = {}
     for name, file in result.items():
-        with make_file_path(path, name).open("w") as f:
+        write_path = make_file_path(path, name)
+        with write_path.open("w") as f:
             f.write(create_code(file, version, use_timestamp))
+
+        module_path = get_relative_path(path, write_path)
+        module_name = module_path.stem
+        module_parent = module_path.parent.as_posix()
+        module_parent = "" if module_parent == "." else module_parent
+
+        if module_parent not in module_paths:
+            module_paths[module_parent] = []
+
+        if module_name != "__init__":
+            module_paths[module_parent].append(module_name)
+
+    with (path / "__init__.py").open("w") as f:
+        f.write(create_base_module(module_paths))
 
 
 def generate_files(

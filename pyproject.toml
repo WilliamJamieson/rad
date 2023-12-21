@@ -45,6 +45,7 @@ docs = [
 
 [project.entry-points]
 'asdf.resource_mappings' = { 'rad' = 'rad.integration:get_resource_mappings' }
+'asdf.extensions' = { rad_datamodels = 'rad.pydantic.integration:get_extensions' }
 
 [build-system]
 requires = ["setuptools >=61", "setuptools_scm[toml] >=3.4", "wheel"]

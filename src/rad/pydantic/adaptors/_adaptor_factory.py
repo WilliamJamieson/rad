@@ -34,6 +34,8 @@ IMPORT_ = {
     get_tag_key(name): name for name, value in locals().items() if value in (AstropyTime, AstropyUnit, AstropyQuantity, NdArray)
 }
 
+ASDF_TAGS = {tag.value for tag in asdf_tags}
+
 
 def has_adaptor(obj: RadSchemaObject) -> bool:
     """
@@ -48,7 +50,7 @@ def has_adaptor(obj: RadSchemaObject) -> bool:
     -------
     if the tag is supported via an adaptor.
     """
-    return obj.tag in asdf_tags
+    return obj.tag in ASDF_TAGS
 
 
 def adaptor_factory(obj: RadSchemaObject, data_type: DataType) -> DataType:

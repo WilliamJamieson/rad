@@ -29,6 +29,7 @@ def create_rad_schema_parser(path: Path) -> RadSchemaParser:
         dump_resolve_reference_action=data_model_types.dump_resolve_reference_action,
         use_annotated=True,
         field_constraints=True,
+        base_class="rad.pydantic.datamodel.RadDataModel",
     )
 
 

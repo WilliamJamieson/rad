@@ -1,13 +1,20 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from datamodel_code_generator.imports import Import
 from datamodel_code_generator.types import DataType
-
-from rad.pydantic.parser._schema import RadSchemaObject
 
 from ._adaptor_tags import asdf_tags
 from ._astropy_quantity import AstropyQuantity
 from ._astropy_time import AstropyTime
 from ._astropy_unit import AstropyUnit
 from ._ndarray import NdArray
+
+if TYPE_CHECKING:
+    # Prevent a runtime import loop for the sake of type annotations
+    from rad.pydantic.parser._schema import RadSchemaObject
+
 
 __all__ = ["has_adaptor", "adaptor_factory"]
 

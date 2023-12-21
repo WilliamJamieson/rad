@@ -129,8 +129,12 @@ def generate_files(
     write_files(write_path, parsed_results, version, use_timestamp)
 
 
-if __name__ == "__main__":
+def setup_files():
     write_path = Path(__file__).parent / "_generated"
     write_path.mkdir(exist_ok=True)
 
     generate_files("schemas", write_path, use_timestamp=False)
+
+
+if __name__ == "__main__":
+    setup_files()

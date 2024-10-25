@@ -19,7 +19,7 @@ properties:
             title: WFI Optical Element
             description: |
               WFI optical element used to take the data.
-            $ref: wfi_optical_element-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/wfi_optical_element-1.0.0
           exposure:
             title: Exposure Information
             tag: asdf://stsci.edu/datamodels/roman/tags/exposure-1.0.0

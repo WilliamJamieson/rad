@@ -24,7 +24,7 @@ properties:
     title: WFI Detector
     description: |
       WFI detector used to take the data.
-    $ref: wfi_detector-1.0.0
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/tvac/wfi_detector-1.0.0
     sdf:
       special_processing: VALUE_REQUIRED
       source:
@@ -36,7 +36,7 @@ properties:
     title: WFI Optical Element
     description: |
       WFI optical element used to take the data.
-    $ref: wfi_optical_element-1.0.0
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/tvac/wfi_optical_element-1.0.0
     sdf:
       special_processing: VALUE_REQUIRED
       source:

@@ -21,7 +21,7 @@ properties:
       datatype: nvarchar(20)
       destination: [WFIExposure.gw_id, GuideWindow.gw_id, WFICommon.gw_id]
   gw_fgs_mode:
-    $ref: guidewindow_modes-1.0.0
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/guidewindow_modes-1.0.0
     sdf:
       special_processing: VALUE_REQUIRED
       source:

@@ -135,9 +135,20 @@ Tags
   :standard_prefix: schemas
 
     common-1.0.0
+    ephemeris-1.0.0
+    exposure-1.0.0
+    guidestar-1.0.0
     guidewindow-1.0.0
     image_source_catalog-1.0.0
+    l2_cal_step-1.0.0
+    mosaic_segmentation_map-1.0.0
+    mosaic_source_catalog-1.0.0
     msos_stack-1.0.0
+    pointing-1.0.0
+    program-1.0.0
     ramp_fit_output-1.0.0
     ramp-1.0.0
     ref_file-1.0.0
+    segmentation_map-1.0.0
+    visit-1.0.0
+    wcsinfo-1.0.0

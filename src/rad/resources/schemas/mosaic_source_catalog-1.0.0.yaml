@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/mosaic_source_catalog-1.1.0
+id: asdf://stsci.edu/datamodels/roman/schemas/mosaic_source_catalog-1.0.0
 
 title: Source catalog generated from a Level 3 file by the Source Catalog Step.
 
@@ -22,7 +22,7 @@ properties:
             tag: asdf://stsci.edu/datamodels/roman/tags/photometry-1.0.0
           program:
             title: Program Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/program-1.1.0
+            tag: asdf://stsci.edu/datamodels/roman/tags/program-1.0.0
         required: [basic, photometry, program]
   source_catalog:
     title: Source Catalog

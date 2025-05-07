@@ -13,45 +13,103 @@ properties:
     description: |
       The version number of the calibration software used in processing this
       file.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/calibration_software_version-1.0.0
+    type: string
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: nvarchar(120)
+      destination: [WFICommon.calibration_software_version]
   filename:
     title: File Name
     description: |
       The auto-generated name of this file.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/filename-1.0.0
+    type: string
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: nvarchar(120)
+      destination: [WFICommon.filename]
   file_date:
     title: File Creation Date
     description: |
       The date and time this file was created.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/file_date-1.0.0
+    allOf:
+      - $ref: http://stsci.edu/schemas/asdf/time/time-1.1.0
+
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: datetime2
+      destination: [WFICommon.filedate]
   model_type:
     title: Data Model Type
     description: |
       The type of data model contained in this file.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/model_type-1.0.0
+    type: string
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: nvarchar(50)
+      destination: [WFICommon.model_type]
   origin:
     title: Institution / Organization Name
     description: |
       The name of the institution or organization responsible for creating this
       file.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/origin-1.0.0
+    type: string
+    enum: ["STSCI", "IPAC/SSC"]
+
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: nvarchar(15)
+      destination: [WFICommon.origin]
   prd_software_version:
     title: SOC PRD Version Number
     description: |
       The Science Operations Center (SOC) Project Reference Database (PRD)
       version number used in generating this file.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/prd_software_version-1.0.0
+    type: string
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: nvarchar(120)
+      destination: [WFICommon.prd_software_version]
   sdf_software_version:
     title: SDF Version Number
     description: |
       The version number of the Science Data Formatting (SDF) software used in
       generating this file.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/sdf_software_version-1.0.0
+    type: string
+    sdf:
+      special_processing: VALUE_REQUIRED
+      source:
+        origin: TBD
+    archive_catalog:
+      datatype: nvarchar(120)
+      destination: [WFICommon.sdf_software_version]
   telescope:
     title: Telescope Name
     description: |
       The name of the telescope used to acquire the data.
-    tag: asdf://stsci.edu/datamodels/roman/tags/fps/telescope-1.0.0
+    type: string
+    enum: [ROMAN]
+
+    archive_catalog:
+      datatype: nvarchar(5)
+      destination: [WFICommon.telescopes]
 required: [calibration_software_version, filename, file_date,
            model_type, origin, prd_software_version,
            sdf_software_version, telescope]

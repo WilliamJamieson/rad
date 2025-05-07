@@ -4,6 +4,7 @@ to schemas that exist.
 """
 
 import asdf
+import yaml
 
 from .conftest import MANIFEST_URI_PREFIX, RAD_URI_PREFIX, SCHEMA_URI_PREFIX, TAG_URI_PREFIX
 
@@ -51,3 +52,19 @@ def test_manifest_entries(manifest_entry):
         schema_uri = schema_uri.replace("tagged_scalars/", "")
     assert schema_uri.endswith(uri_suffix)
     assert schema_uri.startswith(SCHEMA_URI_PREFIX)
+
+
+def test_deprecated_manifest(latest_deprecated_manifest_uri, latest_manifest_uri, latest_schemas):
+    """
+    Check that the deprecated and manifest do not have the same URIs
+    """
+
+    deprecated_tags = yaml.safe_load(latest_schemas[latest_deprecated_manifest_uri])["tags"]
+    manifest_tags = yaml.safe_load(latest_schemas[latest_manifest_uri])["tags"]
+
+    assert {entry["tag_uri"] for entry in deprecated_tags} & {entry["tag_uri"] for entry in manifest_tags} == set(), (
+        "The deprecated manifest should not share any tags with the current manifest"
+    )
+    assert {entry["schema_uri"] for entry in deprecated_tags} & {entry["schema_uri"] for entry in manifest_tags} == set(), (
+        "The deprecated manifest should not share any schemas with the current manifest"
+    )

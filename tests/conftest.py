@@ -152,8 +152,15 @@ def latest_uri(request):
 
 @pytest.fixture(scope="session")
 def latest_manifest_uri():
-    latest_manifest_uris = tuple(uri for uri in LATEST_URIS if "manifests" in uri)
+    latest_manifest_uris = tuple(uri for uri in LATEST_URIS if "manifests" in uri if "deprecated" not in uri)
     assert len(latest_manifest_uris) == 1, "There should be exactly one latest manifest"
+    return latest_manifest_uris[0]
+
+
+@pytest.fixture(scope="session")
+def latest_deprecated_manifest_uri():
+    latest_manifest_uris = tuple(uri for uri in LATEST_URIS if "manifests" in uri if "deprecated" in uri)
+    assert len(latest_manifest_uris) == 1, "There should be exactly one latest deprecated manifest"
     return latest_manifest_uris[0]
 
 

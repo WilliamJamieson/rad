@@ -44,8 +44,8 @@ tags:
   title: Wfi level 2 image information
   description: |-
     Wfi level 2 image information
-- tag_uri: asdf://stsci.edu/datamodels/roman/tags/wfi_mosaic-1.1.0
-  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-1.1.0
+- tag_uri: asdf://stsci.edu/datamodels/roman/tags/wfi_mosaic-1.2.0
+  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-1.2.0
   title: Wfi level 3 mosaic information
   description: |-
     Wfi level 3 mosaic information
@@ -293,18 +293,18 @@ tags:
   title: Image source catalog
   description: |-
     Photometry and astrometry computed by the Source Catalog Step
-- tag_uri: asdf://stsci.edu/datamodels/roman/tags/segmentation_map-1.1.0
-  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/segmentation_map-1.1.0
+- tag_uri: asdf://stsci.edu/datamodels/roman/tags/segmentation_map-1.2.0
+  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/segmentation_map-1.2.0
   title: Segmentation map
   description: |-
     Segmentation map computed by the Source Catalog Step
-- tag_uri: asdf://stsci.edu/datamodels/roman/tags/mosaic_source_catalog-1.1.0
-  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/mosaic_source_catalog-1.1.0
+- tag_uri: asdf://stsci.edu/datamodels/roman/tags/mosaic_source_catalog-1.2.0
+  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/mosaic_source_catalog-1.2.0
   title: Mosaic source catalog
   description: |-
     Photometry and astrometry computed by the Source Catalog Step
-- tag_uri: asdf://stsci.edu/datamodels/roman/tags/mosaic_segmentation_map-1.1.0
-  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/mosaic_segmentation_map-1.1.0
+- tag_uri: asdf://stsci.edu/datamodels/roman/tags/mosaic_segmentation_map-1.2.0
+  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/mosaic_segmentation_map-1.2.0
   title: Mosaic segmentation map
   description: |-
     Segmentation map computed by the Source Catalog Step
@@ -370,8 +370,8 @@ tags:
   description: |-
     The name of the telescope used to acquire the data.
 # FPS Schemas
-- tag_uri: asdf://stsci.edu/datamodels/roman/tags/fps-1.0.0
-  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/fps-1.0.0
+- tag_uri: asdf://stsci.edu/datamodels/roman/tags/fps-1.1.0
+  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/fps-1.1.0
   title: FPS schema
   description: |-
     FPS test data
@@ -452,8 +452,8 @@ tags:
   description: |-
     FPS Telescope used to acquire the data
 # TVAC Schemas
-- tag_uri: asdf://stsci.edu/datamodels/roman/tags/tvac-1.0.0
-  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/tvac-1.0.0
+- tag_uri: asdf://stsci.edu/datamodels/roman/tags/tvac-1.1.0
+  schema_uri: asdf://stsci.edu/datamodels/roman/schemas/tvac-1.1.0
   title: TVAC schema
   description: |-
     TVAC test data

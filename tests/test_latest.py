@@ -93,3 +93,37 @@ def test_latest_schemas(latest_schema_tags, latest_schemas, latest_uri):
             assert schema == re.sub(base_tag_uri_regex, tag_uri, schema), (
                 f"Schema {schema_uri} has references to {tag_uri} that have not been updated!"
             )
+
+
+def test_no_dangling_schemas(latest_schemas, latest_tags, latest_schema_uri):
+    """
+    Check that there are no dangling schemas in the latest schemas, except for datamodels.
+    """
+    if latest_schema_uri in (
+        "asdf://stsci.edu/datamodels/roman/schemas/fps/statistics-1.0.0",
+        "asdf://stsci.edu/datamodels/roman/schemas/tvac/statistics-1.0.0",
+    ):
+        pytest.xfail(f"Schema {latest_schema_uri} is expected to be dangling even though it is not a datamodel.")
+
+    if "datamodel_name" in latest_schemas[latest_schema_uri]:
+        # If the schema is a datamodel (so it is allowed to dangle)
+        return
+
+    uris = [latest_schema_uri]
+    if latest_schema_uri in latest_tags:
+        uris.append(latest_tags[latest_schema_uri])
+
+    for schema_uri, schema in latest_schemas.items():
+        # Ignore:
+        # 1. The schema itself as it will always reference itself
+        # 2. Any manifest as they are not schemas
+        if schema_uri == latest_schema_uri or "manifests" in schema_uri:
+            continue
+
+        # If the URI (either as a $ref or as a tag) is in a schema, then it is not dangling
+        # so the test should pass
+        for uri in uris:
+            if uri in schema:
+                return
+
+    raise AssertionError(f"Schema {latest_schema_uri} is dangling and not referenced by any other schema!")

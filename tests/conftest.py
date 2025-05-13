@@ -40,6 +40,7 @@ ALLOWED_SCHEMA_TAG_VALIDATORS = (
 
 LATEST_PATHS = tuple((Path(__file__).parent.parent.absolute() / "latest").glob("**/*.yaml"))
 LATEST_URIS = tuple(yaml.safe_load(latest_path.read_bytes())["id"] for latest_path in LATEST_PATHS)
+LATEST_SCHEMAS = {uri: path.read_text() for uri, path in zip(LATEST_URIS, LATEST_PATHS, strict=True)}
 
 
 CURRENT_RESOURCES = {
@@ -169,7 +170,24 @@ def latest_schemas():
     """
     Get the text of the latest schemas.
     """
-    return {latest_uri: latest_path.read_text() for latest_uri, latest_path in zip(LATEST_URIS, LATEST_PATHS, strict=True)}
+    return LATEST_SCHEMAS
+
+
+@pytest.fixture(scope="session", params=(uri for uri in LATEST_SCHEMAS if "manifests" not in uri))
+def latest_schema_uri(request):
+    """
+    Get a uri of the latest schema from the request.
+    """
+    return request.param
+
+
+@pytest.fixture(scope="session")
+def latest_tags(latest_manifest_uri):
+    """
+    Get the latest tags from the manifest orgainized by schema_uri
+    """
+
+    return {entry["schema_uri"]: entry["tag_uri"] for entry in yaml.safe_load(LATEST_SCHEMAS[latest_manifest_uri])["tags"]}
 
 
 @pytest.fixture(scope="session")

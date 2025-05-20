@@ -13,4 +13,6 @@ archive_catalog:
   datatype: nvarchar(120)
   destination: [WFICommon.filename]
 
+maxLength: 120
+
 flowStyle: block

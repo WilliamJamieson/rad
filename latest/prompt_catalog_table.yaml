@@ -20,6 +20,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^flagged_spatial_index$
       - not:
           items:
@@ -29,6 +30,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^bbox_xmax$
       - not:
           items:
@@ -38,6 +40,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^bbox_xmin$
       - not:
           items:
@@ -47,6 +50,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^bbox_ymax$
       - not:
           items:
@@ -56,6 +60,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^bbox_ymin$
       - not:
           items:
@@ -65,6 +70,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^image_flags$
       - not:
           items:
@@ -74,6 +80,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^label$
       - not:
           items:
@@ -83,6 +90,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^segment_area$
       - not:
           items:
@@ -92,6 +100,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^dec$
       - not:
           items:
@@ -101,6 +110,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^dec_centroid$
       - not:
           items:
@@ -110,6 +120,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^dec_centroid_err$
       - not:
           items:
@@ -119,6 +130,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^dec_centroid_win$
       - not:
           items:
@@ -128,6 +140,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^dec_centroid_win_err$
       - not:
           items:
@@ -137,6 +150,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^ra$
       - not:
           items:
@@ -146,6 +160,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^ra_centroid$
       - not:
           items:
@@ -155,6 +170,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^ra_centroid_err$
       - not:
           items:
@@ -164,6 +180,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^ra_centroid_win$
       - not:
           items:
@@ -173,6 +190,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^ra_centroid_win_err$
       - not:
           items:
@@ -182,6 +200,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^x_centroid$
       - not:
           items:
@@ -191,6 +210,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^x_centroid_err$
       - not:
           items:
@@ -200,6 +220,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^x_centroid_win$
       - not:
           items:
@@ -209,6 +230,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^x_centroid_win_err$
       - not:
           items:
@@ -218,6 +240,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^y_centroid$
       - not:
           items:
@@ -227,6 +250,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^y_centroid_err$
       - not:
           items:
@@ -236,6 +260,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^y_centroid_win$
       - not:
           items:
@@ -245,6 +270,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^y_centroid_win_err$
       - not:
           items:
@@ -254,6 +280,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^aper_bkg_flux$
       - not:
           items:
@@ -262,6 +289,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^aper_bkg_flux_err$
       - not:
           items:
@@ -271,6 +299,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^aper[0-9]{2}_flux$
       - not:
           items:
@@ -280,6 +309,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^aper[0-9]{2}_flux_err$
       - not:
           items:
@@ -289,6 +319,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^kron_abmag$
       - not:
           items:
@@ -298,6 +329,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^kron_abmag_err$
       - not:
           items:
@@ -307,6 +339,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^kron_flux$
       - not:
           items:
@@ -316,6 +349,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^kron_flux_err$
       - not:
           items:
@@ -325,6 +359,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^segment_flux$
       - not:
           items:
@@ -334,6 +369,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^segment_flux_err$
       - not:
           items:
@@ -343,6 +379,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^warning_flags$
       - not:
           items:
@@ -352,6 +389,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^cxx$
       - not:
           items:
@@ -361,6 +399,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^cxy$
       - not:
           items:
@@ -370,6 +409,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^cyy$
       - not:
           items:
@@ -379,6 +419,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^ellipticity$
       - not:
           items:
@@ -388,6 +429,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^fluxfrac_radius_50$
       - not:
           items:
@@ -397,6 +439,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^is_extended$
       - not:
           items:
@@ -406,6 +449,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^fwhm$
       - not:
           items:
@@ -415,6 +459,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^kron_radius$
       - not:
           items:
@@ -424,6 +469,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^orientation_pix$
       - not:
           items:
@@ -433,6 +479,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^orientation_sky$
       - not:
           items:
@@ -442,6 +489,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^roundness1$
       - not:
           items:
@@ -451,6 +499,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^semimajor$
       - not:
           items:
@@ -460,6 +509,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^semiminor$
       - not:
           items:
@@ -469,6 +519,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^sharpness$
       - not:
           items:
@@ -478,6 +529,7 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^nn_distance$
       - not:
           items:
@@ -487,4 +539,5 @@ properties:
                 - type: object
                   properties:
                     name:
+                      type: string
                       pattern: ^nn_label$

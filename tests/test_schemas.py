@@ -287,6 +287,29 @@ class TestSchemaContent:
         """
         assert uri in latest_uris, f"{uri} is not in the list of schemas to be tested."
 
+    def test_type_object_insurance(self, schema):
+        """
+        Check that if a schema has a properties key or patternProperties key, then
+        it has type: object
+        """
+        object_keywords = (
+            "properties",
+            "patternProperties",
+            "required",
+            "additionalProperties",
+            "maxProperties",
+            "minProperties",
+            "dependencies",
+        )
+
+        def callback(node):
+            """Callback to check for object type"""
+            if isinstance(node, Mapping):
+                if any(keyword in node for keyword in object_keywords):
+                    assert node.get("type") == "object", "Schemas with properties must have type: object"
+
+        asdf.treeutil.walk(schema, callback)
+
 
 class TestTaggedSchemaContent:
     """

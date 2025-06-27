@@ -13,7 +13,8 @@ properties:
   meta:
     allOf:
       - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/common/level_3-1.0.0
-      - properties:
+      - type: object
+        properties:
           association:
             title: Association Information
             type: object

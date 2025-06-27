@@ -10,6 +10,10 @@ import asdf.treeutil
 import pytest
 from crds.config import is_crds_name
 
+from rad.node._reader._basic import Basic, Metadata, Root
+from rad.node._reader._schema import AllOf, AnyOf, Not, OneOf, Schema
+from rad.node._reader._type import Array, Boolean, Null, Numeric, Object, String, Type
+
 METADATA_FORCING_REQUIRED = ("archive_catalog", "sdf")
 
 METADATA_FORCE_XFAILS = (
@@ -543,3 +547,83 @@ class TestPatternElementConsistency:
     def test_exposure_types_have_p_exptype_entry(self, p_exptype, exposure_types):
         """Confirm that the p_exptype entry is in the exposure_types enum."""
         assert p_exptype in exposure_types, f"p_exptype {p_exptype} not found in exposure_types."
+
+
+class TestRadExtraction:
+    def test_root(self, schema):
+        """
+        Test that the Root schema can be extracted correctly from a schema.
+        """
+
+        root = Root.extract(None, schema)
+        assert root.id == schema.get("id")
+        assert root.schema == schema.get("$schema")
+        assert root.name == root.id
+        assert root.suffix is None
+
+    def test_metadata(self, schema):
+        """
+        Test that the Metadata schema can be extracted correctly from a schema.
+        """
+
+        metadata = Metadata.extract(None, schema)
+        assert metadata.title == schema.get("title")
+        assert metadata.description == schema.get("description")
+        assert metadata.default == schema.get("default")
+        assert metadata.name is None
+        assert metadata.suffix is None
+
+    def test_basic(self, schema):
+        """
+        Test that the Basic schema can be extracted correctly from a schema.
+        """
+
+        basic = Basic.extract(None, schema)
+        assert basic.id == schema.get("id")
+        assert basic.schema == schema.get("$schema")
+        assert basic.title == schema.get("title")
+        assert basic.description == schema.get("description")
+        assert basic.default == schema.get("default")
+        assert basic.name == basic.id
+        assert basic.suffix is None
+
+    def test_type(self, schema):
+        """
+        Test that the Type schema can be extracted correctly from a schema.
+        --> this is a smoke test to simply read the schemas
+        """
+        if "type" in schema:
+            type_ = Type.extract(None, schema)
+            match type_.type:
+                case Type.TypeKeys.ARRAY:
+                    assert isinstance(type_, Array)
+                case Type.TypeKeys.BOOLEAN:
+                    assert isinstance(type_, Boolean)
+                case Type.TypeKeys.INTEGER | Type.TypeKeys.NUMBER:
+                    assert isinstance(type_, Numeric)
+                case Type.TypeKeys.NULL:
+                    assert isinstance(type_, Null)
+                case Type.TypeKeys.OBJECT:
+                    assert isinstance(type_, Object)
+                case Type.TypeKeys.STRING:
+                    assert isinstance(type_, String)
+                case _:
+                    raise AssertionError(f"Unhandled type value: {type_.type}.")
+
+    def test_schema(self, schema):
+        schema_ = Schema.extract(None, schema)
+
+        if "type" in schema:
+            assert isinstance(schema_, Type)
+
+        if "allOf" in schema:
+            assert isinstance(schema_, AllOf)
+
+        if "anyOf" in schema:
+            assert isinstance(schema_, AnyOf)
+
+        if "not" in schema:
+            assert isinstance(schema_, Not)
+
+        if "oneOf" in schema:
+            assert isinstance(schema_, OneOf)

@@ -1,0 +1,276 @@
+from dataclasses import is_dataclass
+
+import pytest
+
+from rad.node._reader._basic import Basic
+from rad.node._reader._link import Ref
+from rad.node._reader._reader import KeyWords
+from rad.node._reader._schema import AllOf, AnyOf, Not, OneOf, Schema
+from rad.node._reader._type import Null, Numeric, Object, String
+
+
+class TestSchema:
+    def test_keywords(self):
+        """
+        Test that the Schema schema has the correct keywords.
+        """
+
+        assert Schema.KeyWords.__members__ == {
+            "ID": "id",
+            "SCHEMA": "$schema",
+            "TITLE": "title",
+            "DESCRIPTION": "description",
+            "DEFAULT": "default",
+            "DEFINITIONS": "definitions",
+            "ENUM": "enum",
+            "ARCHIVE_CATALOG": "archive_catalog",
+            "UNIT": "unit",
+            "DATAMODEL_NAME": "datamodel_name",
+            "ARCHIVE_META": "archive_meta",
+        }
+        assert issubclass(Schema.KeyWords, KeyWords)
+
+    def test_extract_definitions(self, basic_data, definitions_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **definitions_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Basic)
+        assert isinstance(schema_, Schema)
+        assert is_dataclass(schema_)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.definitions, dict)
+        assert schema_.definitions
+        assert len(schema_.definitions) == 3
+
+        for key, item in schema_.definitions.items():
+            assert item.name == key
+            assert item.suffix == "definitions@test_id"
+
+        assert "test_string" in schema_.definitions
+        assert isinstance(schema_.definitions["test_string"], String)
+
+        assert "test_number" in schema_.definitions
+        assert isinstance(schema_.definitions["test_number"], Numeric)
+
+        assert "test_object" in schema_.definitions
+        assert isinstance(schema_.definitions["test_object"], Object)
+
+    def test_extract_ref_definitions(self, basic_data, definitions_ref_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **definitions_ref_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Schema)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.definitions, Ref)
+        assert schema_.definitions.ref == "http://example.com/ref_schema"
+        assert schema_.definitions.name == "definitions"
+        assert schema_.definitions.suffix == "test_id"
+
+    def test_extract_bad_definitons(self, basic_data):
+        with pytest.raises(Schema.UnreadableDataError, match=r"Expected 'definitions' to be a Mapping or a \$ref, got.*"):
+            Schema.extract(
+                name=None,
+                data={**basic_data, **{"definitions": "invalid"}},
+                suffix=None,
+            )
+
+    def test_extract_enum(self, basic_data, enum_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **enum_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Schema)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.enum, list)
+        assert schema_.enum
+        assert len(schema_.enum) == 3
+        assert schema_.enum == ["value1", "value2", "value3"]
+
+
+class TestAllOf:
+    def test_keywords(self):
+        """
+        Test that the AllOf schema has the correct keywords.
+        """
+
+        assert AllOf.KeyWords.__members__ == {
+            "ID": "id",
+            "SCHEMA": "$schema",
+            "TITLE": "title",
+            "DESCRIPTION": "description",
+            "DEFAULT": "default",
+            "DEFINITIONS": "definitions",
+            "ENUM": "enum",
+            "ARCHIVE_CATALOG": "archive_catalog",
+            "UNIT": "unit",
+            "DATAMODEL_NAME": "datamodel_name",
+            "ARCHIVE_META": "archive_meta",
+            "ALL_OF": "allOf",
+        }
+        assert issubclass(AllOf.KeyWords, KeyWords)
+
+    def test_extract(self, basic_data, all_of_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **all_of_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Schema)
+        assert isinstance(schema_, AllOf)
+        assert is_dataclass(schema_)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.all_of, list)
+        assert schema_.all_of
+        assert len(schema_.all_of) == 2
+
+        for index, item in enumerate(schema_.all_of):
+            assert isinstance(item, Object)
+            assert item.name == f"all_of_{index}"
+            assert item.suffix == "test_id"
+
+
+class TestAnyOf:
+    def test_keywords(self):
+        """
+        Test that the AnyOf schema has the correct keywords.
+        """
+
+        assert AnyOf.KeyWords.__members__ == {
+            "ID": "id",
+            "SCHEMA": "$schema",
+            "TITLE": "title",
+            "DESCRIPTION": "description",
+            "DEFAULT": "default",
+            "DEFINITIONS": "definitions",
+            "ENUM": "enum",
+            "ARCHIVE_CATALOG": "archive_catalog",
+            "UNIT": "unit",
+            "DATAMODEL_NAME": "datamodel_name",
+            "ARCHIVE_META": "archive_meta",
+            "ANY_OF": "anyOf",
+        }
+        assert issubclass(AnyOf.KeyWords, KeyWords)
+
+    def test_extract(self, basic_data, any_of_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **any_of_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Schema)
+        assert isinstance(schema_, AnyOf)
+        assert is_dataclass(schema_)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.any_of, list)
+        assert schema_.any_of
+        assert len(schema_.any_of) == 2
+
+        for index, item in enumerate(schema_.any_of):
+            assert isinstance(item, String | Null)
+            assert item.name == f"any_of_{index}"
+            assert item.suffix == "test_id"
+
+
+class TestNot:
+    def test_keywords(self):
+        """
+        Test that the Not schema has the correct keywords.
+        """
+
+        assert Not.KeyWords.__members__ == {
+            "ID": "id",
+            "SCHEMA": "$schema",
+            "TITLE": "title",
+            "DESCRIPTION": "description",
+            "DEFAULT": "default",
+            "DEFINITIONS": "definitions",
+            "ENUM": "enum",
+            "ARCHIVE_CATALOG": "archive_catalog",
+            "UNIT": "unit",
+            "DATAMODEL_NAME": "datamodel_name",
+            "ARCHIVE_META": "archive_meta",
+            "NOT_": "not",
+        }
+        assert issubclass(Not.KeyWords, KeyWords)
+
+    def test_extract(self, basic_data, not_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **not_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Schema)
+        assert isinstance(schema_, Not)
+        assert is_dataclass(schema_)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.not_, Object)
+        assert schema_.not_.name == "not"
+        assert schema_.not_.suffix == "test_id"
+
+
+class TestOneOf:
+    def test_keywords(self):
+        """
+        Test that the OneOf schema has the correct keywords.
+        """
+
+        assert OneOf.KeyWords.__members__ == {
+            "ID": "id",
+            "SCHEMA": "$schema",
+            "TITLE": "title",
+            "DESCRIPTION": "description",
+            "DEFAULT": "default",
+            "DEFINITIONS": "definitions",
+            "ENUM": "enum",
+            "ARCHIVE_CATALOG": "archive_catalog",
+            "UNIT": "unit",
+            "DATAMODEL_NAME": "datamodel_name",
+            "ARCHIVE_META": "archive_meta",
+            "ONE_OF": "oneOf",
+        }
+        assert issubclass(OneOf.KeyWords, KeyWords)
+
+    def test_extract(self, basic_data, one_of_data):
+        schema_ = Schema.extract(
+            name=None,
+            data={**basic_data, **one_of_data},
+            suffix=None,
+        )
+
+        assert isinstance(schema_, Schema)
+        assert isinstance(schema_, OneOf)
+        assert is_dataclass(schema_)
+        assert schema_.name == "test_id"
+        assert schema_.suffix is None
+
+        assert isinstance(schema_.one_of, list)
+        assert schema_.one_of
+        assert len(schema_.one_of) == 2
+
+        for index, item in enumerate(schema_.one_of):
+            assert isinstance(item, String | Numeric)
+            assert item.name == f"one_of_{index}"
+            assert item.suffix == "test_id"

@@ -3,7 +3,10 @@ from __future__ import annotations
 from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import Field, dataclass, field, fields
 from enum import EnumMeta, StrEnum, unique
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
+
+if TYPE_CHECKING:
+    from ._manager import Manager
 
 __all__ = ("Reader", "ValueKeys", "rad")
 
@@ -109,6 +112,10 @@ class Reader(ABC):
 
     name: str
     suffix: str | None
+    manager: Manager
+
+    class UnreadableDataError(ValueError):
+        """Exception raised when the data cannot be read by the schema."""
 
     @property
     def address(self) -> str:
@@ -136,8 +143,14 @@ class Reader(ABC):
         cls = dataclass(cls)
         cls.KeyWords = KeyWords.new(cls)
 
+    def __post_init__(self):
+        """
+        Post-initialization to process definitions
+        """
+        self.manager.register(self)
+
     @classmethod
-    def extract(cls, name: str, data: dict[str, Any], suffix: str | None = None, **kwargs) -> Self:
+    def extract(cls, name: str, data: dict[str, Any], manager: Manager, suffix: str | None = None, **kwargs) -> Self:
         """
         Extract a schema instance from a dictionary.
 
@@ -147,6 +160,8 @@ class Reader(ABC):
             The name of the schema
         data:
             The data dictionary to read the schema from
+        manager:
+            The manager to register the schema with
         suffix:
             The suffix used to identify the schema this is a subschema
 
@@ -154,10 +169,7 @@ class Reader(ABC):
         -------
             An instance of the schema class.
         """
-        return cls(name=name, suffix=suffix, **cls.KeyWords.extract(data), **kwargs)
-
-    class UnreadableDataError(ValueError):
-        """Exception raised when the data cannot be read by the schema."""
+        return cls(name=name, suffix=suffix, manager=manager, **cls.KeyWords.extract(data), **kwargs)
 
 
 class _AbstractStrEnumMeta(ABCMeta, EnumMeta): ...

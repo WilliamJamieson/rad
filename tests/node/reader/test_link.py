@@ -28,12 +28,13 @@ class TestRef:
         }
         assert issubclass(Ref.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, top_ref_data):
+    def test_extract(self, basic_data, top_ref_data, manager):
         """Test that a Ref schema can be extracted correctly from a schema."""
 
         schema_ = Schema.extract(
             name=None,
             data={**basic_data, **top_ref_data},
+            manager=manager,
             suffix=None,
         )
 
@@ -41,6 +42,9 @@ class TestRef:
         assert isinstance(schema_, AllOf)
         assert schema_.name == "test_id"
         assert schema_.suffix is None
+
+        assert schema_.address in manager
+        assert manager[schema_.address] is schema_
 
         assert isinstance(schema_.all_of, list)
         assert schema_.all_of
@@ -55,6 +59,12 @@ class TestRef:
         assert ref.name == "all_of_0"
         assert ref.suffix == "test_id"
         assert ref.ref == "http://example.com/ref_schema"
+
+        assert ref.manager is manager
+        assert ref.address in manager
+        assert manager[ref.address] is ref
+
+        assert len(manager) == 3  # schema + ref + archive_catalog
 
 
 class TestTag:
@@ -79,12 +89,13 @@ class TestTag:
         }
         assert issubclass(Tag.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, tag_data):
+    def test_extract(self, basic_data, tag_data, manager):
         """Test that a Tag schema can be extracted correctly from a schema."""
 
         schema_ = Schema.extract(
             name=None,
             data={**basic_data, **tag_data},
+            manager=manager,
             suffix=None,
         )
 
@@ -92,6 +103,9 @@ class TestTag:
         assert isinstance(schema_, Object)
         assert schema_.name == "test_id"
         assert schema_.suffix is None
+
+        assert schema_.address in manager
+        assert manager[schema_.address] is schema_
 
         assert isinstance(schema_.properties, dict)
         assert schema_.properties
@@ -106,6 +120,10 @@ class TestTag:
         assert property1.suffix == "test_id"
         assert property1.tag == "asdf://test.com/tags/test_tag1"
 
+        assert property1.manager is manager
+        assert property1.address in manager
+        assert manager[property1.address] is property1
+
         assert "property2" in schema_.properties
         property2 = schema_.properties["property2"]
         assert isinstance(property2, Link)
@@ -114,3 +132,9 @@ class TestTag:
         assert property2.name == "property2"
         assert property2.suffix == "test_id"
         assert property2.tag == "asdf://test.com/tags/test_tag2"
+
+        assert property2.manager is manager
+        assert property2.address in manager
+        assert manager[property2.address] is property2
+
+        assert len(manager) == 4  # schema + property1 + property2 + archive_catalog

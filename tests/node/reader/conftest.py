@@ -2,6 +2,17 @@ from types import MappingProxyType
 
 import pytest
 
+from rad.node._reader._manager import Manager
+
+
+@pytest.fixture()
+def manager() -> Manager:
+    """
+    Fixture to provide a Manager instance for tests.
+    This can be used to manage schemas and their addresses.
+    """
+    return Manager(schemas={})
+
 
 @pytest.fixture(scope="session")
 def root_data() -> MappingProxyType[str, str]:

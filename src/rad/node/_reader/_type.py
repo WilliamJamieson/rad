@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any, Self
 
+from ._manager import Manager
 from ._reader import ValueKeys, rad
 from ._schema import Schema
 
@@ -57,7 +58,7 @@ class Type(Schema):
             raise cls.UnhandledKeyError(f"Unhandled type value: {data.get('type')}.")
 
     @classmethod
-    def extract(cls, name: str, data: dict[str, Any], suffix: str | None = None, **kwargs) -> Self:
+    def extract(cls, name: str, data: dict[str, Any], manager: Manager, suffix: str | None = None, **kwargs) -> Self:
         """
         Extract a schema instance from a dictionary.
 
@@ -67,6 +68,8 @@ class Type(Schema):
             The name of the schema
         data:
             The data dictionary to read the schema from
+        manager:
+            The manager to register the schema with
         suffix:
             The suffix used to identify the schema this is a subschema
 
@@ -78,8 +81,8 @@ class Type(Schema):
             if "type" not in data:
                 raise cls.UnreadableDataError("Missing 'type' key in data.")
 
-            return cls.TypeKeys.reader(data).extract(name=name, data=data, suffix=suffix, **kwargs)
-        return super().extract(name=name, data=data, suffix=suffix, **kwargs)
+            return cls.TypeKeys.reader(data).extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
+        return super().extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
 
 
 class Array(Type):
@@ -104,10 +107,11 @@ class Array(Type):
 
         if isinstance(self.items, Sequence):
             self.items = [
-                Schema.extract(name=f"item_{index}", data=item, suffix=self.address) for index, item in enumerate(self.items)
+                Schema.extract(name=f"item_{index}", data=item, manager=self.manager, suffix=self.address)
+                for index, item in enumerate(self.items)
             ]
         elif isinstance(self.items, Mapping):
-            self.items = Schema.extract(name="items", data=self.items, suffix=self.address)
+            self.items = Schema.extract(name="items", data=self.items, manager=self.manager, suffix=self.address)
         elif not isinstance(self.items, Schema):
             raise self.UnreadableDataError(f"Expected 'items' to be a list, dict, or Schema instance, got {type(self.items)}.")
 
@@ -162,12 +166,13 @@ class Object(Type):
 
         if self.properties is not None:
             self.properties = {
-                key: Schema.extract(name=key, data=value, suffix=self.address) for key, value in self.properties.items()
+                key: Schema.extract(name=key, data=value, manager=self.manager, suffix=self.address)
+                for key, value in self.properties.items()
             }
 
         if self.pattern_properties is not None:
             self.pattern_properties = {
-                key: Schema.extract(name=f"pattern[{key}]", data=value, suffix=self.address)
+                key: Schema.extract(name=f"pattern[{key}]", data=value, manager=self.manager, suffix=self.address)
                 for key, value in self.pattern_properties.items()
             }
 

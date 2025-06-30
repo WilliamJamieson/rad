@@ -10,7 +10,7 @@ import asdf.treeutil
 import pytest
 from crds.config import is_crds_name
 
-from rad.node._reader._basic import Basic, Metadata, Root
+from rad.node._reader._manager import Manager
 from rad.node._reader._schema import AllOf, AnyOf, Not, OneOf, Schema
 from rad.node._reader._type import Array, Boolean, Null, Numeric, Object, String, Type
 
@@ -549,81 +549,88 @@ class TestPatternElementConsistency:
         assert p_exptype in exposure_types, f"p_exptype {p_exptype} not found in exposure_types."
 
 
+@pytest.fixture(scope="class")
+def extract_manager():
+    """Class scoped schema manager fixture."""
+    return Manager(schemas={})
+
+
+@pytest.fixture(scope="class")
+def extract_schema(schema, extract_manager):
+    """Class scoped schema fixture for extraction tests."""
+
+    return Schema.extract(name=None, data=schema, manager=extract_manager)
+
+
 class TestRadExtraction:
-    def test_root(self, schema):
+    def test_root(self, schema, extract_schema):
         """
         Test that the Root schema can be extracted correctly from a schema.
         """
 
-        root = Root.extract(None, schema)
-        assert root.id == schema.get("id")
-        assert root.schema == schema.get("$schema")
-        assert root.name == root.id
-        assert root.suffix is None
+        assert extract_schema.id == schema.get("id")
+        assert extract_schema.schema == schema.get("$schema")
+        assert extract_schema.name == extract_schema.id
+        assert extract_schema.suffix is None
 
-    def test_metadata(self, schema):
+    def test_metadata(self, schema, extract_schema):
         """
         Test that the Metadata schema can be extracted correctly from a schema.
         """
 
-        metadata = Metadata.extract(None, schema)
-        assert metadata.title == schema.get("title")
-        assert metadata.description == schema.get("description")
-        assert metadata.default == schema.get("default")
-        assert metadata.name is None
-        assert metadata.suffix is None
+        assert extract_schema.title == schema.get("title")
+        assert extract_schema.description == schema.get("description")
+        assert extract_schema.default == schema.get("default")
+        assert extract_schema.name == schema.get("id")
+        assert extract_schema.suffix is None
 
-    def test_basic(self, schema):
+    def test_basic(self, schema, extract_schema):
         """
         Test that the Basic schema can be extracted correctly from a schema.
         """
 
-        basic = Basic.extract(None, schema)
-        assert basic.id == schema.get("id")
-        assert basic.schema == schema.get("$schema")
-        assert basic.title == schema.get("title")
-        assert basic.description == schema.get("description")
-        assert basic.default == schema.get("default")
-        assert basic.name == basic.id
-        assert basic.suffix is None
+        assert extract_schema.id == schema.get("id")
+        assert extract_schema.schema == schema.get("$schema")
+        assert extract_schema.title == schema.get("title")
+        assert extract_schema.description == schema.get("description")
+        assert extract_schema.default == schema.get("default")
+        assert extract_schema.name == extract_schema.id
+        assert extract_schema.suffix is None
 
-    def test_type(self, schema):
+    def test_type(self, schema, extract_schema):
         """
         Test that the Type schema can be extracted correctly from a schema.
         --> this is a smoke test to simply read the schemas
         """
         if "type" in schema:
-            type_ = Type.extract(None, schema)
-            match type_.type:
+            match extract_schema.type:
                 case Type.TypeKeys.ARRAY:
-                    assert isinstance(type_, Array)
+                    assert isinstance(extract_schema, Array)
                 case Type.TypeKeys.BOOLEAN:
-                    assert isinstance(type_, Boolean)
+                    assert isinstance(extract_schema, Boolean)
                 case Type.TypeKeys.INTEGER | Type.TypeKeys.NUMBER:
-                    assert isinstance(type_, Numeric)
+                    assert isinstance(extract_schema, Numeric)
                 case Type.TypeKeys.NULL:
-                    assert isinstance(type_, Null)
+                    assert isinstance(extract_schema, Null)
                 case Type.TypeKeys.OBJECT:
-                    assert isinstance(type_, Object)
+                    assert isinstance(extract_schema, Object)
                 case Type.TypeKeys.STRING:
-                    assert isinstance(type_, String)
+                    assert isinstance(extract_schema, String)
                 case _:
-                    raise AssertionError(f"Unhandled type value: {type_.type}.")
+                    raise AssertionError(f"Unhandled type value: {extract_schema.type}.")
 
-    def test_schema(self, schema):
-        schema_ = Schema.extract(None, schema)
-
+    def test_schema_reader(self, schema, extract_schema):
         if "type" in schema:
-            assert isinstance(schema_, Type)
+            assert isinstance(extract_schema, Type)
 
         if "allOf" in schema:
-            assert isinstance(schema_, AllOf)
+            assert isinstance(extract_schema, AllOf)
 
         if "anyOf" in schema:
-            assert isinstance(schema_, AnyOf)
+            assert isinstance(extract_schema, AnyOf)
 
         if "not" in schema:
-            assert isinstance(schema_, Not)
+            assert isinstance(extract_schema, Not)
 
         if "oneOf" in schema:
-            assert isinstance(schema_, OneOf)
+            assert isinstance(extract_schema, OneOf)

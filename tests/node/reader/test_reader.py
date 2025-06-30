@@ -68,9 +68,17 @@ class TestSchema:
         """
         Test that the schema is correctly defined and fields are set up.
         """
-        assert set(field.name for field in fields(Reader)) == {"name", "suffix"}
+        assert set(field.name for field in fields(Reader)) == {"name", "suffix", "manager"}
 
-        assert set(field.name for field in fields(self.ExampleSchema)) == {"name", "suffix", "foo", "bar", "baz_box", "baz"}
+        assert set(field.name for field in fields(self.ExampleSchema)) == {
+            "name",
+            "suffix",
+            "manager",
+            "foo",
+            "bar",
+            "baz_box",
+            "baz",
+        }
         assert self.ExampleSchema.KeyWords.__members__ == {
             "BAR": "bar",
             "BAZ_BOX": "bazBox",
@@ -95,12 +103,12 @@ class TestSchema:
             {"suffix": "test_suffix"},
         ],
     )
-    def test_extract(self, data, kwargs):
+    def test_extract(self, data, manager, kwargs):
         """
         Test that we can extract data
         """
 
-        extract = self.ExampleSchema.extract("test_name", data, foo="test_foo", **kwargs)
+        extract = self.ExampleSchema.extract("test_name", data, manager, foo="test_foo", **kwargs)
         assert extract.name == "test_name"
         assert extract.suffix == kwargs.get("suffix", None)
         assert extract.foo == "test_foo"
@@ -112,6 +120,10 @@ class TestSchema:
                     key = KeyWords.snake_to_camel(field.name)
                 assert getattr(extract, field.name) == data.get(key, None), f"Failed for {field.name} with key {key}"
 
+        assert extract.manager == manager
+        assert extract.address in manager
+        assert manager[extract.address] is extract
+
     @pytest.mark.parametrize(
         "suffix",
         [
@@ -120,7 +132,7 @@ class TestSchema:
             "another_suffix",
         ],
     )
-    def test_address(self, suffix):
+    def test_address(self, suffix, manager):
         """
         Test that the address is correctly formed.
         """
@@ -134,5 +146,9 @@ class TestSchema:
             bar="test_bar",
             baz_box="test_baz_box",
             baz="test_baz",
+            manager=manager,
         )
         assert instance.address == "@".join(address_parts)
+
+        assert instance.address in manager
+        assert manager[instance.address] is instance

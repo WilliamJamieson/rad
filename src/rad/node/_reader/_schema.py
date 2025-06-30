@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
 from ._basic import Basic
 from ._reader import ValueKeys, rad
+
+if TYPE_CHECKING:
+    from ._manager import Manager
 
 
 class Schema(Basic):
@@ -78,8 +82,9 @@ class Schema(Basic):
     @classmethod
     def extract(
         cls,
-        name: str | None = None,
-        data: dict[str, any] | None = None,
+        name: str | None,
+        data: dict[str, Any] | None,
+        manager: Manager,
         suffix: str | None = None,
         **kwargs,
     ) -> Schema:
@@ -92,6 +97,8 @@ class Schema(Basic):
             The name of the schema.
         data
             The data dictionary to extract the schema from.
+        manager
+            The manager to register the schema with.
         suffix
             An optional suffix to append to the schema name.
         kwargs
@@ -102,9 +109,9 @@ class Schema(Basic):
             A Schema instance.
         """
         if (reader := cls.Selectors.reader(cls, data)) is None:
-            return super().extract(name=name, data=data, suffix=suffix, **kwargs)
+            return super().extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
 
-        return reader.extract(name=name, data=data, suffix=suffix, **kwargs)
+        return reader.extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
 
     def __post_init__(self):
         """
@@ -114,10 +121,12 @@ class Schema(Basic):
 
         if self.definitions is not None:
             if self.Selectors.REF in self.definitions:
-                self.definitions = Schema.extract(name="definitions", data=self.definitions, suffix=self.address)
+                self.definitions = Schema.extract(
+                    name="definitions", data=self.definitions, manager=self.manager, suffix=self.address
+                )
             elif isinstance(self.definitions, Mapping):
                 self.definitions = {
-                    key: Schema.extract(name=key, data=value, suffix=f"definitions@{self.address}")
+                    key: Schema.extract(name=key, data=value, manager=self.manager, suffix=f"definitions@{self.address}")
                     for key, value in self.definitions.items()
                 }
             else:
@@ -136,7 +145,8 @@ class AllOf(Schema):
         super().__post_init__()
 
         self.all_of = [
-            Schema.extract(name=f"all_of_{index}", data=item, suffix=self.address) for index, item in enumerate(self.all_of)
+            Schema.extract(name=f"all_of_{index}", data=item, manager=self.manager, suffix=self.address)
+            for index, item in enumerate(self.all_of)
         ]
 
 
@@ -152,7 +162,8 @@ class AnyOf(Schema):
         super().__post_init__()
 
         self.any_of = [
-            Schema.extract(name=f"any_of_{index}", data=item, suffix=self.address) for index, item in enumerate(self.any_of)
+            Schema.extract(name=f"any_of_{index}", data=item, manager=self.manager, suffix=self.address)
+            for index, item in enumerate(self.any_of)
         ]
 
 
@@ -167,7 +178,7 @@ class Not(Schema):
         """Post-initialization to process not_ list."""
         super().__post_init__()
 
-        self.not_ = Schema.extract(name="not", data=self.not_, suffix=self.address)
+        self.not_ = Schema.extract(name="not", data=self.not_, manager=self.manager, suffix=self.address)
 
 
 class OneOf(Schema):
@@ -182,5 +193,6 @@ class OneOf(Schema):
         super().__post_init__()
 
         self.one_of = [
-            Schema.extract(name=f"one_of_{index}", data=item, suffix=self.address) for index, item in enumerate(self.one_of)
+            Schema.extract(name=f"one_of_{index}", data=item, manager=self.manager, suffix=self.address)
+            for index, item in enumerate(self.one_of)
         ]

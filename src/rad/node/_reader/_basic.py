@@ -21,6 +21,8 @@ class Root(Reader):
         if self.id is not None:
             self.name = self.id
 
+        super().__post_init__()
+
 
 class Metadata(Reader):
     """
@@ -58,14 +60,12 @@ class Rad(Reader):
         Post-initialization method to set the archive metadata.
         """
         if self.archive_catalog is not None:
-            print(self.archive_catalog)
-            self.archive_catalog = ArchiveCatalog.extract(name="archive_catalog", data=self.archive_catalog, suffix=self.address)
+            self.archive_catalog = ArchiveCatalog.extract(
+                name="archive_catalog", data=self.archive_catalog, manager=self.manager, suffix=self.address
+            )
+
+        super().__post_init__()
 
 
 class Basic(Root, Metadata, Rad):
     """Basic schema for the reader."""
-
-    def __post_init__(self):
-        """Run the post initialization for the parent classes."""
-        super().__post_init__()
-        super(Metadata, self).__post_init__()

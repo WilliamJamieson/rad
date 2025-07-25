@@ -220,3 +220,44 @@ class TestBasic:
         assert manager[basic.archive_catalog.address] is basic.archive_catalog
 
         assert len(manager) == 2  # Basic + ArchiveCatalog
+
+    def test_resolve(self, basic_data, manager, new_manager):
+        """
+        Test that the Basic schema can resolve its data.
+        """
+        basic = Basic.extract(
+            name=None,
+            data=basic_data,
+            manager=manager,
+            suffix=None,
+        )
+        assert isinstance(basic, Basic)
+
+        assert len(new_manager) == 0
+        new_basic = basic.resolve(new_manager)
+        assert len(new_manager) == 2
+
+        assert basic.address in new_manager
+        assert new_manager[basic.address] is not basic
+        assert new_manager[basic.address] is new_basic
+
+        assert new_basic.manager is new_manager
+        assert new_basic.name == basic.name
+        assert new_basic.id == basic.id
+        assert new_basic.schema == basic.schema
+        assert new_basic.title == basic.title
+        assert new_basic.description == basic.description
+        assert new_basic.default == basic.default
+        assert new_basic.unit == basic.unit
+        assert new_basic.datamodel_name == basic.datamodel_name
+        assert new_basic.archive_meta == basic.archive_meta
+        assert new_basic.suffix == basic.suffix
+
+        assert new_basic.archive_catalog is not basic.archive_catalog
+        assert basic.archive_catalog.address in new_manager
+        assert new_manager[basic.archive_catalog.address] is new_basic.archive_catalog
+
+        assert new_basic.archive_catalog.manager is new_manager
+        assert new_basic.archive_catalog.datatype == basic.archive_catalog.datatype
+        assert new_basic.archive_catalog.destination == basic.archive_catalog.destination
+        assert new_basic.archive_catalog.path_prefix == basic.archive_catalog.path_prefix

@@ -14,6 +14,15 @@ def manager() -> Manager:
     return Manager(schemas={})
 
 
+@pytest.fixture()
+def new_manager() -> Manager:
+    """
+    Fixture to provide a new Manager instance for tests.
+    This is useful for testing schema resolution and registration.
+    """
+    return Manager(schemas={})
+
+
 @pytest.fixture(scope="session")
 def root_data() -> MappingProxyType[str, str]:
     """
@@ -219,6 +228,41 @@ def all_of_data(object_data, pattern_object_data) -> MappingProxyType[str, str]:
             "allOf": [
                 object_data,
                 pattern_object_data,
+            ],
+        }
+    )
+
+
+@pytest.fixture(scope="session")
+def all_of_object_object_data(object_data) -> MappingProxyType[str, str]:
+    """
+    Fixture to provide allOf data structure for tests with object types.
+    """
+    return MappingProxyType(
+        {
+            "allOf": [
+                object_data,
+                {
+                    "type": "object",
+                    "properties": {
+                        "property3": {
+                            "type": "string",
+                        },
+                    },
+                    "required": ["property3"],
+                },
+            ],
+        }
+    )
+
+
+@pytest.fixture(scope="session")
+def all_of_array_data(single_item_array_data, multi_item_array_data) -> MappingProxyType[str, str]:
+    return MappingProxyType(
+        {
+            "allOf": [
+                single_item_array_data,
+                multi_item_array_data,
             ],
         }
     )

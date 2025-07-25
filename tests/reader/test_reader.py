@@ -2,7 +2,7 @@ from dataclasses import dataclass, fields, is_dataclass
 
 import pytest
 
-from rad.reader._reader import KeyWords, Reader, rad
+from rad.reader._reader import KeyWords, Reader, _snake_to_camel, rad
 
 
 class TestKeyWords:
@@ -117,7 +117,7 @@ class TestSchema:
             if "schema_key" in field.metadata:
                 key = field.metadata["schema_key"]
                 if key is None:
-                    key = KeyWords.snake_to_camel(field.name)
+                    key = _snake_to_camel(field.name)
                 assert getattr(extract, field.name) == data.get(key, None), f"Failed for {field.name} with key {key}"
 
         assert extract.manager == manager
@@ -152,3 +152,54 @@ class TestSchema:
 
         assert instance.address in manager
         assert manager[instance.address] is instance
+
+    def test_resolve(self, manager, new_manager):
+        """
+        Test that the resolve method works correctly.
+        """
+        instance = self.ExampleSchema(
+            name="test_name",
+            suffix=None,
+            foo="test_foo",
+            bar="test_bar",
+            baz_box="test_baz_box",
+            baz="test_baz",
+            manager=manager,
+        )
+
+        assert len(new_manager) == 0
+        assert new_manager is not manager
+
+        new_instance = instance.resolve(new_manager)
+
+        assert len(new_manager) == 1
+        assert instance.manager is manager
+
+        assert instance.address in new_manager
+        assert new_manager[instance.address] is not instance
+        assert new_manager[instance.address] is new_instance
+
+        assert new_instance.manager is new_manager
+        assert new_instance.name == instance.name
+        assert new_instance.suffix == instance.suffix
+        assert new_instance.foo == instance.foo
+        assert new_instance.bar == instance.bar
+        assert new_instance.baz_box == instance.baz_box
+        assert new_instance.baz == instance.baz
+
+    def test_merge(self, manager):
+        """
+        Test that the merge method raises NotImplementedError.
+        """
+        instance = self.ExampleSchema(
+            name="test_name",
+            suffix=None,
+            foo="test_foo",
+            bar="test_bar",
+            baz_box="test_baz_box",
+            baz="test_baz",
+            manager=manager,
+        )
+
+        with pytest.raises(NotImplementedError, match="Merge method is not implemented for ExampleSchema schema."):
+            instance.merge(instance)

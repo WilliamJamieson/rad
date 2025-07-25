@@ -101,13 +101,15 @@ class TestArray:
         assert type_.address in manager
         assert manager[type_.address] is type_
 
-        assert isinstance(type_.items, Type)
-        assert isinstance(type_.items, String)
-        assert type_.items.type == "string"
-        assert type_.items.name == "items"
-        assert type_.items.suffix == "test_id"
-        assert type_.items.address in manager
-        assert manager[type_.items.address] is type_.items
+        assert isinstance(type_.items, list)
+        assert len(type_.items) == 1
+        item = type_.items[0]
+        assert isinstance(item, String)
+        assert item.type == "string"
+        assert item.name == "items"
+        assert item.suffix == "test_id"
+        assert item.address in manager
+        assert manager[item.address] is type_.items[0]
 
         assert type_.additional_items is None
         assert type_.max_items is None

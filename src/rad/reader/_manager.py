@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Generator, Mapping
+from contextlib import contextmanager
 
 from ._schema import Schema
 
@@ -20,6 +21,7 @@ class Manager(Mapping[str, Schema]):
 
     def __init__(self, schemas: dict[str, Schema]) -> None:
         self._schemas = schemas
+        self._lock = False
 
     def __getitem__(self, key: str) -> Schema:
         return self._schemas[key]
@@ -35,7 +37,24 @@ class Manager(Mapping[str, Schema]):
         Register a new schema in the manager.
         If a schema with the same name already exists, it will be replaced.
         """
+        if self._lock:
+            return
+
         if schema.address in self._schemas:
             raise self.SchemaAddressExistsError(schema.address)
 
         self._schemas[schema.address] = schema
+
+    @contextmanager
+    def lock(self) -> Generator[None, None, None]:
+        """
+        Context manager to lock the manager for modifications.
+        This prevents any new schemas from being registered while the lock is active.
+        """
+        current = self._lock
+
+        self._lock = True
+        try:
+            yield
+        finally:
+            self._lock = current

@@ -107,13 +107,66 @@ class Array(Type):
 
         if isinstance(self.items, Sequence):
             self.items = [
-                Schema.extract(name=f"item_{index}", data=item, manager=self.manager, suffix=self.address)
+                Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"item_{index}"))
                 for index, item in enumerate(self.items)
             ]
         elif isinstance(self.items, Mapping):
-            self.items = Schema.extract(name="items", data=self.items, manager=self.manager, suffix=self.address)
-        elif not isinstance(self.items, Schema):
+            self.items = [Schema.extract(data=self._simplify(self.items), **self._sub_reader_kwargs("items"))]
+        elif self.items is not None:
             raise self.UnreadableDataError(f"Expected 'items' to be a list, dict, or Schema instance, got {type(self.items)}.")
+
+    def resolve(self, manager: Manager) -> Self:
+        """
+        Resolve the schema instance against the manager.
+
+        Parameters
+        ----------
+        manager:
+            The manager to resolve the schema against
+
+        Returns
+        -------
+            The resolved schema instance.
+        """
+        with manager.lock():
+            resolved = super().resolve(manager)
+
+            if isinstance(resolved.items, Sequence):
+                resolved.items = [item.resolve(manager) for item in resolved.items]
+            elif isinstance(resolved.items, Schema):
+                resolved.items = resolved.items.resolve(manager)
+
+        return self.re_extract(data=resolved.data, manager=manager)
+
+    def merge(self, other: Array):
+        """
+        Merge another Array schema into this one.
+
+        Parameters
+        ----------
+        other
+            The Array schema to merge with this one.
+        """
+        if not isinstance(other, Array):
+            raise self.MergeError(f"Cannot merge non-Array schema: {type(other)}.")
+
+        if self.items is not None or other.items is not None:
+            self.items = (self.items or []) + (other.items or [])
+
+        if self.additional_items is not None and other.additional_items is not None:
+            self.additional_items = self.additional_items or other.additional_items
+        elif self.additional_items is None and other.additional_items is not None:
+            self.additional_items = other.additional_items
+
+        if self.min_items is not None and other.min_items is not None:
+            self.min_items = max(self.min_items, other.min_items)
+        elif self.min_items is None and other.min_items is not None:
+            self.min_items = other.min_items
+
+        if self.max_items is not None and other.max_items is not None:
+            self.max_items = max(self.max_items, other.max_items)
+        elif self.max_items is None and other.max_items is not None:
+            self.max_items = other.max_items
 
 
 class Boolean(Type):
@@ -166,15 +219,88 @@ class Object(Type):
 
         if self.properties is not None:
             self.properties = {
-                key: Schema.extract(name=key, data=value, manager=self.manager, suffix=self.address)
+                key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(key))
                 for key, value in self.properties.items()
             }
 
         if self.pattern_properties is not None:
             self.pattern_properties = {
-                key: Schema.extract(name=f"pattern[{key}]", data=value, manager=self.manager, suffix=self.address)
+                key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(f"pattern[{key}]"))
                 for key, value in self.pattern_properties.items()
             }
+
+    def resolve(self, manager: Manager) -> Self:
+        """
+        Resolve the schema instance against the manager.
+
+        Parameters
+        ----------
+        manager:
+            The manager to resolve the schema against
+
+        Returns
+        -------
+            The resolved schema instance.
+        """
+        with manager.lock():
+            resolved = super().resolve(manager)
+
+            if self.properties is not None:
+                resolved.properties = {key: value.resolve(manager) for key, value in self.properties.items()}
+
+            if self.pattern_properties is not None:
+                resolved.pattern_properties = {key: value.resolve(manager) for key, value in self.pattern_properties.items()}
+
+        return self.re_extract(data=resolved.data, manager=manager)
+
+    def merge(self, other: Object):
+        """
+        Merge another Object schema into this one.
+
+        Parameters
+        ----------
+        other
+            The Object schema to merge with this one.
+        """
+        if not isinstance(other, Object):
+            raise self.MergeError(f"Cannot merge non-Object schema: {type(other)}.")
+
+        if self.properties is not None or other.properties is not None:
+            self.properties = self.properties or {}
+            for key, value in (other.properties or {}).items():
+                if key in self.properties:
+                    self.properties[key].merge(value)
+                else:
+                    self.properties[key] = value
+
+        if self.pattern_properties is not None or other.pattern_properties is not None:
+            self.pattern_properties = self.pattern_properties or {}
+            for key, value in (other.pattern_properties or {}).items():
+                if key in self.pattern_properties:
+                    self.pattern_properties[key].merge(value)
+                else:
+                    self.pattern_properties[key] = value
+
+        if self.required is not None or other.required is not None:
+            self.required = list(set(self.required or []) | set(other.required or []))
+
+        if self.additional_properties is not None and other.additional_properties is not None:
+            self.additional_properties = self.additional_properties or other.additional_properties
+        elif self.additional_properties is None and other.additional_properties is not None:
+            self.additional_properties = other.additional_properties
+
+        if self.max_properties is not None and other.max_properties is not None:
+            self.max_properties = max(self.max_properties, other.max_properties)
+        elif self.max_properties is None and other.max_properties is not None:
+            self.max_properties = other.max_properties
+
+        if self.min_properties is not None and other.min_properties is not None:
+            self.min_properties = max(self.min_properties, other.min_properties)
+        elif self.min_properties is None and other.min_properties is not None:
+            self.min_properties = other.min_properties
+
+        if self.dependencies is not None or other.dependencies is not None:
+            self.dependencies = {**(self.dependencies or {}), **(other.dependencies or {})}
 
 
 class String(Type):

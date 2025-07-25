@@ -8,6 +8,7 @@ from ._reader import ValueKeys, rad
 
 if TYPE_CHECKING:
     from ._manager import Manager
+    from ._type import Array, Object
 
 
 class Schema(Basic):
@@ -121,12 +122,10 @@ class Schema(Basic):
 
         if self.definitions is not None:
             if self.Selectors.REF in self.definitions:
-                self.definitions = Schema.extract(
-                    name="definitions", data=self.definitions, manager=self.manager, suffix=self.address
-                )
+                self.definitions = Schema.extract(data=self._simplify(self.definitions), **self._sub_reader_kwargs("definitions"))
             elif isinstance(self.definitions, Mapping):
                 self.definitions = {
-                    key: Schema.extract(name=key, data=value, manager=self.manager, suffix=f"definitions@{self.address}")
+                    key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(f"definition@{key}"))
                     for key, value in self.definitions.items()
                 }
             else:
@@ -145,9 +144,28 @@ class AllOf(Schema):
         super().__post_init__()
 
         self.all_of = [
-            Schema.extract(name=f"all_of_{index}", data=item, manager=self.manager, suffix=self.address)
+            Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"all_of_{index}"))
             for index, item in enumerate(self.all_of)
         ]
+
+    def resolve(self, manager: Manager) -> Object | Array:
+        """
+        Specialized resolve method for allOf schemas
+        """
+        if len(self.all_of) == 0:
+            raise self.ResolutionError("No schemas to resolve in 'allOf'.")
+
+        with manager.lock():
+            partial_resolve = super().resolve(manager)
+
+            data = partial_resolve.data
+            del data["allOf"]
+
+            resolved = type(partial_resolve.all_of[0]).extract(data=data, **partial_resolve.non_data)
+            for schema in partial_resolve.all_of:
+                resolved.merge(schema)
+
+        return type(resolved).extract(data=resolved.data, **resolved.non_data)
 
 
 class AnyOf(Schema):
@@ -162,7 +180,7 @@ class AnyOf(Schema):
         super().__post_init__()
 
         self.any_of = [
-            Schema.extract(name=f"any_of_{index}", data=item, manager=self.manager, suffix=self.address)
+            Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"any_of_{index}"))
             for index, item in enumerate(self.any_of)
         ]
 
@@ -178,7 +196,7 @@ class Not(Schema):
         """Post-initialization to process not_ list."""
         super().__post_init__()
 
-        self.not_ = Schema.extract(name="not", data=self.not_, manager=self.manager, suffix=self.address)
+        self.not_ = Schema.extract(data=self._simplify(self.not_), **self._sub_reader_kwargs("not"))
 
 
 class OneOf(Schema):
@@ -193,6 +211,6 @@ class OneOf(Schema):
         super().__post_init__()
 
         self.one_of = [
-            Schema.extract(name=f"one_of_{index}", data=item, manager=self.manager, suffix=self.address)
+            Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"one_of_{index}"))
             for index, item in enumerate(self.one_of)
         ]

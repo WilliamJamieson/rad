@@ -29,3 +29,18 @@ class TestManager:
         assert reader.bar == "value2"
 
         assert len(manager) == 1
+
+    def test_lock(self, manager):
+        """
+        Test that locking a schema prevents further modifications.
+        """
+        reader = self.ExampleReader.extract(name="test_element", data={"foo": "value1", "bar": "value2"}, manager=manager)
+
+        assert len(manager) == 1
+        with manager.lock():
+            self.ExampleReader.extract(name="test_element", data={"foo": "this", "bar": "that"}, manager=manager)
+        assert len(manager) == 1
+
+        assert manager["test_element"] is reader
+        assert reader.foo == "value1"
+        assert reader.bar == "value2"

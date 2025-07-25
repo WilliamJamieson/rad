@@ -61,7 +61,7 @@ class Rad(Reader):
         """
         if self.archive_catalog is not None:
             self.archive_catalog = ArchiveCatalog.extract(
-                name="archive_catalog", data=self.archive_catalog, manager=self.manager, suffix=self.address
+                data=self._simplify(self.archive_catalog), **self._sub_reader_kwargs("archive_catalog")
             )
 
         super().__post_init__()

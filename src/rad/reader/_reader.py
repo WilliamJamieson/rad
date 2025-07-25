@@ -28,6 +28,22 @@ def rad(schema_key: str | None = None, **kwargs) -> Field:
     return field(metadata=metadata, **kwargs)
 
 
+def _snake_to_camel(snake_case_string: str) -> str:
+    """
+    Converts a snake_case string to camelCase.
+
+    Args:
+        snake_case_string (str): The string in snake_case format.
+
+    Returns:
+        str: The converted string in camelCase format.
+    """
+    words = snake_case_string.split("_")
+    # Capitalize the first letter of each word except the first one
+    camel_case_words = [words[0]] + [word.capitalize() for word in words[1:]]
+    return "".join(camel_case_words)
+
+
 @unique
 class KeyWords(StrEnum):
     """Enumeration of the keywords used in the schema component"""
@@ -36,22 +52,6 @@ class KeyWords(StrEnum):
     def reader_name(self) -> str:
         """Get the reader name for the keyword."""
         return self.name.lower()
-
-    @staticmethod
-    def snake_to_camel(snake_case_string: str) -> str:
-        """
-        Converts a snake_case string to camelCase.
-
-        Args:
-            snake_case_string (str): The string in snake_case format.
-
-        Returns:
-            str: The converted string in camelCase format.
-        """
-        words = snake_case_string.split("_")
-        # Capitalize the first letter of each word except the first one
-        camel_case_words = [words[0]] + [word.capitalize() for word in words[1:]]
-        return "".join(camel_case_words)
 
     @classmethod
     def extract(cls, data: dict[str, Any]) -> dict[str, Any]:
@@ -90,7 +90,7 @@ class KeyWords(StrEnum):
                 schema_key = field_.metadata["schema_key"]
 
                 if schema_key is None:
-                    schema_key = cls.snake_to_camel(field_.name)
+                    schema_key = _snake_to_camel(field_.name)
 
                 key_words.append((name, schema_key))
 
@@ -116,6 +116,12 @@ class Reader(ABC):
 
     class UnreadableDataError(ValueError):
         """Exception raised when the data cannot be read by the schema."""
+
+    class ResolutionError(ValueError):
+        """Exception raised when the schema cannot be resolved."""
+
+    class MergeError(ValueError):
+        """Exception raised when the schema cannot be merged."""
 
     @property
     def address(self) -> str:
@@ -149,6 +155,74 @@ class Reader(ABC):
         """
         self.manager.register(self)
 
+    @property
+    def data(self) -> dict[str, Any]:
+        """
+        Get the data representation of the schema.
+
+        Returns
+        -------
+            A dictionary representation of the schema.
+        """
+        data = {}
+        for field_ in fields(self):
+            if "schema_key" in field_.metadata:
+                name = field_.metadata.get("schema_key", None)
+                if name is None:
+                    name = _snake_to_camel(field_.name)
+                data[name] = getattr(self, field_.name)
+
+        return data
+
+    @property
+    def non_data(self) -> dict[str, Any]:
+        """
+        Get the non-data representation of the schema.
+
+        Returns
+        -------
+            A dictionary representation of the schema excluding data fields.
+        """
+
+        data = {}
+        for field_ in fields(self):
+            if "schema_key" not in field_.metadata:
+                data[field_.name] = getattr(self, field_.name)
+
+        return data
+
+    def _sub_reader_kwargs(self, name: str) -> dict[str, Any]:
+        """
+        Get the keyword arguments for a sub-reader.
+
+        Returns
+        -------
+            A dictionary representation of the sub-reader's keyword arguments.
+        """
+        kwargs = self.non_data
+        kwargs["name"] = name
+        kwargs["suffix"] = self.address
+
+        return kwargs
+
+    def _simplify(self, value: Any) -> dict[str, Any]:
+        """
+        Simplify the value to a dictionary representation.
+
+        Parameters
+        ----------
+        value:
+            The value to simplify
+
+        Returns
+        -------
+            A dictionary representation of the value.
+        """
+        if isinstance(value, Reader):
+            return value.data
+
+        return value
+
     @classmethod
     def extract(cls, name: str, data: dict[str, Any], manager: Manager, suffix: str | None = None, **kwargs) -> Self:
         """
@@ -170,6 +244,62 @@ class Reader(ABC):
             An instance of the schema class.
         """
         return cls(name=name, suffix=suffix, manager=manager, **cls.KeyWords.extract(data), **kwargs)
+
+    def re_extract(self, data: dict[str, Any], manager: Manager) -> Self:
+        """
+        Re-extract the schema instance from the manager.
+
+        Parameters
+        ----------
+        data:
+            The data dictionary to re-extract the schema from
+        manager:
+            The manager to re-extract the schema from
+
+        Returns
+        -------
+            A new instance of the schema class.
+        """
+        kwargs = self.non_data
+        kwargs["manager"] = manager
+
+        return type(self).extract(data=data, **kwargs)
+
+    def resolve(self, manager: Manager) -> Self:
+        """
+        Resolve the schema instance against the manager.
+
+        Parameters
+        ----------
+        manager:
+            The manager to resolve the schema against
+
+        Returns
+        -------
+            The resolved schema instance.
+        """
+        data = {}
+        with manager.lock():
+            for key, value in self.data.items():
+                if isinstance(value, Reader):
+                    data[key] = value.resolve(manager)
+                elif key == "manager":
+                    data[key] = manager
+                else:
+                    data[key] = value
+
+        return self.re_extract(data=data, manager=manager)
+
+    def merge(self, other: Self):
+        """
+        Merge another schema instance into this one.
+
+        Parameters
+        ----------
+        other:
+            The other schema instance to merge
+        """
+        raise NotImplementedError(f"Merge method is not implemented for {type(self).__name__} schema.")
 
 
 class _AbstractStrEnumMeta(ABCMeta, EnumMeta): ...

@@ -568,6 +568,21 @@ def extract_schema(schema, extract_manager):
     return Schema.extract(name=None, data=schema, manager=extract_manager)
 
 
+@pytest.fixture(scope="class")
+def manager(schema_uris, current_resources):
+    """Class scoped schema manager fixture."""
+    manager = Manager(schemas={})
+    for uri in schema_uris:
+        Schema.extract(name=None, data=current_resources[uri], manager=manager)
+    return manager
+
+
+@pytest.fixture(scope="class")
+def resolve_manager():
+    """Class scoped schema manager fixture for resolve tests."""
+    return Manager(schemas={})
+
+
 class TestRadExtraction:
     def test_root(self, schema, extract_schema):
         """
@@ -640,3 +655,10 @@ class TestRadExtraction:
 
         if "oneOf" in schema:
             assert isinstance(extract_schema, OneOf)
+
+    def test_schema_resolve(self, schema_uri, manager, resolve_manager):
+        """
+        Test that the Schema can be resolved correctly.
+        """
+
+        manager[schema_uri].resolve(resolve_manager)

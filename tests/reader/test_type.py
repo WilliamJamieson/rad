@@ -2,10 +2,10 @@ from dataclasses import is_dataclass
 
 import pytest
 
-from rad.node._reader._basic import Basic
-from rad.node._reader._reader import KeyWords, Reader
-from rad.node._reader._schema import Schema
-from rad.node._reader._type import Array, Boolean, Null, Numeric, Object, String, Type
+from rad.reader._basic import Basic
+from rad.reader._reader import KeyWords, Reader
+from rad.reader._schema import Schema
+from rad.reader._type import Array, Boolean, Null, Numeric, Object, String, Type
 
 
 class TestType:

@@ -2,7 +2,7 @@ from dataclasses import dataclass, fields, is_dataclass
 
 import pytest
 
-from rad.node._reader._reader import KeyWords, Reader, rad
+from rad.reader._reader import KeyWords, Reader, rad
 
 
 class TestKeyWords:

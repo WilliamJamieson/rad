@@ -1,7 +1,7 @@
 import pytest
 
-from rad.node._reader._manager import Manager
-from rad.node._reader._reader import Reader, rad
+from rad.reader._manager import Manager
+from rad.reader._reader import Reader, rad
 
 
 class TestManager:

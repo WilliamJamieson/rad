@@ -10,9 +10,9 @@ import asdf.treeutil
 import pytest
 from crds.config import is_crds_name
 
-from rad.node._reader._manager import Manager
-from rad.node._reader._schema import AllOf, AnyOf, Not, OneOf, Schema
-from rad.node._reader._type import Array, Boolean, Null, Numeric, Object, String, Type
+from rad.reader._manager import Manager
+from rad.reader._schema import AllOf, AnyOf, Not, OneOf, Schema
+from rad.reader._type import Array, Boolean, Null, Numeric, Object, String, Type
 
 METADATA_FORCING_REQUIRED = ("archive_catalog", "sdf")
 

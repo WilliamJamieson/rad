@@ -1,7 +1,7 @@
 from dataclasses import is_dataclass
 
-from rad.node._reader._basic import ArchiveCatalog, Basic, Metadata, Rad, Root
-from rad.node._reader._reader import KeyWords
+from rad.reader._basic import ArchiveCatalog, Basic, Metadata, Rad, Root
+from rad.reader._reader import KeyWords
 
 
 class TestRoot:

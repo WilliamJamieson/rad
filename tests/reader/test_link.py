@@ -1,9 +1,9 @@
 from dataclasses import is_dataclass
 
-from rad.node._reader._link import Link, Ref, Tag
-from rad.node._reader._reader import KeyWords
-from rad.node._reader._schema import AllOf, Schema
-from rad.node._reader._type import Object
+from rad.reader._link import Link, Ref, Tag
+from rad.reader._reader import KeyWords
+from rad.reader._schema import AllOf, Schema
+from rad.reader._type import Object
 
 
 class TestRef:

@@ -2,11 +2,11 @@ from dataclasses import is_dataclass
 
 import pytest
 
-from rad.node._reader._basic import Basic
-from rad.node._reader._link import Ref
-from rad.node._reader._reader import KeyWords
-from rad.node._reader._schema import AllOf, AnyOf, Not, OneOf, Schema
-from rad.node._reader._type import Null, Numeric, Object, String
+from rad.reader._basic import Basic
+from rad.reader._link import Ref
+from rad.reader._reader import KeyWords
+from rad.reader._schema import AllOf, AnyOf, Not, OneOf, Schema
+from rad.reader._type import Null, Numeric, Object, String
 
 
 class TestSchema:

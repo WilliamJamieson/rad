@@ -2,7 +2,7 @@ from types import MappingProxyType
 
 import pytest
 
-from rad.node._reader._manager import Manager
+from rad.reader._manager import Manager
 
 
 @pytest.fixture()

@@ -38,7 +38,7 @@ class TestType:
                 name=None,
                 data={**basic_data, "type": "unsupported_type"},
                 manager=manager,
-                suffix=None,
+                prefix=None,
             )
 
     def test_extract_failure(self, basic_data, manager):
@@ -50,7 +50,7 @@ class TestType:
                 name=None,
                 data=basic_data,
                 manager=manager,
-                suffix=None,
+                prefix=None,
             )
 
 
@@ -88,14 +88,14 @@ class TestArray:
             name=None,
             data={**basic_data, **single_item_array_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Array)
         assert is_dataclass(type_)
         assert type_.type == "array"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.manager is manager
         assert type_.address in manager
@@ -107,7 +107,7 @@ class TestArray:
         assert isinstance(item, String)
         assert item.type == "string"
         assert item.name == "items"
-        assert item.suffix == "test_id"
+        assert item.prefix == "test_id"
         assert item.address in manager
         assert manager[item.address] is type_.items[0]
 
@@ -126,14 +126,14 @@ class TestArray:
             name=None,
             data={**basic_data, **multi_item_array_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Array)
         assert is_dataclass(type_)
         assert type_.type == "array"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.manager is manager
         assert type_.address in manager
@@ -146,7 +146,7 @@ class TestArray:
         assert isinstance(type_.items[0], String)
         assert type_.items[0].type == "string"
         assert type_.items[0].name == "item_0"
-        assert type_.items[0].suffix == "test_id"
+        assert type_.items[0].prefix == "test_id"
         assert type_.items[0].address in manager
         assert manager[type_.items[0].address] is type_.items[0]
 
@@ -154,7 +154,7 @@ class TestArray:
         assert isinstance(type_.items[1], Numeric)
         assert type_.items[1].type == "number"
         assert type_.items[1].name == "item_1"
-        assert type_.items[1].suffix == "test_id"
+        assert type_.items[1].prefix == "test_id"
         assert type_.items[1].address in manager
         assert manager[type_.items[1].address] is type_.items[1]
 
@@ -174,7 +174,7 @@ class TestArray:
                     "type": "array",
                     "items": Basic(
                         name="foo",
-                        suffix=None,
+                        prefix=None,
                         id="bar",
                         schema="baz",
                         title="Foo",
@@ -188,7 +188,7 @@ class TestArray:
                     ),
                 },
                 manager=manager,
-                suffix=None,
+                prefix=None,
             )
 
 
@@ -221,14 +221,14 @@ class TestBoolean:
             name=None,
             data={**basic_data, **boolean_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Boolean)
         assert is_dataclass(type_)
         assert type_.type == "boolean"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.manager is manager
         assert type_.address in manager
@@ -270,14 +270,14 @@ class TestNumeric:
             name=None,
             data={**basic_data, **integer_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Numeric)
         assert is_dataclass(type_)
         assert type_.type == "integer"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.minimum is None
         assert type_.maximum is None
@@ -298,14 +298,14 @@ class TestNumeric:
             name=None,
             data={**basic_data, **number_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Numeric)
         assert is_dataclass(type_)
         assert type_.type == "number"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.minimum is None
         assert type_.maximum is None
@@ -348,14 +348,14 @@ class TestNull:
             name=None,
             data={**basic_data, **null_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Null)
         assert is_dataclass(type_)
         assert type_.type == "null"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.manager is manager
         assert type_.address in manager
@@ -399,14 +399,14 @@ class TestObject:
             name=None,
             data={**basic_data, **object_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Object)
         assert is_dataclass(type_)
         assert type_.type == "object"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.manager is manager
         assert type_.address in manager
@@ -419,7 +419,7 @@ class TestObject:
         for key, value in type_.properties.items():
             assert isinstance(value, Type)
             assert value.name == key
-            assert value.suffix == "test_id"
+            assert value.prefix == "test_id"
 
             assert value.address in manager
             assert manager[value.address] is value
@@ -450,14 +450,14 @@ class TestObject:
             name=None,
             data={**basic_data, **pattern_object_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, Object)
         assert is_dataclass(type_)
         assert type_.type == "object"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.manager is manager
         assert type_.address in manager
@@ -470,7 +470,7 @@ class TestObject:
         for key, value in type_.pattern_properties.items():
             assert value.name == f"pattern[{key}]"
             assert isinstance(value, Type)
-            assert value.suffix == "test_id"
+            assert value.prefix == "test_id"
 
             assert value.address in manager
             assert manager[value.address] is value
@@ -526,14 +526,14 @@ class TestString:
             name=None,
             data={**basic_data, **string_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(type_, Type)
         assert isinstance(type_, String)
         assert is_dataclass(type_)
         assert type_.type == "string"
         assert type_.name == "test_id"
-        assert type_.suffix is None
+        assert type_.prefix is None
 
         assert type_.min_length is None
         assert type_.max_length is None

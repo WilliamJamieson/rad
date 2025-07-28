@@ -106,12 +106,12 @@ class Reader(ABC):
     ----------
     name:
         The name of the schema
-    suffix:
-        The suffix used to identify the schema this is a subschema
+    prefix:
+        The prefix used to identify the schema this is a subschemaA
     """
 
     name: str
-    suffix: str | None
+    prefix: str | None
     manager: Manager
 
     class UnreadableDataError(ValueError):
@@ -127,8 +127,8 @@ class Reader(ABC):
     def address(self) -> str:
         """Get the address of the schema within the rad schemas."""
         address = self.name
-        if self.suffix:
-            address += f"@{self.suffix}"
+        if self.prefix:
+            address = f"{self.prefix}{'#' if '#' not in self.prefix else ''}/{address}"
 
         return address
 
@@ -201,7 +201,7 @@ class Reader(ABC):
         """
         kwargs = self.non_data
         kwargs["name"] = name
-        kwargs["suffix"] = self.address
+        kwargs["prefix"] = self.address
 
         return kwargs
 
@@ -224,7 +224,7 @@ class Reader(ABC):
         return value
 
     @classmethod
-    def extract(cls, name: str, data: dict[str, Any], manager: Manager, suffix: str | None = None, **kwargs) -> Self:
+    def extract(cls, name: str, data: dict[str, Any], manager: Manager, prefix: str | None = None, **kwargs) -> Self:
         """
         Extract a schema instance from a dictionary.
 
@@ -236,14 +236,14 @@ class Reader(ABC):
             The data dictionary to read the schema from
         manager:
             The manager to register the schema with
-        suffix:
-            The suffix used to identify the schema this is a subschema
+        prefix:
+            The prefix used to identify the schema this is a subschema
 
         Returns
         -------
             An instance of the schema class.
         """
-        return cls(name=name, suffix=suffix, manager=manager, **cls.KeyWords.extract(data), **kwargs)
+        return cls(name=name, prefix=prefix, manager=manager, **cls.KeyWords.extract(data), **kwargs)
 
     def re_extract(self, data: dict[str, Any], manager: Manager) -> Self:
         """

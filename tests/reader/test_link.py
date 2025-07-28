@@ -35,13 +35,13 @@ class TestRef:
             name=None,
             data={**basic_data, **top_ref_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert isinstance(schema_, AllOf)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.address in manager
         assert manager[schema_.address] is schema_
@@ -57,7 +57,7 @@ class TestRef:
         assert is_dataclass(ref)
 
         assert ref.name == "all_of_0"
-        assert ref.suffix == "test_id"
+        assert ref.prefix == "test_id"
         assert ref.ref == "http://example.com/ref_schema"
 
         assert ref.manager is manager
@@ -96,13 +96,13 @@ class TestTag:
             name=None,
             data={**basic_data, **tag_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert isinstance(schema_, Object)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.address in manager
         assert manager[schema_.address] is schema_
@@ -117,7 +117,7 @@ class TestTag:
         assert isinstance(property1, Tag)
         assert is_dataclass(property1)
         assert property1.name == "property1"
-        assert property1.suffix == "test_id"
+        assert property1.prefix == "test_id"
         assert property1.tag == "asdf://test.com/tags/test_tag1"
 
         assert property1.manager is manager
@@ -130,7 +130,7 @@ class TestTag:
         assert isinstance(property2, Tag)
         assert is_dataclass(property2)
         assert property2.name == "property2"
-        assert property2.suffix == "test_id"
+        assert property2.prefix == "test_id"
         assert property2.tag == "asdf://test.com/tags/test_tag2"
 
         assert property2.manager is manager

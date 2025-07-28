@@ -68,11 +68,11 @@ class TestSchema:
         """
         Test that the schema is correctly defined and fields are set up.
         """
-        assert set(field.name for field in fields(Reader)) == {"name", "suffix", "manager"}
+        assert set(field.name for field in fields(Reader)) == {"name", "prefix", "manager"}
 
         assert set(field.name for field in fields(self.ExampleSchema)) == {
             "name",
-            "suffix",
+            "prefix",
             "manager",
             "foo",
             "bar",
@@ -100,7 +100,7 @@ class TestSchema:
         "kwargs",
         [
             {},
-            {"suffix": "test_suffix"},
+            {"prefix": "test_prefix"},
         ],
     )
     def test_extract(self, data, manager, kwargs):
@@ -110,7 +110,7 @@ class TestSchema:
 
         extract = self.ExampleSchema.extract("test_name", data, manager, foo="test_foo", **kwargs)
         assert extract.name == "test_name"
-        assert extract.suffix == kwargs.get("suffix", None)
+        assert extract.prefix == kwargs.get("prefix", None)
         assert extract.foo == "test_foo"
 
         for field in fields(self.ExampleSchema):
@@ -125,30 +125,29 @@ class TestSchema:
         assert manager[extract.address] is extract
 
     @pytest.mark.parametrize(
-        "suffix",
+        "prefix",
         [
             None,
-            "test_suffix",
-            "another_suffix",
+            "test_prefix",
+            "another_prefix",
         ],
     )
-    def test_address(self, suffix, manager):
+    def test_address(self, prefix, manager):
         """
         Test that the address is correctly formed.
         """
-        address_parts = ["test_name"]
-        if suffix:
-            address_parts.append(suffix)
+        address_parts = [prefix] if prefix else []
+        address_parts.append("test_name")
         instance = self.ExampleSchema(
             name="test_name",
-            suffix=suffix,
+            prefix=prefix,
             foo="test_foo",
             bar="test_bar",
             baz_box="test_baz_box",
             baz="test_baz",
             manager=manager,
         )
-        assert instance.address == "@".join(address_parts)
+        assert instance.address == "#/".join(address_parts)
 
         assert instance.address in manager
         assert manager[instance.address] is instance
@@ -159,7 +158,7 @@ class TestSchema:
         """
         instance = self.ExampleSchema(
             name="test_name",
-            suffix=None,
+            prefix=None,
             foo="test_foo",
             bar="test_bar",
             baz_box="test_baz_box",
@@ -181,7 +180,7 @@ class TestSchema:
 
         assert new_instance.manager is new_manager
         assert new_instance.name == instance.name
-        assert new_instance.suffix == instance.suffix
+        assert new_instance.prefix == instance.prefix
         assert new_instance.foo == instance.foo
         assert new_instance.bar == instance.bar
         assert new_instance.baz_box == instance.baz_box
@@ -193,7 +192,7 @@ class TestSchema:
         """
         instance = self.ExampleSchema(
             name="test_name",
-            suffix=None,
+            prefix=None,
             foo="test_foo",
             bar="test_bar",
             baz_box="test_baz_box",

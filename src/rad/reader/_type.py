@@ -58,7 +58,7 @@ class Type(Schema):
             raise cls.UnhandledKeyError(f"Unhandled type value: {data.get('type')}.")
 
     @classmethod
-    def extract(cls, name: str, data: dict[str, Any], manager: Manager, suffix: str | None = None, **kwargs) -> Self:
+    def extract(cls, name: str, data: dict[str, Any], manager: Manager, prefix: str | None = None, **kwargs) -> Self:
         """
         Extract a schema instance from a dictionary.
 
@@ -70,8 +70,8 @@ class Type(Schema):
             The data dictionary to read the schema from
         manager:
             The manager to register the schema with
-        suffix:
-            The suffix used to identify the schema this is a subschema
+        prefix:
+            The prefix used to identify the schema this is a subschema
 
         Returns
         -------
@@ -81,8 +81,8 @@ class Type(Schema):
             if "type" not in data:
                 raise cls.UnreadableDataError("Missing 'type' key in data.")
 
-            return cls.TypeKeys.reader(data).extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
-        return super().extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
+            return cls.TypeKeys.reader(data).extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
+        return super().extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
 
 
 class Array(Type):

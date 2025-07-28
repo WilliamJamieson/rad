@@ -35,14 +35,14 @@ class TestSchema:
             name=None,
             data={**basic_data, **definitions_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Basic)
         assert isinstance(schema_, Schema)
         assert is_dataclass(schema_)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -53,8 +53,8 @@ class TestSchema:
         assert len(schema_.definitions) == 3
 
         for key, item in schema_.definitions.items():
-            assert item.name == f"definition@{key}"
-            assert item.suffix == "test_id"
+            assert item.name == f"definitions/{key}"
+            assert item.prefix == "test_id"
 
         assert "test_string" in schema_.definitions
         string = schema_.definitions["test_string"]
@@ -82,12 +82,12 @@ class TestSchema:
             name=None,
             data={**basic_data, **definitions_ref_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -96,7 +96,7 @@ class TestSchema:
         assert isinstance(schema_.definitions, Ref)
         assert schema_.definitions.ref == "http://example.com/ref_schema"
         assert schema_.definitions.name == "definitions"
-        assert schema_.definitions.suffix == "test_id"
+        assert schema_.definitions.prefix == "test_id"
 
         assert schema_.definitions.address in manager
         assert manager[schema_.definitions.address] is schema_.definitions
@@ -109,7 +109,7 @@ class TestSchema:
                 name=None,
                 data={**basic_data, **{"definitions": "invalid"}},
                 manager=manager,
-                suffix=None,
+                prefix=None,
             )
 
     def test_extract_enum(self, basic_data, enum_data, manager):
@@ -117,12 +117,12 @@ class TestSchema:
             name=None,
             data={**basic_data, **enum_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -163,14 +163,14 @@ class TestAllOf:
             name=None,
             data={**basic_data, **all_of_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert isinstance(schema_, AllOf)
         assert is_dataclass(schema_)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -183,7 +183,7 @@ class TestAllOf:
         for index, item in enumerate(schema_.all_of):
             assert isinstance(item, Object)
             assert item.name == f"all_of_{index}"
-            assert item.suffix == "test_id"
+            assert item.prefix == "test_id"
             assert item.address in manager
             assert manager[item.address] is item
 
@@ -194,7 +194,7 @@ class TestAllOf:
             name=None,
             data={**basic_data, **all_of_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert len(new_manager) == 0
@@ -206,7 +206,7 @@ class TestAllOf:
         assert resolved.manager is new_manager
 
         assert schema_.name == resolved.name
-        assert schema_.suffix == resolved.suffix
+        assert schema_.prefix == resolved.prefix
         assert schema_.address == resolved.address
 
         assert type(resolved) is Object
@@ -220,7 +220,7 @@ class TestAllOf:
             name=None,
             data={**basic_data, **all_of_object_object_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert len(new_manager) == 0
@@ -232,7 +232,7 @@ class TestAllOf:
         assert resolved.manager is new_manager
 
         assert schema_.name == resolved.name
-        assert schema_.suffix == resolved.suffix
+        assert schema_.prefix == resolved.prefix
         assert schema_.address == resolved.address
 
         assert type(resolved) is Object
@@ -248,7 +248,7 @@ class TestAllOf:
             name=None,
             data={**basic_data, **all_of_array_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert len(schema_.all_of) == 2
 
@@ -262,7 +262,7 @@ class TestAllOf:
         assert resolved.address == schema_.address
 
         assert schema_.name == resolved.name
-        assert schema_.suffix == resolved.suffix
+        assert schema_.prefix == resolved.prefix
         assert schema_.address == resolved.address
 
         assert type(resolved) is Array
@@ -299,14 +299,14 @@ class TestAnyOf:
             name=None,
             data={**basic_data, **any_of_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert isinstance(schema_, AnyOf)
         assert is_dataclass(schema_)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -319,7 +319,7 @@ class TestAnyOf:
         for index, item in enumerate(schema_.any_of):
             assert isinstance(item, String | Null)
             assert item.name == f"any_of_{index}"
-            assert item.suffix == "test_id"
+            assert item.prefix == "test_id"
             assert item.address in manager
             assert manager[item.address] is item
 
@@ -353,14 +353,14 @@ class TestNot:
             name=None,
             data={**basic_data, **not_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert isinstance(schema_, Not)
         assert is_dataclass(schema_)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -368,7 +368,7 @@ class TestNot:
 
         assert isinstance(schema_.not_, Object)
         assert schema_.not_.name == "not"
-        assert schema_.not_.suffix == "test_id"
+        assert schema_.not_.prefix == "test_id"
         assert schema_.not_.address in manager
         assert manager[schema_.not_.address] is schema_.not_
 
@@ -402,14 +402,14 @@ class TestOneOf:
             name=None,
             data={**basic_data, **one_of_data},
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
 
         assert isinstance(schema_, Schema)
         assert isinstance(schema_, OneOf)
         assert is_dataclass(schema_)
         assert schema_.name == "test_id"
-        assert schema_.suffix is None
+        assert schema_.prefix is None
 
         assert schema_.manager is manager
         assert schema_.address in manager
@@ -422,7 +422,7 @@ class TestOneOf:
         for index, item in enumerate(schema_.one_of):
             assert isinstance(item, String | Numeric)
             assert item.name == f"one_of_{index}"
-            assert item.suffix == "test_id"
+            assert item.prefix == "test_id"
             assert item.address in manager
             assert manager[item.address] is item
 

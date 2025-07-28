@@ -23,13 +23,13 @@ class TestRoot:
             name=None,
             data=root_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(root, Root)
         assert is_dataclass(root)
         assert root.id == "test_id"
         assert root.schema == "http://example.com/schema"
-        assert root.suffix is None
+        assert root.prefix is None
 
         assert root.manager is manager
         assert root.address in manager
@@ -44,7 +44,7 @@ class TestRoot:
             name="test_root",
             data=root_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert root.name == root.id
         assert root.id == "test_id"
@@ -70,14 +70,14 @@ class TestMetadata:
             name=None,
             data=metadata_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(metadata, Metadata)
         assert is_dataclass(metadata)
         assert metadata.title == "Test Title"
         assert metadata.description == "Test Description"
         assert metadata.default == "Test Default"
-        assert metadata.suffix is None
+        assert metadata.prefix is None
 
         assert metadata.manager is manager
         assert metadata.address in manager
@@ -105,14 +105,14 @@ class TestArchiveCatalog:
             name=None,
             data=archive_catalog_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(archive_catalog, ArchiveCatalog)
         assert is_dataclass(archive_catalog)
         assert archive_catalog.datatype == "Test DataType"
         assert archive_catalog.destination == ["destination1", "destination2"]
         assert archive_catalog.path_prefix == "Test Path Prefix"
-        assert archive_catalog.suffix is None
+        assert archive_catalog.prefix is None
 
         assert archive_catalog.manager is manager
         assert archive_catalog.address in manager
@@ -141,13 +141,13 @@ class TestRad:
             name=None,
             data=rad_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(rad, Rad)
         assert is_dataclass(rad)
         assert rad.datamodel_name == "Test DataModel Name"
         assert rad.archive_meta == "Test Archive Meta"
-        assert rad.suffix is None
+        assert rad.prefix is None
 
         assert rad.manager is manager
         assert rad.address in manager
@@ -188,7 +188,7 @@ class TestBasic:
             name=None,
             data=basic_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(basic, Basic)
         assert isinstance(basic, Root)
@@ -206,7 +206,7 @@ class TestBasic:
         assert basic.archive_meta == "Test Archive Meta"
 
         assert basic.name == "test_id"
-        assert basic.suffix is None
+        assert basic.prefix is None
 
         assert basic.manager is manager
         assert basic.address in manager
@@ -229,7 +229,7 @@ class TestBasic:
             name=None,
             data=basic_data,
             manager=manager,
-            suffix=None,
+            prefix=None,
         )
         assert isinstance(basic, Basic)
 
@@ -251,7 +251,7 @@ class TestBasic:
         assert new_basic.unit == basic.unit
         assert new_basic.datamodel_name == basic.datamodel_name
         assert new_basic.archive_meta == basic.archive_meta
-        assert new_basic.suffix == basic.suffix
+        assert new_basic.prefix == basic.prefix
 
         assert new_basic.archive_catalog is not basic.archive_catalog
         assert basic.archive_catalog.address in new_manager

@@ -592,7 +592,7 @@ class TestRadExtraction:
         assert extract_schema.id == schema.get("id")
         assert extract_schema.schema == schema.get("$schema")
         assert extract_schema.name == extract_schema.id
-        assert extract_schema.suffix is None
+        assert extract_schema.prefix is None
 
     def test_metadata(self, schema, extract_schema):
         """
@@ -603,7 +603,7 @@ class TestRadExtraction:
         assert extract_schema.description == schema.get("description")
         assert extract_schema.default == schema.get("default")
         assert extract_schema.name == schema.get("id")
-        assert extract_schema.suffix is None
+        assert extract_schema.prefix is None
 
     def test_basic(self, schema, extract_schema):
         """
@@ -616,7 +616,7 @@ class TestRadExtraction:
         assert extract_schema.description == schema.get("description")
         assert extract_schema.default == schema.get("default")
         assert extract_schema.name == extract_schema.id
-        assert extract_schema.suffix is None
+        assert extract_schema.prefix is None
 
     def test_type(self, schema, extract_schema):
         """
@@ -660,5 +660,9 @@ class TestRadExtraction:
         """
         Test that the Schema can be resolved correctly.
         """
+        print("Addresses:")
+        for address in manager:
+            if "source_catalog_columns" in address:
+                print(f"   {address}")
 
         manager[schema_uri].resolve(resolve_manager)

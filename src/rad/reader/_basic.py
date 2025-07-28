@@ -16,7 +16,7 @@ class Root(Reader):
 
     def __post_init__(self) -> None:
         """
-        Post-initialization method to set the schema name and suffix.
+        Post-initialization method to set the schema name and prefix.
         """
         if self.id is not None:
             self.name = self.id

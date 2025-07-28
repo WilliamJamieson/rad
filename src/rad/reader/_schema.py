@@ -86,7 +86,7 @@ class Schema(Basic):
         name: str | None,
         data: dict[str, Any] | None,
         manager: Manager,
-        suffix: str | None = None,
+        prefix: str | None = None,
         **kwargs,
     ) -> Schema:
         """
@@ -100,8 +100,8 @@ class Schema(Basic):
             The data dictionary to extract the schema from.
         manager
             The manager to register the schema with.
-        suffix
-            An optional suffix to append to the schema name.
+        prefix
+            An optional prefix to append to the schema's address.
         kwargs
             Additional keyword arguments.
 
@@ -110,9 +110,9 @@ class Schema(Basic):
             A Schema instance.
         """
         if (reader := cls.Selectors.reader(cls, data)) is None:
-            return super().extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
+            return super().extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
 
-        return reader.extract(name=name, data=data, manager=manager, suffix=suffix, **kwargs)
+        return reader.extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
 
     def __post_init__(self):
         """
@@ -125,7 +125,7 @@ class Schema(Basic):
                 self.definitions = Schema.extract(data=self._simplify(self.definitions), **self._sub_reader_kwargs("definitions"))
             elif isinstance(self.definitions, Mapping):
                 self.definitions = {
-                    key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(f"definition@{key}"))
+                    key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(f"definitions/{key}"))
                     for key, value in self.definitions.items()
                 }
             else:

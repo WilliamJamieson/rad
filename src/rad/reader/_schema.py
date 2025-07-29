@@ -136,6 +136,28 @@ class Schema(Basic):
             else:
                 raise self.UnreadableDataError(f"Expected 'definitions' to be a Mapping or a $ref, got {type(self.definitions)}.")
 
+    def _archive_data_header(self, name: str) -> dict[str, Any]:
+        header = {"name": name}
+
+        if self.title:
+            header["title"] = self.title
+
+        if self.description:
+            header["description"] = self.description
+
+        return header
+
+    def archive_data(self, name: str) -> dict[str, Any] | None:
+        data = self._archive_data()
+
+        if data is None:
+            return None
+
+        header = self._archive_data_header(name)
+        header.update(data)
+
+        return header
+
 
 class AllOf(Schema):
     """

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from ._reader import Reader, rad
 
 __all__ = ("Basic",)
@@ -41,8 +43,18 @@ class ArchiveCatalog(Reader):
     """
 
     datatype: str | None = rad()
-    destination: str | None = rad()
+    destination: list[str] | None = rad()
     path_prefix: str | None = rad("path_prefix")
+
+    def _archive_data(self) -> dict[str, Any]:
+        data = {
+            "datatype": self.datatype,
+            "destination": self.destination,
+        }
+        if self.path_prefix is not None:
+            data["path_prefix"] = self.path_prefix
+
+        return data
 
 
 class Rad(Reader):
@@ -65,6 +77,15 @@ class Rad(Reader):
             )
 
         super().__post_init__()
+
+    def _archive_data(self) -> dict[str, Any] | None:
+        data = {"archive_meta": self.archive_meta} if self.archive_meta else None
+
+        if self.archive_catalog is not None:
+            data = data or {}
+            data.update(self.archive_catalog._archive_data())
+
+        return data
 
 
 class Basic(Root, Metadata, Rad):

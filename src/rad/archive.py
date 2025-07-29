@@ -1,5 +1,4 @@
 import json
-from dataclasses import asdict
 from pathlib import Path
 
 import asdf
@@ -18,54 +17,12 @@ for latest_uri in _LATEST_URIS:
 
 
 save = Path(__file__).parent.parent.parent / "archive.json"
-resolved = {}
+
+resolved = []
 for address, schema in manager.items():
     if hasattr(schema, "archive_meta") and schema.archive_meta is not None:
         print(f"Resolving {address} with archive_meta")
-        resolved[address] = asdict(manager.resolve(address))
+        resolved.append(manager.resolve(address).archive_data(address.split("/")[-1].split("-")[0]))
 
-
-def _filter(data: dict) -> dict:
-    if isinstance(data, dict):
-        new = {}
-        for key, value in data.items():
-            if value is None:
-                continue
-            if key in ("name", "prefix", "schema", "id"):
-                continue
-            if isinstance(value, Manager):
-                continue
-            new[key] = _filter(value)
-
-        return new
-
-    if isinstance(data, list):
-        return [_filter(item) for item in data]
-
-    return data
-
-
-class Flag(Exception):
-    pass
-
-
-def _archive_catalog_filter(data: dict) -> dict:
-    if isinstance(data, dict):
-        for key, value in data.items():
-            if key == "archive_catalog" and value:
-                raise Flag("")
-
-    if isinstance(data, list):
-        for item in data:
-            if isinstance(item, dict):
-                _archive_catalog_filter(item)
-
-
-# import pprint
-# with save.open("w") as f:
-#     pprint.pp(_filter(resolved), stream=f)
-
-
-print(f"Saving {len(resolved)} schemas to {save}")
 with save.open("w") as f:
-    json.dump(_filter(resolved), f, indent=2)
+    json.dump(resolved, f, indent=2)

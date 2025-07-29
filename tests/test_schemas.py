@@ -663,34 +663,3 @@ class TestRadExtraction:
         ):
             pytest.skip(f"Skipping resolve test {latest_uri}")
         manager.resolve(latest_uri)
-        # # print(f"Read items")z
-        # # for address, value in manager.items():
-        # #     if "asdf://stsci.edu/datamodels/roman/schemas/basic-1.0.0" in address:
-        # #         print(f"    {address}")
-        # #         print(f"        {value}")
-        # # assert False, len(manager)
-        # # address = "asdf://stsci.edu/d
-        # # for address, value in manager.items():
-        # #     if "asdf://stsci.edu/datamodels/roman/schemas/common-1.3.0" in address:
-        # #         print(f"    {address}")
-        # address0 = "asdf://stsci.edu/datamodels/roman/schemas/basic-1.0.0"
-        # # b = manager[address0].resolve(resolve_manager)
-        # address1 = "asdf://stsci.edu/datamodels/roman/schemas/common-1.3.0"
-        # # b = manager[address1].resolve(resolve_manager)
-        # address2 = "asdf://stsci.edu/datamodels/roman/schemas/wfi_image-1.3.0"
-        # b = manager[address2].resolve(resolve_manager)
-        # # print(f"Resolved items: {len(resolve_manager)}")
-        # # for a in resolve_manager:
-        # #     print(f"    {a}")
-
-        # from dataclasses import asdict
-        # import pprint
-        # pp = pprint.PrettyPrinter(indent=4)
-
-        # pp.pprint(asdict(resolve_manager[address2].properties["meta"]))
-
-        # assert address0 in resolve_manager
-        # assert address1 in resolve_manager
-        # assert address2 in resolve_manager
-
-        # assert False

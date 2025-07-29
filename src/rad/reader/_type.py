@@ -327,6 +327,26 @@ class Object(Type):
         if self.dependencies is not None or other.dependencies is not None:
             self.dependencies = {**(self.dependencies or {}), **(other.dependencies or {})}
 
+    def archive_data(self, name: str) -> dict[str, Any] | None:
+        data = super().archive_data(name)
+
+        if self.properties is None:
+            return data
+
+        properties = []
+        for key, schema in self.properties.items():
+            entry = schema.archive_data(key)
+            if entry is not None:
+                properties.append(entry)
+
+        if not properties:
+            return data
+
+        data = data or self._archive_data_header(name)
+        data["properties"] = properties
+
+        return data
+
 
 class String(Type):
     """

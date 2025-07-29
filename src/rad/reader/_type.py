@@ -116,7 +116,7 @@ class Array(Type):
         elif self.items is not None:
             raise self.UnreadableDataError(f"Expected 'items' to be a list, dict, or Schema instance, got {type(self.items)}.")
 
-    def resolve(self, manager: Manager) -> Self:
+    def resolve(self) -> Self:
         """
         Resolve the schema instance against the manager.
 
@@ -129,18 +129,14 @@ class Array(Type):
         -------
             The resolved schema instance.
         """
-        if self.address in manager:
-            return manager[self.address]
+        resolved = super().resolve()
 
-        with manager.lock():
-            resolved = super().resolve(manager)
+        if isinstance(resolved.items, Sequence):
+            resolved.items = [item.resolve() for item in resolved.items]
+        elif isinstance(resolved.items, Schema):
+            resolved.items = resolved.items.resolve()
 
-            if isinstance(resolved.items, Sequence):
-                resolved.items = [item.resolve(manager) for item in resolved.items]
-            elif isinstance(resolved.items, Schema):
-                resolved.items = resolved.items.resolve(manager)
-
-        return self.re_extract(data=resolved.data, manager=manager)
+        return type(self).extract(data=resolved.data, **self.non_data)
 
     def merge(self, other: Array):
         """
@@ -255,7 +251,7 @@ class Object(Type):
                 for key, value in self.pattern_properties.items()
             }
 
-    def resolve(self, manager: Manager) -> Self:
+    def resolve(self) -> Self:
         """
         Resolve the schema instance against the manager.
 
@@ -268,20 +264,17 @@ class Object(Type):
         -------
             The resolved schema instance.
         """
-        if self.address in manager:
-            return manager[self.address]
-
         data = self.data
         del data[self.KeyWords.PROPERTIES]
         del data[self.KeyWords.PATTERN_PROPERTIES]
 
-        resolved = self.re_extract(data=data, manager=manager)
+        resolved = type(self).extract(data=data, **self.non_data)
 
         if self.properties is not None:
-            resolved.properties = {key: value.resolve(manager) for key, value in self.properties.items()}
+            resolved.properties = {key: value.resolve() for key, value in self.properties.items()}
 
         if self.pattern_properties is not None:
-            resolved.pattern_properties = {key: value.resolve(manager) for key, value in self.pattern_properties.items()}
+            resolved.pattern_properties = {key: value.resolve() for key, value in self.pattern_properties.items()}
 
         return resolved
 
@@ -361,6 +354,8 @@ class String(Type):
         other
             The String schema to merge with this one.
         """
+        print(self)
+        print(other)
         if not isinstance(other, String):
             raise self.MergeError(f"Cannot merge non-String schema: {type(other)}.")
 

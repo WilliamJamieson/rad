@@ -79,3 +79,11 @@ class Manager(Mapping[str, Schema]):
             yield
         finally:
             self._lock = current
+
+    def resolve(self, address: str) -> Schema:
+        """
+        Resolve a schema by its address.
+        If the address is not found, it will raise a KeyError.
+        """
+        with self.lock():
+            return self[address].resolve()

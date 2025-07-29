@@ -8,7 +8,7 @@ from ._reader import rad
 from ._schema import Schema
 
 if TYPE_CHECKING:
-    from ._manager import Manager
+    pass
 
 
 class Link(Schema):
@@ -47,7 +47,7 @@ class Link(Schema):
 
         return False
 
-    def resolve(self, manager: Manager) -> Self:
+    def resolve(self) -> Self:
         """
         Resolve the link schema by extracting the address from the manager.
 
@@ -60,14 +60,11 @@ class Link(Schema):
         -------
             The resolved link schema instance.
         """
-        if self.link in manager:
-            return manager[self.link]
-
         if self.is_external:
-            return super().resolve(manager)
+            return super().resolve()
 
         if self.link in self.manager:
-            return self.manager[self.link].resolve(manager)
+            return self.manager[self.link].resolve()
 
         raise self.LinkError(f"Link '{self.link}' not found in schema data.")
 

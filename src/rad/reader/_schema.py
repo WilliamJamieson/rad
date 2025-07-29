@@ -118,10 +118,15 @@ class Schema(Basic):
         """
         Post-initialization to process definitions
         """
+        from ._link import Ref
+
         super().__post_init__()
 
         if self.definitions is not None:
-            if self.Selectors.REF in self.definitions:
+            if isinstance(self.definitions, Ref):
+                with self.manager.lock():
+                    self.definitions = self.definitions.resolve().definitions
+            elif self.Selectors.REF in self.definitions:
                 self.definitions = Schema.extract(data=self._simplify(self.definitions), **self._sub_reader_kwargs("definitions"))
             elif isinstance(self.definitions, Mapping):
                 self.definitions = {
@@ -149,29 +154,23 @@ class AllOf(Schema):
                 for index, item in enumerate(self.all_of)
             ]
 
-    def resolve(self, manager: Manager) -> Object | Array:
+    def resolve(self) -> Object | Array:
         """
         Specialized resolve method for allOf schemas
         """
-        if self.address in manager:
-            return manager[self.address]
-
         if len(self.all_of) == 0:
             raise self.ResolutionError("No schemas to resolve in 'allOf'.")
 
-        data = self.all_of[0].resolve(manager).data
+        data = self.all_of[0].resolve().data
         data.update(self.data)
         del data[self.KeyWords.ALL_OF]
 
-        with self.manager.lock():
-            resolved = self.re_extract(data=data, manager=self.manager)
+        resolved = type(self).extract(data=data, **self.non_data)
 
         for item in self.all_of[1:]:
-            resolved.merge(item.resolve(manager))
+            resolved.merge(item.resolve())
 
-        if resolved.address in manager:
-            return resolved
-        return resolved.resolve(manager)
+        return resolved.resolve()
 
 
 class AnyOf(Schema):

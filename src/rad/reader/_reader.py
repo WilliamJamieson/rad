@@ -265,7 +265,7 @@ class Reader(ABC):
 
         return type(self).extract(data=data, **kwargs)
 
-    def resolve(self, manager: Manager) -> Self:
+    def resolve(self) -> Self:
         """
         Resolve the schema instance against the manager.
 
@@ -279,16 +279,13 @@ class Reader(ABC):
             The resolved schema instance.
         """
         data = {}
-        with manager.lock():
-            for key, value in self.data.items():
-                if isinstance(value, Reader):
-                    data[key] = value.resolve(manager)
-                elif key == "manager":
-                    data[key] = manager
-                else:
-                    data[key] = value
+        for key, value in self.data.items():
+            if isinstance(value, Reader):
+                data[key] = value.resolve()
+            else:
+                data[key] = value
 
-        return self.re_extract(data=data, manager=manager)
+        return type(self).extract(data=data, **self.non_data)
 
     def merge(self, other: Self):
         """

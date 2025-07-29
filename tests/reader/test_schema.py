@@ -74,7 +74,6 @@ class TestSchema:
         assert object_.address in manager
         assert manager[object_.address] is object_
 
-        print(list(manager.keys()))
         assert len(manager) == 7  # schema + catalog + 3 definitions + 2 object properties
 
     def test_extract_ref_definitions(self, basic_data, definitions_ref_data, manager):

@@ -143,29 +143,35 @@ class AllOf(Schema):
         """Post-initialization to process all_of list."""
         super().__post_init__()
 
-        self.all_of = [
-            Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"all_of_{index}"))
-            for index, item in enumerate(self.all_of)
-        ]
+        if self.all_of is not None:
+            self.all_of = [
+                Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"all_of_{index}"))
+                for index, item in enumerate(self.all_of)
+            ]
 
     def resolve(self, manager: Manager) -> Object | Array:
         """
         Specialized resolve method for allOf schemas
         """
+        if self.address in manager:
+            return manager[self.address]
+
         if len(self.all_of) == 0:
             raise self.ResolutionError("No schemas to resolve in 'allOf'.")
 
-        with manager.lock():
-            partial_resolve = super().resolve(manager)
+        data = self.all_of[0].resolve(manager).data
+        data.update(self.data)
+        del data[self.KeyWords.ALL_OF]
 
-            data = partial_resolve.data
-            del data["allOf"]
+        with self.manager.lock():
+            resolved = self.re_extract(data=data, manager=self.manager)
 
-            resolved = type(partial_resolve.all_of[0]).extract(data=data, **partial_resolve.non_data)
-            for schema in partial_resolve.all_of:
-                resolved.merge(schema)
+        for item in self.all_of[1:]:
+            resolved.merge(item.resolve(manager))
 
-        return type(resolved).extract(data=resolved.data, **resolved.non_data)
+        if resolved.address in manager:
+            return resolved
+        return resolved.resolve(manager)
 
 
 class AnyOf(Schema):
@@ -197,6 +203,20 @@ class Not(Schema):
         super().__post_init__()
 
         self.not_ = Schema.extract(data=self._simplify(self.not_), **self._sub_reader_kwargs("not"))
+
+    def merge(self, other: Not):
+        """
+        Merge another Not schema into this one.
+
+        Parameters
+        ----------
+        other
+            The other Not schema instance to merge.
+        """
+        if not isinstance(other, Not):
+            raise self.MergeError(f"Cannot merge {type(other)} into Not schema.")
+
+        self.not_.merge(other.not_)
 
 
 class OneOf(Schema):

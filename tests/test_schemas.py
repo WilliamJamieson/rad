@@ -569,10 +569,10 @@ def extract_schema(schema, extract_manager):
 
 
 @pytest.fixture(scope="class")
-def manager(schema_uris, current_resources):
+def manager(latest_uris, current_resources):
     """Class scoped schema manager fixture."""
     manager = Manager(schemas={})
-    for uri in schema_uris:
+    for uri in latest_uris:
         Schema.extract(name=None, data=current_resources[uri], manager=manager)
     return manager
 
@@ -656,13 +656,36 @@ class TestRadExtraction:
         if "oneOf" in schema:
             assert isinstance(extract_schema, OneOf)
 
-    def test_schema_resolve(self, schema_uri, manager, resolve_manager):
-        """
-        Test that the Schema can be resolved correctly.
-        """
-        print("Addresses:")
-        for address in manager:
-            if "source_catalog_columns" in address:
-                print(f"   {address}")
+    def test_schema_resolve(self, manager, latest_uri):
+        manager[latest_uri].resolve(Manager(schemas={}))
+        # # print(f"Read items")z
+        # # for address, value in manager.items():
+        # #     if "asdf://stsci.edu/datamodels/roman/schemas/basic-1.0.0" in address:
+        # #         print(f"    {address}")
+        # #         print(f"        {value}")
+        # # assert False, len(manager)
+        # # address = "asdf://stsci.edu/d
+        # # for address, value in manager.items():
+        # #     if "asdf://stsci.edu/datamodels/roman/schemas/common-1.3.0" in address:
+        # #         print(f"    {address}")
+        # address0 = "asdf://stsci.edu/datamodels/roman/schemas/basic-1.0.0"
+        # # b = manager[address0].resolve(resolve_manager)
+        # address1 = "asdf://stsci.edu/datamodels/roman/schemas/common-1.3.0"
+        # # b = manager[address1].resolve(resolve_manager)
+        # address2 = "asdf://stsci.edu/datamodels/roman/schemas/wfi_image-1.3.0"
+        # b = manager[address2].resolve(resolve_manager)
+        # # print(f"Resolved items: {len(resolve_manager)}")
+        # # for a in resolve_manager:
+        # #     print(f"    {a}")
 
-        manager[schema_uri].resolve(resolve_manager)
+        # from dataclasses import asdict
+        # import pprint
+        # pp = pprint.PrettyPrinter(indent=4)
+
+        # pp.pprint(asdict(resolve_manager[address2].properties["meta"]))
+
+        # assert address0 in resolve_manager
+        # assert address1 in resolve_manager
+        # assert address2 in resolve_manager
+
+        # assert False

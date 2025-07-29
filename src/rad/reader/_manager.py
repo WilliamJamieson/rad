@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import itertools
 from collections.abc import Generator, Mapping
 from contextlib import contextmanager
+
+import asdf
+import yaml
 
 from ._schema import Schema
 
@@ -11,6 +15,8 @@ class Manager(Mapping[str, Schema]):
     A manager for schemas that allows for easy access and manipulation of schemas.
     It implements the Mapping interface to provide dictionary-like access to schemas.
     """
+
+    MANIFEST_PREFIX = "asdf://stsci.edu/datamodels/roman/manifests/"
 
     class SchemaAddressExistsError(KeyError):
         """Exception raised when a schema address already exists in the manager."""
@@ -23,7 +29,22 @@ class Manager(Mapping[str, Schema]):
         self._schemas = schemas
         self._lock = False
 
+        self._tag_to_address = self._create_tag_to_address_map()
+
+    def _create_tag_to_address_map(self) -> dict[str, str]:
+        resource_manager = asdf.get_config().resource_manager
+
+        tag_to_address = {}
+        for entry in itertools.chain(
+            *[yaml.safe_load(resource_manager[uri])["tags"] for uri in resource_manager if uri.startswith(self.MANIFEST_PREFIX)]
+        ):
+            tag_to_address[entry["tag_uri"]] = entry["schema_uri"]
+
+        return tag_to_address
+
     def __getitem__(self, key: str) -> Schema:
+        if key not in self._schemas:
+            return self._schemas[self._tag_to_address[key]]
         return self._schemas[key]
 
     def __iter__(self):

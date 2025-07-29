@@ -104,6 +104,7 @@ class Array(Type):
         Post-initialization to finish processing the items
         """
         super().__post_init__()
+        self.type = self.TypeKeys.ARRAY.value
 
         if isinstance(self.items, Sequence):
             self.items = [
@@ -128,6 +129,9 @@ class Array(Type):
         -------
             The resolved schema instance.
         """
+        if self.address in manager:
+            return manager[self.address]
+
         with manager.lock():
             resolved = super().resolve(manager)
 
@@ -172,6 +176,13 @@ class Array(Type):
 class Boolean(Type):
     """Boolean schema for the region"""
 
+    def __post_init__(self):
+        """
+        Post-initialization to ensure properties are processed correctly.
+        """
+        super().__post_init__()
+        self.type = self.TypeKeys.BOOLEAN.value
+
 
 class Numeric(Type):
     """
@@ -187,12 +198,26 @@ class Numeric(Type):
     exclusive_maximum: bool | None = rad()
     multiple_of: float | None = rad()
 
+    def __post_init__(self):
+        """
+        Post-initialization to ensure properties are processed correctly.
+        """
+        super().__post_init__()
+        self.type = self.TypeKeys.NUMBER.value
+
 
 class Null(Type):
     """
     Null schema for the reader.
         Note: In JSON Schema Draft-04, null types do not have specific keys.
     """
+
+    def __post_init__(self):
+        """
+        Post-initialization to ensure properties are processed correctly.
+        """
+        super().__post_init__()
+        self.type = self.TypeKeys.NULL.value
 
 
 class Object(Type):
@@ -216,6 +241,7 @@ class Object(Type):
         Post-initialization to ensure properties are processed correctly.
         """
         super().__post_init__()
+        self.type = self.TypeKeys.OBJECT.value
 
         if self.properties is not None:
             self.properties = {
@@ -242,16 +268,22 @@ class Object(Type):
         -------
             The resolved schema instance.
         """
-        with manager.lock():
-            resolved = super().resolve(manager)
+        if self.address in manager:
+            return manager[self.address]
 
-            if self.properties is not None:
-                resolved.properties = {key: value.resolve(manager) for key, value in self.properties.items()}
+        data = self.data
+        del data[self.KeyWords.PROPERTIES]
+        del data[self.KeyWords.PATTERN_PROPERTIES]
 
-            if self.pattern_properties is not None:
-                resolved.pattern_properties = {key: value.resolve(manager) for key, value in self.pattern_properties.items()}
+        resolved = self.re_extract(data=data, manager=manager)
 
-        return self.re_extract(data=resolved.data, manager=manager)
+        if self.properties is not None:
+            resolved.properties = {key: value.resolve(manager) for key, value in self.properties.items()}
+
+        if self.pattern_properties is not None:
+            resolved.pattern_properties = {key: value.resolve(manager) for key, value in self.pattern_properties.items()}
+
+        return resolved
 
     def merge(self, other: Object):
         """
@@ -312,3 +344,35 @@ class String(Type):
     pattern: str | None = rad()
     min_length: int | None = rad()
     max_length: int | None = rad()
+
+    def __post_init__(self):
+        """
+        Post-initialization to ensure properties are processed correctly.
+        """
+        super().__post_init__()
+        self.type = self.TypeKeys.STRING.value
+
+    def merge(self, other: String):
+        """
+        Merge another String schema into this one.
+
+        Parameters
+        ----------
+        other
+            The String schema to merge with this one.
+        """
+        if not isinstance(other, String):
+            raise self.MergeError(f"Cannot merge non-String schema: {type(other)}.")
+
+        if self.pattern is None and other.pattern is not None:
+            self.pattern = other.pattern
+
+        if self.min_length is not None and other.min_length is not None:
+            self.min_length = max(self.min_length, other.min_length)
+        elif self.min_length is None and other.min_length is not None:
+            self.min_length = other.min_length
+
+        if self.max_length is not None and other.max_length is not None:
+            self.max_length = max(self.max_length, other.max_length)
+        elif self.max_length is None and other.max_length is not None:
+            self.max_length = other.max_length

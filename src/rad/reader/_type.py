@@ -214,21 +214,27 @@ class Object(Type):
         if self.properties is None:
             return data
 
-        properties = {}
+        # properties = {}
+        # for key, schema in self.properties.items():
+        #     entry = schema.archive_data(key, manager)
+        #     if entry is not None:
+        #         if "path_prefix" in entry:
+        #             prefix = entry.pop("path_prefix")
+
+        #             if prefix not in properties:
+        #                 properties[prefix] = {"name": prefix, "properties": []}
+
+        #             properties[prefix]["properties"].append(entry)
+        #         else:
+        #             properties[key] = entry
+
+        # properties = list(properties.values())
+
+        properties = []
         for key, schema in self.properties.items():
             entry = schema.archive_data(key, manager)
             if entry is not None:
-                if "path_prefix" in entry:
-                    prefix = entry.pop("path_prefix")
-
-                    if prefix not in properties:
-                        properties[prefix] = {"name": prefix, "properties": []}
-
-                    properties[prefix]["properties"].append(entry)
-                else:
-                    properties[key] = entry
-
-        properties = list(properties.values())
+                properties.append(entry)
 
         if not properties:
             return data

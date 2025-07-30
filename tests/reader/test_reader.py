@@ -2,7 +2,7 @@ from dataclasses import dataclass, fields, is_dataclass
 
 import pytest
 
-from rad.reader._reader import KeyWords, Reader, _snake_to_camel, rad
+from rad.reader._reader import KeyWords, Reader, rad
 
 
 class TestKeyWords:
@@ -16,7 +16,6 @@ class TestKeyWords:
 
     @dataclass
     class ExampleSchema:
-        foo: str
         bar: str = rad()
         baz_box: str = rad()
         baz: str = rad("$baz")
@@ -57,35 +56,24 @@ class TestKeyWords:
         assert issubclass(NewKeyWords, KeyWords)
 
 
-class TestSchema:
-    class ExampleSchema(Reader):
-        foo: str
+class TestReader:
+    class ExampleReader(Reader):
         bar: str = rad()
         baz_box: str = rad()
         baz: str = rad("$baz")
 
-    def test_schema(self):
+    def test_reader(self):
         """
         Test that the schema is correctly defined and fields are set up.
         """
-        assert set(field.name for field in fields(Reader)) == {"name", "prefix", "manager"}
-
-        assert set(field.name for field in fields(self.ExampleSchema)) == {
-            "name",
-            "prefix",
-            "manager",
-            "foo",
-            "bar",
-            "baz_box",
-            "baz",
-        }
-        assert self.ExampleSchema.KeyWords.__members__ == {
+        assert set(field.name for field in fields(self.ExampleReader)) == {"bar", "baz_box", "baz"}
+        assert self.ExampleReader.KeyWords.__members__ == {
             "BAR": "bar",
             "BAZ_BOX": "bazBox",
             "BAZ": "$baz",
         }
-        assert issubclass(self.ExampleSchema.KeyWords, KeyWords)
-        assert is_dataclass(self.ExampleSchema)
+        assert issubclass(self.ExampleReader.KeyWords, KeyWords)
+        assert is_dataclass(self.ExampleReader)
 
     @pytest.mark.parametrize(
         "data",
@@ -96,109 +84,15 @@ class TestSchema:
             {"bar": "value1", "bazBox": "value2", "$baz": "value3", "test": "other"},
         ],
     )
-    @pytest.mark.parametrize(
-        "kwargs",
-        [
-            {},
-            {"prefix": "test_prefix"},
-        ],
-    )
-    def test_extract(self, data, manager, kwargs):
+    def test_extract(self, data):
         """
         Test that we can extract data
         """
 
-        extract = self.ExampleSchema.extract("test_name", data, manager, foo="test_foo", **kwargs)
-        assert extract.name == "test_name"
-        assert extract.prefix == kwargs.get("prefix", None)
-        assert extract.foo == "test_foo"
-
-        for field in fields(self.ExampleSchema):
+        extract = self.ExampleReader.extract(data)
+        for field in fields(self.ExampleReader):
             if "schema_key" in field.metadata:
                 key = field.metadata["schema_key"]
                 if key is None:
-                    key = _snake_to_camel(field.name)
+                    key = KeyWords.snake_to_camel(field.name)
                 assert getattr(extract, field.name) == data.get(key, None), f"Failed for {field.name} with key {key}"
-
-        assert extract.manager == manager
-        assert extract.address in manager
-        assert manager[extract.address] is extract
-
-    @pytest.mark.parametrize(
-        "prefix",
-        [
-            None,
-            "test_prefix",
-            "another_prefix",
-        ],
-    )
-    def test_address(self, prefix, manager):
-        """
-        Test that the address is correctly formed.
-        """
-        address_parts = [prefix] if prefix else []
-        address_parts.append("test_name")
-        instance = self.ExampleSchema(
-            name="test_name",
-            prefix=prefix,
-            foo="test_foo",
-            bar="test_bar",
-            baz_box="test_baz_box",
-            baz="test_baz",
-            manager=manager,
-        )
-        assert instance.address == "#/".join(address_parts)
-
-        assert instance.address in manager
-        assert manager[instance.address] is instance
-
-    def test_resolve(self, manager, new_manager):
-        """
-        Test that the resolve method works correctly.
-        """
-        instance = self.ExampleSchema(
-            name="test_name",
-            prefix=None,
-            foo="test_foo",
-            bar="test_bar",
-            baz_box="test_baz_box",
-            baz="test_baz",
-            manager=manager,
-        )
-
-        assert len(new_manager) == 0
-        assert new_manager is not manager
-
-        new_instance = instance.resolve(new_manager)
-
-        assert len(new_manager) == 1
-        assert instance.manager is manager
-
-        assert instance.address in new_manager
-        assert new_manager[instance.address] is not instance
-        assert new_manager[instance.address] is new_instance
-
-        assert new_instance.manager is new_manager
-        assert new_instance.name == instance.name
-        assert new_instance.prefix == instance.prefix
-        assert new_instance.foo == instance.foo
-        assert new_instance.bar == instance.bar
-        assert new_instance.baz_box == instance.baz_box
-        assert new_instance.baz == instance.baz
-
-    def test_merge(self, manager):
-        """
-        Test that the merge method raises NotImplementedError.
-        """
-        instance = self.ExampleSchema(
-            name="test_name",
-            prefix=None,
-            foo="test_foo",
-            bar="test_bar",
-            baz_box="test_baz_box",
-            baz="test_baz",
-            manager=manager,
-        )
-
-        with pytest.raises(NotImplementedError, match="Merge method is not implemented for ExampleSchema schema."):
-            instance.merge(instance)

@@ -6,7 +6,7 @@ from rad.reader._basic import Basic
 from rad.reader._link import Ref
 from rad.reader._reader import KeyWords
 from rad.reader._schema import AllOf, AnyOf, Not, OneOf, Schema
-from rad.reader._type import Array, Null, Numeric, Object, String
+from rad.reader._type import Null, Numeric, Object, String
 
 
 class TestSchema:
@@ -30,109 +30,50 @@ class TestSchema:
         }
         assert issubclass(Schema.KeyWords, KeyWords)
 
-    def test_extract_definitions(self, basic_data, definitions_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **definitions_data},
-            manager=manager,
-            prefix=None,
-        )
+    def test_extract_definitions(self, basic_data, definitions_data):
+        schema = Schema.extract({**basic_data, **definitions_data})
 
-        assert isinstance(schema_, Basic)
-        assert isinstance(schema_, Schema)
-        assert is_dataclass(schema_)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema, Basic)
+        assert isinstance(schema, Schema)
+        assert is_dataclass(schema)
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
+        assert isinstance(schema.definitions, dict)
+        assert schema.definitions
+        assert len(schema.definitions) == 3
 
-        assert isinstance(schema_.definitions, dict)
-        assert schema_.definitions
-        assert len(schema_.definitions) == 3
-
-        for key, item in schema_.definitions.items():
-            assert item.name == f"definitions/{key}"
-            assert item.prefix == "test_id"
-
-        assert "test_string" in schema_.definitions
-        string = schema_.definitions["test_string"]
+        assert "test_string" in schema.definitions
+        string = schema.definitions["test_string"]
         assert isinstance(string, String)
-        assert string.address in manager
-        assert manager[string.address] is string
 
-        assert "test_number" in schema_.definitions
-        number = schema_.definitions["test_number"]
+        assert "test_number" in schema.definitions
+        number = schema.definitions["test_number"]
         assert isinstance(number, Numeric)
-        assert number.address in manager
-        assert manager[number.address] is number
 
-        assert "test_object" in schema_.definitions
-        object_ = schema_.definitions["test_object"]
+        assert "test_object" in schema.definitions
+        object_ = schema.definitions["test_object"]
         assert isinstance(object_, Object)
-        assert object_.address in manager
-        assert manager[object_.address] is object_
 
-        assert len(manager) == 7  # schema + catalog + 3 definitions + 2 object properties
+    def test_extract_ref_definitions(self, basic_data, definitions_ref_data):
+        schema = Schema.extract({**basic_data, **definitions_ref_data})
 
-    def test_extract_ref_definitions(self, basic_data, definitions_ref_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **definitions_ref_data},
-            manager=manager,
-            prefix=None,
-        )
+        assert isinstance(schema, Schema)
 
-        assert isinstance(schema_, Schema)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema.definitions, Ref)
+        assert schema.definitions.ref == "http://example.com/ref_schema"
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
-
-        assert isinstance(schema_.definitions, Ref)
-        assert schema_.definitions.ref == "http://example.com/ref_schema"
-        assert schema_.definitions.name == "definitions"
-        assert schema_.definitions.prefix == "test_id"
-
-        assert schema_.definitions.address in manager
-        assert manager[schema_.definitions.address] is schema_.definitions
-
-        assert len(manager) == 3  # schema + archive + definitions ref
-
-    def test_extract_bad_definitons(self, basic_data, manager):
+    def test_extract_bad_definitons(self, basic_data):
         with pytest.raises(Schema.UnreadableDataError, match=r"Expected 'definitions' to be a Mapping or a \$ref, got.*"):
-            Schema.extract(
-                name=None,
-                data={**basic_data, **{"definitions": "invalid"}},
-                manager=manager,
-                prefix=None,
-            )
+            Schema.extract({**basic_data, **{"definitions": "invalid"}})
 
-    def test_extract_enum(self, basic_data, enum_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **enum_data},
-            manager=manager,
-            prefix=None,
-        )
+    def test_extract_enum(self, basic_data, enum_data):
+        schema = Schema.extract({**basic_data, **enum_data})
 
-        assert isinstance(schema_, Schema)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema, Schema)
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
-
-        assert isinstance(schema_.enum, list)
-        assert schema_.enum
-        assert len(schema_.enum) == 3
-        assert schema_.enum == ["value1", "value2", "value3"]
-
-        assert len(manager) == 2  # schema + archive
+        assert isinstance(schema.enum, list)
+        assert schema.enum
+        assert len(schema.enum) == 3
+        assert schema.enum == ["value1", "value2", "value3"]
 
 
 class TestAllOf:
@@ -157,118 +98,19 @@ class TestAllOf:
         }
         assert issubclass(AllOf.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, all_of_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **all_of_data},
-            manager=manager,
-            prefix=None,
-        )
+    def test_extract(self, basic_data, all_of_data):
+        schema = Schema.extract({**basic_data, **all_of_data})
 
-        assert isinstance(schema_, Schema)
-        assert isinstance(schema_, AllOf)
-        assert is_dataclass(schema_)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema, Schema)
+        assert isinstance(schema, AllOf)
+        assert is_dataclass(schema)
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
+        assert isinstance(schema.all_of, list)
+        assert schema.all_of
+        assert len(schema.all_of) == 2
 
-        assert isinstance(schema_.all_of, list)
-        assert schema_.all_of
-        assert len(schema_.all_of) == 2
-
-        for index, item in enumerate(schema_.all_of):
+        for item in schema.all_of:
             assert isinstance(item, Object)
-            assert item.name == f"all_of_{index}"
-            assert item.prefix == "test_id"
-            assert item.address in manager
-            assert manager[item.address] is item
-
-        assert len(manager) == 8  # schema + archive + 2 all_of_items + 2 object properties + 2 pattern properties
-
-    def test_resolve_object_pattern_object(self, basic_data, all_of_data, manager, new_manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **all_of_data},
-            manager=manager,
-            prefix=None,
-        )
-
-        assert len(new_manager) == 0
-        resolved = schema_.resolve(new_manager)
-
-        assert len(new_manager) == 6  # schema + archive + 2 object properties + 2 pattern properties
-        assert resolved.address in new_manager
-        assert new_manager[resolved.address] is resolved
-        assert resolved.manager is new_manager
-
-        assert schema_.name == resolved.name
-        assert schema_.prefix == resolved.prefix
-        assert schema_.address == resolved.address
-
-        assert type(resolved) is Object
-        assert set(resolved.properties.keys()) == set(schema_.all_of[0].properties.keys())
-        assert set(resolved.pattern_properties.keys()) == set(schema_.all_of[1].pattern_properties.keys())
-        assert resolved.required == schema_.all_of[0].required
-        assert resolved.additional_properties is False
-
-    def test_resolve_object_object(self, basic_data, all_of_object_object_data, manager, new_manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **all_of_object_object_data},
-            manager=manager,
-            prefix=None,
-        )
-
-        assert len(new_manager) == 0
-        resolved = schema_.resolve(new_manager)
-
-        assert len(new_manager) == 5  # schema + archive + 2 object properties + 1 object property
-        assert resolved.address in new_manager
-        assert new_manager[resolved.address] is resolved
-        assert resolved.manager is new_manager
-
-        assert schema_.name == resolved.name
-        assert schema_.prefix == resolved.prefix
-        assert schema_.address == resolved.address
-
-        assert type(resolved) is Object
-        assert len(resolved.properties) == len(schema_.all_of[0].properties) + len(schema_.all_of[1].properties)
-        for key in schema_.all_of[0].properties:
-            assert key in resolved.properties
-        for key in schema_.all_of[1].properties:
-            assert key in resolved.properties
-        assert set(resolved.required) == set(schema_.all_of[0].required + schema_.all_of[1].required)
-
-    def test_resolve_array(self, basic_data, all_of_array_data, manager, new_manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **all_of_array_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert len(schema_.all_of) == 2
-
-        assert len(new_manager) == 0
-        resolved = schema_.resolve(new_manager)
-
-        assert len(new_manager) == 5  # schema + archive + 2 array items + 1 array item
-        assert resolved.address in new_manager
-        assert new_manager[resolved.address] is resolved
-        assert resolved.manager is new_manager
-        assert resolved.address == schema_.address
-
-        assert schema_.name == resolved.name
-        assert schema_.prefix == resolved.prefix
-        assert schema_.address == resolved.address
-
-        assert type(resolved) is Array
-        assert len(resolved.items) == len(schema_.all_of[0].items) + len(schema_.all_of[1].items)
-        assert resolved.items[0].type == "string"
-        assert resolved.items[1].type == "string"
-        assert resolved.items[2].type == "number"
 
 
 class TestAnyOf:
@@ -293,36 +135,18 @@ class TestAnyOf:
         }
         assert issubclass(AnyOf.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, any_of_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **any_of_data},
-            manager=manager,
-            prefix=None,
-        )
+    def test_extract(self, basic_data, any_of_data):
+        schema = Schema.extract({**basic_data, **any_of_data})
 
-        assert isinstance(schema_, Schema)
-        assert isinstance(schema_, AnyOf)
-        assert is_dataclass(schema_)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema, Schema)
+        assert isinstance(schema, AnyOf)
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
+        assert isinstance(schema.any_of, list)
+        assert schema.any_of
+        assert len(schema.any_of) == 2
 
-        assert isinstance(schema_.any_of, list)
-        assert schema_.any_of
-        assert len(schema_.any_of) == 2
-
-        for index, item in enumerate(schema_.any_of):
+        for item in schema.any_of:
             assert isinstance(item, String | Null)
-            assert item.name == f"any_of_{index}"
-            assert item.prefix == "test_id"
-            assert item.address in manager
-            assert manager[item.address] is item
-
-        assert len(manager) == 4  # schema + archive + 2 any_of_items
 
 
 class TestNot:
@@ -347,31 +171,14 @@ class TestNot:
         }
         assert issubclass(Not.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, not_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **not_data},
-            manager=manager,
-            prefix=None,
-        )
+    def test_extract(self, basic_data, not_data):
+        schema = Schema.extract({**basic_data, **not_data})
 
-        assert isinstance(schema_, Schema)
-        assert isinstance(schema_, Not)
-        assert is_dataclass(schema_)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema, Schema)
+        assert isinstance(schema, Not)
+        assert is_dataclass(schema)
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
-
-        assert isinstance(schema_.not_, Object)
-        assert schema_.not_.name == "not"
-        assert schema_.not_.prefix == "test_id"
-        assert schema_.not_.address in manager
-        assert manager[schema_.not_.address] is schema_.not_
-
-        assert len(manager) == 5  # schema + archive + not_item + 2 object properties
+        assert isinstance(schema.not_, Object)
 
 
 class TestOneOf:
@@ -396,33 +203,16 @@ class TestOneOf:
         }
         assert issubclass(OneOf.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, one_of_data, manager):
-        schema_ = Schema.extract(
-            name=None,
-            data={**basic_data, **one_of_data},
-            manager=manager,
-            prefix=None,
-        )
+    def test_extract(self, basic_data, one_of_data):
+        schema = Schema.extract({**basic_data, **one_of_data})
 
-        assert isinstance(schema_, Schema)
-        assert isinstance(schema_, OneOf)
-        assert is_dataclass(schema_)
-        assert schema_.name == "test_id"
-        assert schema_.prefix is None
+        assert isinstance(schema, Schema)
+        assert isinstance(schema, OneOf)
+        assert is_dataclass(schema)
 
-        assert schema_.manager is manager
-        assert schema_.address in manager
-        assert manager[schema_.address] is schema_
+        assert isinstance(schema.one_of, list)
+        assert schema.one_of
+        assert len(schema.one_of) == 2
 
-        assert isinstance(schema_.one_of, list)
-        assert schema_.one_of
-        assert len(schema_.one_of) == 2
-
-        for index, item in enumerate(schema_.one_of):
+        for item in schema.one_of:
             assert isinstance(item, String | Numeric)
-            assert item.name == f"one_of_{index}"
-            assert item.prefix == "test_id"
-            assert item.address in manager
-            assert manager[item.address] is item
-
-        assert len(manager) == 4  # schema + archive + 2 one_of_items

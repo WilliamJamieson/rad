@@ -27,6 +27,7 @@ properties:
     archive_catalog:
       datatype: nvarchar(120)
       destination: [WFIMosaic.data_release_id]
+      path_prefix: "basic"
   filename:
     title: File Name
     description: >

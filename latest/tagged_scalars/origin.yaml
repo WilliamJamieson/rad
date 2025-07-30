@@ -24,5 +24,6 @@ archive_catalog:
       SourceCatalog.origin,
       SegmentationMap.origin,
     ]
+  path_prefix: "basic"
 
 flowStyle: block

@@ -15,39 +15,15 @@ class TestRoot:
         }
         assert issubclass(Root.KeyWords, KeyWords)
 
-    def test_extract(self, root_data, manager):
+    def test_extract(self, root_data):
         """
         Test that the Root schema can be extracted from a dictionary.
         """
-        root = Root.extract(
-            name=None,
-            data=root_data,
-            manager=manager,
-            prefix=None,
-        )
+        root = Root.extract(root_data)
         assert isinstance(root, Root)
         assert is_dataclass(root)
         assert root.id == "test_id"
         assert root.schema == "http://example.com/schema"
-        assert root.prefix is None
-
-        assert root.manager is manager
-        assert root.address in manager
-        assert manager[root.address] is root
-        assert len(manager) == 1
-
-    def test_name(self, root_data, manager):
-        """
-        Test that the Root schema sets the name correctly.
-        """
-        root = Root.extract(
-            name="test_root",
-            data=root_data,
-            manager=manager,
-            prefix=None,
-        )
-        assert root.name == root.id
-        assert root.id == "test_id"
 
 
 class TestMetadata:
@@ -62,27 +38,17 @@ class TestMetadata:
         }
         assert issubclass(Metadata.KeyWords, KeyWords)
 
-    def test_extract(self, metadata_data, manager):
+    def test_extract(self, metadata_data):
         """
         Test that the Metadata schema can be extracted from a dictionary.
         """
-        metadata = Metadata.extract(
-            name=None,
-            data=metadata_data,
-            manager=manager,
-            prefix=None,
-        )
+        metadata = Metadata.extract(metadata_data)
+
         assert isinstance(metadata, Metadata)
         assert is_dataclass(metadata)
         assert metadata.title == "Test Title"
         assert metadata.description == "Test Description"
         assert metadata.default == "Test Default"
-        assert metadata.prefix is None
-
-        assert metadata.manager is manager
-        assert metadata.address in manager
-        assert manager[metadata.address] is metadata
-        assert len(manager) == 1
 
 
 class TestArchiveCatalog:
@@ -97,27 +63,16 @@ class TestArchiveCatalog:
         }
         assert issubclass(ArchiveCatalog.KeyWords, KeyWords)
 
-    def test_extract(self, archive_catalog_data, manager):
+    def test_extract(self, archive_catalog_data):
         """
         Test that the ArchiveCatalog schema can be extracted from a dictionary.
         """
-        archive_catalog = ArchiveCatalog.extract(
-            name=None,
-            data=archive_catalog_data,
-            manager=manager,
-            prefix=None,
-        )
+        archive_catalog = ArchiveCatalog.extract(archive_catalog_data)
         assert isinstance(archive_catalog, ArchiveCatalog)
         assert is_dataclass(archive_catalog)
         assert archive_catalog.datatype == "Test DataType"
         assert archive_catalog.destination == ["destination1", "destination2"]
         assert archive_catalog.path_prefix == "Test Path Prefix"
-        assert archive_catalog.prefix is None
-
-        assert archive_catalog.manager is manager
-        assert archive_catalog.address in manager
-        assert manager[archive_catalog.address] is archive_catalog
-        assert len(manager) == 1
 
 
 class TestRad:
@@ -133,33 +88,22 @@ class TestRad:
         }
         assert issubclass(Rad.KeyWords, KeyWords)
 
-    def test_extract(self, rad_data, manager):
+    def test_extract(self, rad_data):
         """
         Test that the Rad schema can be extracted from a dictionary.
         """
-        rad = Rad.extract(
-            name=None,
-            data=rad_data,
-            manager=manager,
-            prefix=None,
-        )
+        rad = Rad.extract(rad_data)
         assert isinstance(rad, Rad)
         assert is_dataclass(rad)
+
         assert rad.datamodel_name == "Test DataModel Name"
         assert rad.archive_meta == "Test Archive Meta"
-        assert rad.prefix is None
-
-        assert rad.manager is manager
-        assert rad.address in manager
-        assert manager[rad.address] is rad
-
-        assert isinstance(rad.archive_catalog, ArchiveCatalog)
         assert rad.unit == "Test Unit"
 
-        assert rad.archive_catalog.address in manager
-        assert manager[rad.archive_catalog.address] is rad.archive_catalog
-
-        assert len(manager) == 2  # Rad + ArchiveCatalog
+        assert isinstance(rad.archive_catalog, ArchiveCatalog)
+        assert rad.archive_catalog.datatype == "Test DataType"
+        assert rad.archive_catalog.destination == ["destination1", "destination2"]
+        assert rad.archive_catalog.path_prefix == "Test Path Prefix"
 
 
 class TestBasic:
@@ -180,16 +124,11 @@ class TestBasic:
         }
         assert issubclass(Basic.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, manager):
+    def test_extract(self, basic_data):
         """
         Test that the Basic schema can be extracted from a dictionary.
         """
-        basic = Basic.extract(
-            name=None,
-            data=basic_data,
-            manager=manager,
-            prefix=None,
-        )
+        basic = Basic.extract(basic_data)
         assert isinstance(basic, Basic)
         assert isinstance(basic, Root)
         assert isinstance(basic, Metadata)
@@ -205,59 +144,7 @@ class TestBasic:
         assert basic.datamodel_name == "Test DataModel Name"
         assert basic.archive_meta == "Test Archive Meta"
 
-        assert basic.name == "test_id"
-        assert basic.prefix is None
-
-        assert basic.manager is manager
-        assert basic.address in manager
-        assert manager[basic.address] is basic
-
         assert isinstance(basic.archive_catalog, ArchiveCatalog)
         assert basic.archive_catalog.datatype == "Test DataType"
         assert basic.archive_catalog.destination == ["destination1", "destination2"]
         assert basic.archive_catalog.path_prefix == "Test Path Prefix"
-        assert basic.archive_catalog.address in manager
-        assert manager[basic.archive_catalog.address] is basic.archive_catalog
-
-        assert len(manager) == 2  # Basic + ArchiveCatalog
-
-    def test_resolve(self, basic_data, manager, new_manager):
-        """
-        Test that the Basic schema can resolve its data.
-        """
-        basic = Basic.extract(
-            name=None,
-            data=basic_data,
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(basic, Basic)
-
-        assert len(new_manager) == 0
-        new_basic = basic.resolve(new_manager)
-        assert len(new_manager) == 2
-
-        assert basic.address in new_manager
-        assert new_manager[basic.address] is not basic
-        assert new_manager[basic.address] is new_basic
-
-        assert new_basic.manager is new_manager
-        assert new_basic.name == basic.name
-        assert new_basic.id == basic.id
-        assert new_basic.schema == basic.schema
-        assert new_basic.title == basic.title
-        assert new_basic.description == basic.description
-        assert new_basic.default == basic.default
-        assert new_basic.unit == basic.unit
-        assert new_basic.datamodel_name == basic.datamodel_name
-        assert new_basic.archive_meta == basic.archive_meta
-        assert new_basic.prefix == basic.prefix
-
-        assert new_basic.archive_catalog is not basic.archive_catalog
-        assert basic.archive_catalog.address in new_manager
-        assert new_manager[basic.archive_catalog.address] is new_basic.archive_catalog
-
-        assert new_basic.archive_catalog.manager is new_manager
-        assert new_basic.archive_catalog.datatype == basic.archive_catalog.datatype
-        assert new_basic.archive_catalog.destination == basic.archive_catalog.destination
-        assert new_basic.archive_catalog.path_prefix == basic.archive_catalog.path_prefix

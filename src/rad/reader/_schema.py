@@ -8,7 +8,6 @@ from ._reader import ValueKeys, rad
 
 if TYPE_CHECKING:
     from ._manager import Manager
-    from ._type import Array, Object
 
 
 class Schema(Basic):
@@ -81,58 +80,35 @@ class Schema(Basic):
             return None
 
     @classmethod
-    def extract(
-        cls,
-        name: str | None,
-        data: dict[str, Any] | None,
-        manager: Manager,
-        prefix: str | None = None,
-        **kwargs,
-    ) -> Schema:
+    def extract(cls, data: dict[str, Any] | None) -> Schema:
         """
         Extract a schema instance from a dictionary.
 
         Parameters
         ----------
-        name
-            The name of the schema.
         data
             The data dictionary to extract the schema from.
-        manager
-            The manager to register the schema with.
-        prefix
-            An optional prefix to append to the schema's address.
-        kwargs
-            Additional keyword arguments.
 
         Returns
         -------
             A Schema instance.
         """
         if (reader := cls.Selectors.reader(cls, data)) is None:
-            return super().extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
+            return super().extract(data)
 
-        return reader.extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
+        return reader.extract(data)
 
     def __post_init__(self):
         """
         Post-initialization to process definitions
         """
-        from ._link import Ref
-
         super().__post_init__()
 
         if self.definitions is not None:
-            if isinstance(self.definitions, Ref):
-                with self.manager.lock():
-                    self.definitions = self.definitions.resolve().definitions
-            elif self.Selectors.REF in self.definitions:
-                self.definitions = Schema.extract(data=self._simplify(self.definitions), **self._sub_reader_kwargs("definitions"))
+            if self.Selectors.REF in self.definitions:
+                self.definitions = Schema.extract(self.simplify(self.definitions))
             elif isinstance(self.definitions, Mapping):
-                self.definitions = {
-                    key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(f"definitions/{key}"))
-                    for key, value in self.definitions.items()
-                }
+                self.definitions = {key: Schema.extract(self.simplify(value)) for key, value in self.definitions.items()}
             else:
                 raise self.UnreadableDataError(f"Expected 'definitions' to be a Mapping or a $ref, got {type(self.definitions)}.")
 
@@ -147,7 +123,7 @@ class Schema(Basic):
 
         return header
 
-    def archive_data(self, name: str) -> dict[str, Any] | None:
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
         data = self._archive_data()
 
         if data is None:
@@ -171,28 +147,41 @@ class AllOf(Schema):
         super().__post_init__()
 
         if self.all_of is not None:
-            self.all_of = [
-                Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"all_of_{index}"))
-                for index, item in enumerate(self.all_of)
-            ]
+            self.all_of = [Schema.extract(self.simplify(item)) for item in self.all_of]
 
-    def resolve(self) -> Object | Array:
-        """
-        Specialized resolve method for allOf schemas
-        """
-        if len(self.all_of) == 0:
-            raise self.ResolutionError("No schemas to resolve in 'allOf'.")
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        data = super().archive_data(name, manager)
 
-        data = self.all_of[0].resolve().data
-        data.update(self.data)
-        del data[self.KeyWords.ALL_OF]
+        all_of_data = []
+        for item in self.all_of:
+            item_data = item.archive_data(name, manager)
+            if item_data is not None:
+                all_of_data.append(item_data)
 
-        resolved = type(self).extract(data=data, **self.non_data)
+        if not all_of_data:
+            return data
 
-        for item in self.all_of[1:]:
-            resolved.merge(item.resolve())
+        data = data or self._archive_data_header(name)
 
-        return resolved.resolve()
+        if "properties" in all_of_data[0]:
+            data["properties"] = []
+            for item in all_of_data:
+                if "datatype" in item or "destination" in item:
+                    raise self.ResolutionError("Cannot archive 'allOf' with either datatype or destination.")
+                data["properties"].extend(item["properties"])
+
+            return data
+
+        if "items" in all_of_data[0]:
+            data["items"] = []
+            for item in all_of_data:
+                if "datatype" in item or "destination" in item:
+                    raise self.ResolutionError("Cannot archive 'allOf' with either datatype or destination.")
+                data["items"].extend(item["items"])
+
+            return data
+
+        raise self.ResolutionError("Cannot archive 'allOf' without properties or items.")
 
 
 class AnyOf(Schema):
@@ -206,10 +195,24 @@ class AnyOf(Schema):
         """Post-initialization to process any_of list."""
         super().__post_init__()
 
-        self.any_of = [
-            Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"any_of_{index}"))
-            for index, item in enumerate(self.any_of)
-        ]
+        if self.any_of is not None:
+            self.any_of = [Schema.extract(self.simplify(item)) for item in self.any_of]
+
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        data = super().archive_data(name, manager)
+
+        any_of_data = []
+        for item in self.any_of:
+            item_data = item.archive_data(name, manager)
+            if item_data is not None:
+                any_of_data.append(item_data)
+
+        if not any_of_data:
+            return data
+
+        data = data or self._archive_data_header(name)
+        data["anyOf"] = any_of_data
+        return data
 
 
 class Not(Schema):
@@ -223,21 +226,20 @@ class Not(Schema):
         """Post-initialization to process not_ list."""
         super().__post_init__()
 
-        self.not_ = Schema.extract(data=self._simplify(self.not_), **self._sub_reader_kwargs("not"))
+        if self.not_ is not None:
+            self.not_ = Schema.extract(self.simplify(self.not_))
 
-    def merge(self, other: Not):
-        """
-        Merge another Not schema into this one.
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        data = super().archive_data(name, manager)
 
-        Parameters
-        ----------
-        other
-            The other Not schema instance to merge.
-        """
-        if not isinstance(other, Not):
-            raise self.MergeError(f"Cannot merge {type(other)} into Not schema.")
+        not_data = self.not_.archive_data(name, manager)
 
-        self.not_.merge(other.not_)
+        if not not_data:
+            return data
+
+        data = data or self._archive_data_header(name)
+        data["not"] = not_data
+        return data
 
 
 class OneOf(Schema):
@@ -251,7 +253,21 @@ class OneOf(Schema):
         """Post-initialization to process one_of list."""
         super().__post_init__()
 
-        self.one_of = [
-            Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"one_of_{index}"))
-            for index, item in enumerate(self.one_of)
-        ]
+        if self.one_of is not None:
+            self.one_of = [Schema.extract(self.simplify(item)) for item in self.one_of]
+
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        data = super().archive_data(name, manager)
+
+        one_of_data = []
+        for item in self.one_of:
+            item_data = item.archive_data(name, manager)
+            if item_data is not None:
+                one_of_data.append(item_data)
+
+        if not one_of_data:
+            return data
+
+        data = data or self._archive_data_header(name)
+        data["oneOf"] = one_of_data
+        return data

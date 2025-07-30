@@ -21,5 +21,6 @@ archive_catalog:
       SourceCatalog.filename,
       SegmentationMap.filename,
     ]
+  path_prefix: "basic"
 
 flowStyle: block

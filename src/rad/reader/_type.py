@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
-from ._manager import Manager
 from ._reader import ValueKeys, rad
 from ._schema import Schema
+
+if TYPE_CHECKING:
+    from ._manager import Manager
 
 __all__ = ("Type",)
 
@@ -58,20 +60,14 @@ class Type(Schema):
             raise cls.UnhandledKeyError(f"Unhandled type value: {data.get('type')}.")
 
     @classmethod
-    def extract(cls, name: str, data: dict[str, Any], manager: Manager, prefix: str | None = None, **kwargs) -> Self:
+    def extract(cls, data: dict[str, Any]) -> Self:
         """
         Extract a schema instance from a dictionary.
 
         Parameters
         ----------
-        name:
-            The name of the schema
         data:
             The data dictionary to read the schema from
-        manager:
-            The manager to register the schema with
-        prefix:
-            The prefix used to identify the schema this is a subschema
 
         Returns
         -------
@@ -81,8 +77,8 @@ class Type(Schema):
             if "type" not in data:
                 raise cls.UnreadableDataError("Missing 'type' key in data.")
 
-            return cls.TypeKeys.reader(data).extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
-        return super().extract(name=name, data=data, manager=manager, prefix=prefix, **kwargs)
+            return cls.TypeKeys.reader(data).extract(data)
+        return super().extract(data)
 
 
 class Array(Type):
@@ -107,66 +103,31 @@ class Array(Type):
         self.type = self.TypeKeys.ARRAY.value
 
         if isinstance(self.items, Sequence):
-            self.items = [
-                Schema.extract(data=self._simplify(item), **self._sub_reader_kwargs(f"item_{index}"))
-                for index, item in enumerate(self.items)
-            ]
+            self.items = [Schema.extract(self.simplify(item)) for item in self.items]
         elif isinstance(self.items, Mapping):
-            self.items = [Schema.extract(data=self._simplify(self.items), **self._sub_reader_kwargs("items"))]
+            self.items = [Schema.extract(self.simplify(self.items))]
         elif self.items is not None:
             raise self.UnreadableDataError(f"Expected 'items' to be a list, dict, or Schema instance, got {type(self.items)}.")
 
-    def resolve(self) -> Self:
-        """
-        Resolve the schema instance against the manager.
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        data = super().archive_data(name, manager)
 
-        Parameters
-        ----------
-        manager:
-            The manager to resolve the schema against
+        if self.items is None:
+            return data
 
-        Returns
-        -------
-            The resolved schema instance.
-        """
-        resolved = super().resolve()
+        items = []
+        for index, item in enumerate(self.items):
+            entry = item.archive_data(name if len(self.items) == 1 else f"{name}_{index}", manager)
+            if entry is not None:
+                items.append(entry)
 
-        if isinstance(resolved.items, Sequence):
-            resolved.items = [item.resolve() for item in resolved.items]
-        elif isinstance(resolved.items, Schema):
-            resolved.items = resolved.items.resolve()
+        if not items:
+            return data
 
-        return type(self).extract(data=resolved.data, **self.non_data)
+        data = data or self._archive_data_header(name)
+        data["items"] = items
 
-    def merge(self, other: Array):
-        """
-        Merge another Array schema into this one.
-
-        Parameters
-        ----------
-        other
-            The Array schema to merge with this one.
-        """
-        if not isinstance(other, Array):
-            raise self.MergeError(f"Cannot merge non-Array schema: {type(other)}.")
-
-        if self.items is not None or other.items is not None:
-            self.items = (self.items or []) + (other.items or [])
-
-        if self.additional_items is not None and other.additional_items is not None:
-            self.additional_items = self.additional_items or other.additional_items
-        elif self.additional_items is None and other.additional_items is not None:
-            self.additional_items = other.additional_items
-
-        if self.min_items is not None and other.min_items is not None:
-            self.min_items = max(self.min_items, other.min_items)
-        elif self.min_items is None and other.min_items is not None:
-            self.min_items = other.min_items
-
-        if self.max_items is not None and other.max_items is not None:
-            self.max_items = max(self.max_items, other.max_items)
-        elif self.max_items is None and other.max_items is not None:
-            self.max_items = other.max_items
+        return data
 
 
 class Boolean(Type):
@@ -240,104 +201,34 @@ class Object(Type):
         self.type = self.TypeKeys.OBJECT.value
 
         if self.properties is not None:
-            self.properties = {
-                key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(key))
-                for key, value in self.properties.items()
-            }
+            self.properties = {key: Schema.extract(self.simplify(value)) for key, value in self.properties.items()}
 
         if self.pattern_properties is not None:
             self.pattern_properties = {
-                key: Schema.extract(data=self._simplify(value), **self._sub_reader_kwargs(f"pattern[{key}]"))
-                for key, value in self.pattern_properties.items()
+                key: Schema.extract(self.simplify(value)) for key, value in self.pattern_properties.items()
             }
 
-    def resolve(self) -> Self:
-        """
-        Resolve the schema instance against the manager.
-
-        Parameters
-        ----------
-        manager:
-            The manager to resolve the schema against
-
-        Returns
-        -------
-            The resolved schema instance.
-        """
-        data = self.data
-        del data[self.KeyWords.PROPERTIES]
-        del data[self.KeyWords.PATTERN_PROPERTIES]
-
-        resolved = type(self).extract(data=data, **self.non_data)
-
-        if self.properties is not None:
-            resolved.properties = {key: value.resolve() for key, value in self.properties.items()}
-
-        if self.pattern_properties is not None:
-            resolved.pattern_properties = {key: value.resolve() for key, value in self.pattern_properties.items()}
-
-        return resolved
-
-    def merge(self, other: Object):
-        """
-        Merge another Object schema into this one.
-
-        Parameters
-        ----------
-        other
-            The Object schema to merge with this one.
-        """
-        if not isinstance(other, Object):
-            raise self.MergeError(f"Cannot merge non-Object schema: {type(other)}.")
-
-        if self.properties is not None or other.properties is not None:
-            self.properties = self.properties or {}
-            for key, value in (other.properties or {}).items():
-                if key in self.properties:
-                    self.properties[key].merge(value)
-                else:
-                    self.properties[key] = value
-
-        if self.pattern_properties is not None or other.pattern_properties is not None:
-            self.pattern_properties = self.pattern_properties or {}
-            for key, value in (other.pattern_properties or {}).items():
-                if key in self.pattern_properties:
-                    self.pattern_properties[key].merge(value)
-                else:
-                    self.pattern_properties[key] = value
-
-        if self.required is not None or other.required is not None:
-            self.required = list(set(self.required or []) | set(other.required or []))
-
-        if self.additional_properties is not None and other.additional_properties is not None:
-            self.additional_properties = self.additional_properties or other.additional_properties
-        elif self.additional_properties is None and other.additional_properties is not None:
-            self.additional_properties = other.additional_properties
-
-        if self.max_properties is not None and other.max_properties is not None:
-            self.max_properties = max(self.max_properties, other.max_properties)
-        elif self.max_properties is None and other.max_properties is not None:
-            self.max_properties = other.max_properties
-
-        if self.min_properties is not None and other.min_properties is not None:
-            self.min_properties = max(self.min_properties, other.min_properties)
-        elif self.min_properties is None and other.min_properties is not None:
-            self.min_properties = other.min_properties
-
-        if self.dependencies is not None or other.dependencies is not None:
-            self.dependencies = {**(self.dependencies or {}), **(other.dependencies or {})}
-
-    def archive_data(self, name: str) -> dict[str, Any] | None:
-        data = super().archive_data(name)
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        data = super().archive_data(name, manager)
 
         if self.properties is None:
             return data
 
-        properties = []
+        properties = {}
         for key, schema in self.properties.items():
-            entry = schema.archive_data(key)
+            entry = schema.archive_data(key, manager)
             if entry is not None:
-                properties.append(entry)
+                if "path_prefix" in entry:
+                    prefix = entry.pop("path_prefix")
+
+                    if prefix not in properties:
+                        properties[prefix] = {"name": prefix, "properties": []}
+
+                    properties[prefix]["properties"].append(entry)
+                else:
+                    properties[key] = entry
+
+        properties = list(properties.values())
 
         if not properties:
             return data
@@ -364,30 +255,3 @@ class String(Type):
         """
         super().__post_init__()
         self.type = self.TypeKeys.STRING.value
-
-    def merge(self, other: String):
-        """
-        Merge another String schema into this one.
-
-        Parameters
-        ----------
-        other
-            The String schema to merge with this one.
-        """
-        print(self)
-        print(other)
-        if not isinstance(other, String):
-            raise self.MergeError(f"Cannot merge non-String schema: {type(other)}.")
-
-        if self.pattern is None and other.pattern is not None:
-            self.pattern = other.pattern
-
-        if self.min_length is not None and other.min_length is not None:
-            self.min_length = max(self.min_length, other.min_length)
-        elif self.min_length is None and other.min_length is not None:
-            self.min_length = other.min_length
-
-        if self.max_length is not None and other.max_length is not None:
-            self.max_length = max(self.max_length, other.max_length)
-        elif self.max_length is None and other.max_length is not None:
-            self.max_length = other.max_length

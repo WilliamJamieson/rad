@@ -11,16 +11,7 @@ def manager() -> Manager:
     Fixture to provide a Manager instance for tests.
     This can be used to manage schemas and their addresses.
     """
-    return Manager(schemas={})
-
-
-@pytest.fixture()
-def new_manager() -> Manager:
-    """
-    Fixture to provide a new Manager instance for tests.
-    This is useful for testing schema resolution and registration.
-    """
-    return Manager(schemas={})
+    return Manager()
 
 
 @pytest.fixture(scope="session")

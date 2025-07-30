@@ -16,15 +16,6 @@ class Root(Reader):
     id: str | None = rad()
     schema: str | None = rad("$schema")
 
-    def __post_init__(self) -> None:
-        """
-        Post-initialization method to set the schema name and prefix.
-        """
-        if self.id is not None:
-            self.name = self.id
-
-        super().__post_init__()
-
 
 class Metadata(Reader):
     """
@@ -72,11 +63,7 @@ class Rad(Reader):
         Post-initialization method to set the archive metadata.
         """
         if self.archive_catalog is not None:
-            self.archive_catalog = ArchiveCatalog.extract(
-                data=self._simplify(self.archive_catalog), **self._sub_reader_kwargs("archive_catalog")
-            )
-
-        super().__post_init__()
+            self.archive_catalog = ArchiveCatalog.extract(self.simplify(self.archive_catalog))
 
     def _archive_data(self) -> dict[str, Any] | None:
         data = {"archive_meta": self.archive_meta} if self.archive_meta else None

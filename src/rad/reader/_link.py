@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from re import match
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any
 
 from ._reader import rad
 from ._schema import Schema
 
 if TYPE_CHECKING:
-    pass
+    from ._manager import Manager
 
 
 class Link(Schema):
@@ -47,27 +47,6 @@ class Link(Schema):
 
         return False
 
-    def resolve(self) -> Self:
-        """
-        Resolve the link schema by extracting the address from the manager.
-
-        Parameters
-        ----------
-        manager
-            The manager to resolve the link against.
-
-        Returns
-        -------
-            The resolved link schema instance.
-        """
-        if self.is_external:
-            return super().resolve()
-
-        if self.link in self.manager:
-            return self.manager[self.link].resolve()
-
-        raise self.LinkError(f"Link '{self.link}' not found in schema data.")
-
     @property
     @abstractmethod
     def link(self) -> str:
@@ -78,6 +57,12 @@ class Link(Schema):
         -------
             The link address.
         """
+
+    def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
+        if self.is_external:
+            return None
+
+        return manager[self.link].archive_data(name, manager)
 
 
 class Ref(Link):
@@ -101,25 +86,6 @@ class Ref(Link):
 
         return self.ref
 
-    def merge(self, other: Ref) -> Ref:
-        """
-        Merge another schema into this
-
-        Parameters
-        ----------
-        other
-            The other schema instance to merge
-
-        Returns
-        -------
-            The merged schema instance.
-        """
-        if self.ref is None and other.ref is None:
-            raise self.LinkError(f"Ref must be internal '{self.link}'.")
-
-        if self.ref is None:
-            self.ref = other.ref
-
 
 class Tag(Link):
     """
@@ -138,21 +104,3 @@ class Tag(Link):
             The link address.
         """
         return self.tag
-
-    def merge(self, other: Schema) -> Schema:
-        """
-        Merge another schema into this Tag schema.
-
-        Parameters
-        ----------
-        other
-            The other schema instance to merge
-
-        Returns
-        -------
-            The merged schema instance.
-        """
-        if not self.is_external:
-            raise self.LinkError(f"Tag must be external '{self.link}'.")
-
-        self = other

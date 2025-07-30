@@ -23,5 +23,6 @@ archive_catalog:
       SourceCatalog.filedate,
       SegmentationMap.filedate,
     ]
+  path_prefix: "basic"
 
 flowStyle: block

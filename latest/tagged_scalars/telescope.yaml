@@ -20,5 +20,6 @@ archive_catalog:
       SourceCatalog.telescope,
       SegmentationMap.telescope,
     ]
+  path_prefix: "basic"
 
 flowStyle: block

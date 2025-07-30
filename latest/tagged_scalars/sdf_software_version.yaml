@@ -21,5 +21,6 @@ archive_catalog:
       SourceCatalog.sdf_software_version,
       SegmentationMap.sdf_software_version,
     ]
+  path_prefix: "basic"
 
 flowStyle: block

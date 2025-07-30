@@ -29,29 +29,19 @@ class TestType:
         }
         assert issubclass(Type.KeyWords, KeyWords)
 
-    def test_type_key_failure(self, basic_data, manager):
+    def test_type_key_failure(self, basic_data):
         """
         Test that the Type schema cannot be extracted from a dictionary without a type.
         """
         with pytest.raises(Type.TypeKeys.UnhandledKeyError, match="Unhandled type value: .*"):
-            Type.extract(
-                name=None,
-                data={**basic_data, "type": "unsupported_type"},
-                manager=manager,
-                prefix=None,
-            )
+            Schema.extract({**basic_data, "type": "unsupported_type"})
 
-    def test_extract_failure(self, basic_data, manager):
+    def test_extract_failure(self, basic_data):
         """
         Test that the Type schema cannot be extracted from a dictionary without a type.
         """
         with pytest.raises(Type.UnreadableDataError, match="Missing 'type' key in data."):
-            Type.extract(
-                name=None,
-                data=basic_data,
-                manager=manager,
-                prefix=None,
-            )
+            Type.extract(basic_data)
 
 
 class TestArray:
@@ -80,101 +70,58 @@ class TestArray:
         }
         assert issubclass(Array.KeyWords, KeyWords)
 
-    def test_single_item_extract(self, basic_data, single_item_array_data, manager):
+    def test_single_item_extract(self, basic_data, single_item_array_data):
         """
         Test that the Type schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **single_item_array_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Array)
-        assert is_dataclass(type_)
-        assert type_.type == "array"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
+        array = Schema.extract({**basic_data, **single_item_array_data})
+        assert isinstance(array, Type)
+        assert isinstance(array, Array)
+        assert is_dataclass(array)
 
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
-
-        assert isinstance(type_.items, list)
-        assert len(type_.items) == 1
-        item = type_.items[0]
+        assert isinstance(array.items, list)
+        assert len(array.items) == 1
+        item = array.items[0]
         assert isinstance(item, String)
         assert item.type == "string"
-        assert item.name == "items"
-        assert item.prefix == "test_id"
-        assert item.address in manager
-        assert manager[item.address] is type_.items[0]
 
-        assert type_.additional_items is None
-        assert type_.max_items is None
-        assert type_.min_items is None
-        assert type_.unique_items is None
+        assert array.additional_items is None
+        assert array.max_items is None
+        assert array.min_items is None
+        assert array.unique_items is None
 
-        assert len(manager) == 3  # schema + archive + single_item_array
-
-    def test_multi_item_extract(self, basic_data, multi_item_array_data, manager):
+    def test_multi_item_extract(self, basic_data, multi_item_array_data):
         """
         Test that the Type schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **multi_item_array_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Array)
-        assert is_dataclass(type_)
-        assert type_.type == "array"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
+        array = Schema.extract({**basic_data, **multi_item_array_data})
+        assert isinstance(array, Type)
+        assert isinstance(array, Array)
+        assert is_dataclass(array)
 
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
+        assert isinstance(array.items, list)
+        assert len(array.items) == 2
 
-        assert isinstance(type_.items, list)
-        assert len(type_.items) == 2
+        assert isinstance(array.items[0], Type)
+        assert isinstance(array.items[0], String)
+        assert array.items[0].type == "string"
 
-        assert isinstance(type_.items[0], Type)
-        assert isinstance(type_.items[0], String)
-        assert type_.items[0].type == "string"
-        assert type_.items[0].name == "item_0"
-        assert type_.items[0].prefix == "test_id"
-        assert type_.items[0].address in manager
-        assert manager[type_.items[0].address] is type_.items[0]
+        assert isinstance(array.items[1], Type)
+        assert isinstance(array.items[1], Numeric)
+        assert array.items[1].type == "number"
 
-        assert isinstance(type_.items[1], Type)
-        assert isinstance(type_.items[1], Numeric)
-        assert type_.items[1].type == "number"
-        assert type_.items[1].name == "item_1"
-        assert type_.items[1].prefix == "test_id"
-        assert type_.items[1].address in manager
-        assert manager[type_.items[1].address] is type_.items[1]
+        assert array.additional_items is None
+        assert array.max_items is None
+        assert array.min_items is None
+        assert array.unique_items is None
 
-        assert type_.additional_items is None
-        assert type_.max_items is None
-        assert type_.min_items is None
-        assert type_.unique_items is None
-
-        assert len(manager) == 4  # schema + archive + 2 multi_item_array_items
-
-    def test_extract_failure(self, basic_data, manager):
+    def test_extract_failure(self, basic_data):
         with pytest.raises(Reader.UnreadableDataError, match=r"Expected 'items' to be a list, dict, or Schema instance, got.*"):
             Schema.extract(
-                name=None,
                 data={
                     **basic_data,
                     "type": "array",
                     "items": Basic(
-                        name="foo",
-                        prefix=None,
                         id="bar",
                         schema="baz",
                         title="Foo",
@@ -184,11 +131,8 @@ class TestArray:
                         unit=None,
                         datamodel_name=None,
                         archive_meta=None,
-                        manager=manager,
                     ),
                 },
-                manager=manager,
-                prefix=None,
             )
 
 
@@ -213,27 +157,15 @@ class TestBoolean:
         }
         assert issubclass(Boolean.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, boolean_data, manager):
+    def test_extract(self, basic_data, boolean_data):
         """
         Test that the Boolean schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **boolean_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Boolean)
-        assert is_dataclass(type_)
-        assert type_.type == "boolean"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
-
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
-        assert len(manager) == 2  # schema + archive
+        boolean = Schema.extract({**basic_data, **boolean_data})
+        assert isinstance(boolean, Type)
+        assert isinstance(boolean, Boolean)
+        assert is_dataclass(boolean)
+        assert boolean.type == "boolean"
 
 
 class TestNumeric:
@@ -262,61 +194,37 @@ class TestNumeric:
         }
         assert issubclass(Numeric.KeyWords, KeyWords)
 
-    def test_extract_integer(self, basic_data, integer_data, manager):
+    def test_extract_integer(self, basic_data, integer_data):
         """
         Test that the Numeric schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **integer_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Numeric)
-        assert is_dataclass(type_)
-        assert type_.type == "integer"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
+        number = Schema.extract({**basic_data, **integer_data})
+        assert isinstance(number, Type)
+        assert isinstance(number, Numeric)
+        assert is_dataclass(number)
+        assert number.type == "number"
 
-        assert type_.minimum is None
-        assert type_.maximum is None
-        assert type_.exclusive_minimum is None
-        assert type_.exclusive_maximum is None
-        assert type_.multiple_of is None
+        assert number.minimum is None
+        assert number.maximum is None
+        assert number.exclusive_minimum is None
+        assert number.exclusive_maximum is None
+        assert number.multiple_of is None
 
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
-        assert len(manager) == 2  # schema + archive
-
-    def test_extract_number(self, basic_data, number_data, manager):
+    def test_extract_number(self, basic_data, number_data):
         """
         Test that the Numeric schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **number_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Numeric)
-        assert is_dataclass(type_)
-        assert type_.type == "number"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
+        number = Schema.extract({**basic_data, **number_data})
+        assert isinstance(number, Type)
+        assert isinstance(number, Numeric)
+        assert is_dataclass(number)
+        assert number.type == "number"
 
-        assert type_.minimum is None
-        assert type_.maximum is None
-        assert type_.exclusive_minimum is None
-        assert type_.exclusive_maximum is None
-        assert type_.multiple_of is None
-
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
-        assert len(manager) == 2  # schema + archive
+        assert number.minimum is None
+        assert number.maximum is None
+        assert number.exclusive_minimum is None
+        assert number.exclusive_maximum is None
+        assert number.multiple_of is None
 
 
 class TestNull:
@@ -340,27 +248,15 @@ class TestNull:
         }
         assert issubclass(Null.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, null_data, manager):
+    def test_extract(self, basic_data, null_data):
         """
         Test that the Null schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **null_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Null)
-        assert is_dataclass(type_)
-        assert type_.type == "null"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
-
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
-        assert len(manager) == 2  # schema + archive
+        null = Schema.extract({**basic_data, **null_data})
+        assert isinstance(null, Type)
+        assert isinstance(null, Null)
+        assert is_dataclass(null)
+        assert null.type == "null"
 
 
 class TestObject:
@@ -391,38 +287,22 @@ class TestObject:
         }
         assert issubclass(Object.KeyWords, KeyWords)
 
-    def test_extract(self, basic_data, object_data, manager):
+    def test_extract(self, basic_data, object_data):
         """
         Test that the Object schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **object_data},
-            manager=manager,
-            prefix=None,
-        )
-        assert isinstance(type_, Type)
-        assert isinstance(type_, Object)
-        assert is_dataclass(type_)
-        assert type_.type == "object"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
+        obj = Schema.extract({**basic_data, **object_data})
+        assert isinstance(obj, Type)
+        assert isinstance(obj, Object)
+        assert is_dataclass(obj)
+        assert obj.type == "object"
 
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
+        assert obj.properties is not None
+        assert isinstance(obj.properties, dict)
+        assert len(obj.properties) == 2
 
-        assert type_.properties is not None
-        assert isinstance(type_.properties, dict)
-        assert len(type_.properties) == 2
-
-        for key, value in type_.properties.items():
+        for key, value in obj.properties.items():
             assert isinstance(value, Type)
-            assert value.name == key
-            assert value.prefix == "test_id"
-
-            assert value.address in manager
-            assert manager[value.address] is value
 
             if key == "property1":
                 assert isinstance(value, String)
@@ -433,47 +313,29 @@ class TestObject:
             else:
                 raise AssertionError(f"Unexpected property key: {key}")
 
-        assert type_.pattern_properties is None
-        assert type_.required == ["property1"]
-        assert type_.additional_properties is None
-        assert type_.max_properties is None
-        assert type_.min_properties is None
-        assert type_.dependencies is None
+        assert obj.pattern_properties is None
+        assert obj.required == ["property1"]
+        assert obj.additional_properties is None
+        assert obj.max_properties is None
+        assert obj.min_properties is None
+        assert obj.dependencies is None
 
-        assert len(manager) == 4  # schema + archive + 2 object_properties
-
-    def test_pattern_extract(self, basic_data, pattern_object_data, manager):
+    def test_pattern_extract(self, basic_data, pattern_object_data):
         """
         Test that the Object schema can be extracted from a dictionary with pattern properties.
         """
-        type_ = Type.extract(
-            name=None,
-            data={**basic_data, **pattern_object_data},
-            manager=manager,
-            prefix=None,
-        )
+        type_ = Type.extract({**basic_data, **pattern_object_data})
         assert isinstance(type_, Type)
         assert isinstance(type_, Object)
         assert is_dataclass(type_)
         assert type_.type == "object"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
-
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
 
         assert type_.pattern_properties is not None
         assert isinstance(type_.pattern_properties, dict)
         assert len(type_.pattern_properties) == 2
 
         for key, value in type_.pattern_properties.items():
-            assert value.name == f"pattern[{key}]"
             assert isinstance(value, Type)
-            assert value.prefix == "test_id"
-
-            assert value.address in manager
-            assert manager[value.address] is value
 
             if key == "^pattern_.*":
                 assert isinstance(value, String)
@@ -490,8 +352,6 @@ class TestObject:
         assert type_.max_properties is None
         assert type_.min_properties is None
         assert type_.dependencies is None
-
-        assert len(manager) == 4  # schema + archive + 2 pattern_properties
 
 
 class TestString:
@@ -522,24 +382,12 @@ class TestString:
         """
         Test that the String schema can be extracted from a dictionary.
         """
-        type_ = Schema.extract(
-            name=None,
-            data={**basic_data, **string_data},
-            manager=manager,
-            prefix=None,
-        )
+        type_ = Schema.extract({**basic_data, **string_data})
         assert isinstance(type_, Type)
         assert isinstance(type_, String)
         assert is_dataclass(type_)
         assert type_.type == "string"
-        assert type_.name == "test_id"
-        assert type_.prefix is None
 
         assert type_.min_length is None
         assert type_.max_length is None
         assert type_.pattern is None
-
-        assert type_.manager is manager
-        assert type_.address in manager
-        assert manager[type_.address] is type_
-        assert len(manager) == 2  # schema + archive

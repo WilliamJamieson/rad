@@ -21,5 +21,6 @@ archive_catalog:
       SourceCatalog.product_type,
       SegmentationMap.product_type,
     ]
+  path_prefix: "basic"
 
 flowStyle: block

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from semantic_version import Version
@@ -34,18 +35,27 @@ class Manager(Mapping[str, Schema]):
             self.uri = uri
 
     def __init__(
-        self, schemas: dict[str, Schema] | None = None, files_: Traversable | None = None, uri_prefix: str | None = None
+        self,
+        schemas: dict[str, Schema] | None = None,
+        files_: Traversable | None = None,
+        uri_prefix: str | None = None,
+        manifest_type: Literal["latest", "static"] | None = None,
     ) -> None:
         self._schemas = schemas or {}
         self._files = files_ or files(resources)
         self._uri_prefix = uri_prefix or "asdf://stsci.edu/datamodels/roman/"
 
+        self._manifest_file = self._get_manifest_file(manifest_type)
+
         self._tag_to_uri = self._create_tag_to_uri()
 
-    @property
-    def _manifest_file(self) -> Path:
+    def _get_manifest_file(self, manifest_type: Literal["latest", "static"] | None = None) -> Path:
+        manifest_type = manifest_type or "latest"
+
+        glob_pattern = "datamodels-*.yaml" if manifest_type == "latest" else "static-*.yaml"
+
         manifest = None
-        for file in (self._files / "manifests").glob("datamodels-*.yaml"):
+        for file in (self._files / "manifests").glob(glob_pattern):
             v = Version("1.0.0" if (vn := file.stem.split("-")[-1]) == "1.0" else vn)
             if manifest is None:
                 manifest = (file, v)
@@ -66,13 +76,12 @@ class Manager(Mapping[str, Schema]):
         return tag_to_uri
 
     @classmethod
-    def from_rad(cls) -> Manager:
+    def from_rad(cls, manifest_type: Literal["latest", "static"] | None = None) -> Manager:
         """
         Create a Manager instance from the rad resource manager.
         This method is used to initialize the manager with schemas defined in the rad package.
         """
-
-        new = cls()
+        new = cls(manifest_type=manifest_type)
 
         for schema_uri in new._tag_to_uri.values():
             new._add_from_uri(schema_uri)
@@ -130,3 +139,19 @@ class Manager(Mapping[str, Schema]):
 
         schema = self[uri]
         return schema.archive_data(uri.split("/")[-1].split("-")[0], self)
+
+    def create_archive(self, save_path: Path | None = None) -> dict[str, Any]:
+        """
+        Create an archive of all schemas in the manager.
+        This method returns a dictionary containing the archived data of all schemas.
+        """
+
+        resolved = []
+        for address in list(self.keys()):
+            schema = self[address]
+            if hasattr(schema, "archive_meta") and schema.archive_meta is not None:
+                print(f"    Resolving {address} with archive_meta")
+                resolved.append(self.archive_data(address))
+
+        with save_path.open("w") as f:
+            json.dump(resolved, f, indent=2)

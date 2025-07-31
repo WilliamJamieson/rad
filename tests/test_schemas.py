@@ -22,12 +22,9 @@ VARCHAR_XFAILS = (
 
 REF_COMMON_XFAILS = ("asdf://stsci.edu/datamodels/roman/schemas/reference_files/skycells-1.0.0",)
 
-ARRAY_TAG_XFAILS = (
-    "asdf://stsci.edu/datamodels/roman/schemas/l1_detector_guidewindow-1.0.0",
-    "asdf://stsci.edu/datamodels/roman/schemas/l1_detector_guidewindow-1.1.0",
-)
+ARRAY_TAG_XFAILS = ("asdf://stsci.edu/datamodels/roman/schemas/l1_detector_guidewindow-1.1.0",)
 
-REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-1.3.0",)
+REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_3/mosaic-1.0.0",)
 
 NESTED_REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/l3_common-1.0.0",)
 

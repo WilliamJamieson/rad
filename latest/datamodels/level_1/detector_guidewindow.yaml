@@ -1,11 +1,11 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/l1_detector_guidewindow-1.2.0
+id: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/detector_guidewindow-1.0.0
 
 title: Level 1 Detector Guide Star Window Information
 
-datamodel_name: L1DetectorGuidewindowModel
+datamodel_name: DetectorGuidewindowModel
 
 archive_meta: None
 

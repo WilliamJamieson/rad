@@ -436,10 +436,10 @@ _PHOT_TABLE_KEY_PATTERN = next(
     )
 )
 _OPTICAL_ELEMENTS = tuple(
-    _CURRENT_RESOURCES[_get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/wfi_optical_element")]["enum"]
+    _CURRENT_RESOURCES[_get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/meta/shared/wfi_optical_element")]["enum"]
 )
 _EXPOSURE_TYPE_ELEMENTS = tuple(
-    _CURRENT_RESOURCES[_get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/exposure_type")]["enum"]
+    _CURRENT_RESOURCES[_get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/meta/shared/exposure_type")]["enum"]
 )
 _P_EXPTYPE_PATTERN = _CURRENT_RESOURCES[
     _get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type")

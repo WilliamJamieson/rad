@@ -19,10 +19,10 @@ properties:
             $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/wfi_optical_element-1.0.0
           program:
             title: Program Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/program-1.1.0
+            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program-1.0.0
           visit:
             title: Visit Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/visit-1.2.0
+            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
         required: [optical_element, program, visit]
   data:
     title: Segmentation map

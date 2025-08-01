@@ -351,3 +351,13 @@ tags:
     title: Multiple Accumulation Table Reference File Schema
     description: |-
       Multiple Accumulation Table Reference File Schema
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/guide_window-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/guide_window-1.0.0
+    title: Guide Window Metadata
+    description: |-
+      Guide Window Metadata
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/gw_guidestar-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/gw_guidestar-1.0.0
+    title: Guide Star Information for Guide Window Model
+    description: |-
+      Guide Star Information for Guide Window Model

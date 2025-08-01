@@ -12,15 +12,13 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/common-1.0.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/l2_common-1.0.0
       - type: object
         properties:
           background:
             tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/sky_background-1.0.0
           cal_logs:
             tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_logs-1.0.0
-          cal_step:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/l2_cal_step-1.0.0
           outlier_detection:
             tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/outlier_detection-1.0.0
           photometry:

@@ -12,15 +12,12 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic-1.0.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
       - type: object
         properties:
           basic:
             tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
-          program:
-            title: Program Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program-1.0.0
-        required: [basic, program]
+        required: [basic]
   data:
     title: Segmentation map
     description: |

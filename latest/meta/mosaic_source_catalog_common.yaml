@@ -1,0 +1,13 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/mosaic_source_catalog_common-1.0.0
+
+title: Common Mosaic Source Catalog Metadata Properties
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/catalog_common-1.0.0
+  - type: object
+    properties:
+      basic:
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
+    required: [basic]

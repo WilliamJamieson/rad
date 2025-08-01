@@ -12,18 +12,15 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic-1.0.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
       - type: object
         properties:
           optical_element:
             $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/wfi_optical_element-1.0.0
-          program:
-            title: Program Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program-1.0.0
           visit:
             title: Visit Information
             tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
-        required: [optical_element, program, visit]
+        required: [optical_element, visit]
   data:
     title: Segmentation map
     description: |

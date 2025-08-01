@@ -10,12 +10,7 @@ datamodel_name: RampModel
 type: object
 properties:
   meta:
-    allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/common-1.0.0
-      - type: object
-        properties:
-          cal_step:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/l2_cal_step-1.0.0
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/l2_common-1.0.0
   data:
     title: Science Data Including Border Reference Pixels (DN, electrons)
     description: |

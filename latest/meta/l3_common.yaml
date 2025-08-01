@@ -56,3 +56,15 @@ allOf:
       statistics:
         title: Basic Statistical Information
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/l3_statistics-1.0.0
+    required:
+      [
+        data_release_id,
+        cal_logs,
+        coadd_info,
+        coordinates,
+        individual_image_meta,
+        instrument,
+        observation,
+        program,
+        statistics,
+      ]

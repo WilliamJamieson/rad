@@ -1,0 +1,14 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/catalog_common-1.0.0
+
+title: Common Catalog Metadata Properties
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
+  - type: object
+    properties:
+      photometry:
+        title: Photometry Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/photometry-1.0.0
+    required: [photometry]

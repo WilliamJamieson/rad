@@ -11,19 +11,7 @@ archive_meta: None
 type: object
 properties:
   meta:
-    allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic-1.0.0
-      - type: object
-        properties:
-          basic:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
-          photometry:
-            title: Photometry Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/photometry-1.0.0
-          program:
-            title: Program Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program-1.0.0
-        required: [basic, photometry, program]
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/mosaic_source_catalog_common-1.0.0
   source_catalog:
     title: Source Catalog
     description: |

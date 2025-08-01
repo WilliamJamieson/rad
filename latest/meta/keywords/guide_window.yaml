@@ -1,0 +1,116 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/guide_window-1.0.0
+
+title: Guide Window Metadata
+type: object
+properties:
+  min_acq_xstart:
+    title: Minimum Acquisition X Coord
+    description: |
+      Minimal x science coordinate used in the acquisition guide window resultants.
+    type: integer
+  min_acq_ystart:
+    title: Minimum Acquisition Y Coord
+    description: |
+      Minimal y science coordinate used in the acquisition guide window resultants.
+    type: integer
+  max_acq_xstop:
+    title: Maximum Acquisition X Coord
+    description: |
+      Maximal x science coordinate used in the acquisition guide window resultants.
+    type: integer
+  max_acq_ystop:
+    title: Maximum Acquisition Y Coord
+    description: |
+      Maximal y science coordinate used in the acquisition guide window resultants.
+    type: integer
+  acq_xsize:
+    title: Acquisition X Size
+    description: |
+      Size in the x direction of the acquisition guide window.
+    type: integer
+  acq_ysize:
+    title: Acquisition Y Size
+    description: |
+      Size in the y direction of the acquisition guide window.
+    type: integer
+  min_track_xstart:
+    title: Minimum Acquisition X Coord
+    description: |
+      Minimal x science coordinate used in the track guide window resultants.
+    type: integer
+  min_track_ystart:
+    title: Minimum Acquisition Y Coord
+    description: |
+      Minimal y science coordinate used in the track guide window resultants.
+    type: integer
+  max_track_xstop:
+    title: Maximum Acquisition X Coord
+    description: |
+      Maximal x science coordinate used in the track guide window resultants.
+    type: integer
+  max_track_ystop:
+    title: Maximum Acquisition Y Coord
+    description: |
+      Maximal y science coordinate used in the track guide window resultants.
+    type: integer
+  track_xsize:
+    title: Acquisition X Size
+    description: |
+      Size in the x direction of the track guide window.
+    type: integer
+  track_ysize:
+    title: Acquisition Y Size
+    description: |
+      Size in the y direction of the track guide window.
+    type: integer
+  # Optional
+  min_edge_acq_xstart:
+    title: Minimum Edge Acquisition X Coord
+    description: |
+      Minimal x science coordinate used in the edge acquisition guide window resultants.
+    type: integer
+  min_edge_acq_ystart:
+    title: Minimum Edge Acquisition Y Coord
+    description: |
+      Minimal y science coordinate used in the edge acquisition guide window resultants.
+    type: integer
+  max_edge_acq_xstop:
+    title: Maximum Edge Acquisition X Coord
+    description: |
+      Maximal x science coordinate used in the acquisition guide window resultants.
+    type: integer
+  max_edge_acq_ystop:
+    title: Maximum Edge Acquisition Y Coord
+    description: |
+      Maximal y science coordinate used in the edge acquisition guide window resultants.
+    type: integer
+  edge_acq_xsize:
+    title: Edge Acquisition X Size
+    description: |
+      Size in the x direction of the edge acquisition guide window.
+    type: integer
+  edge_acq_ysize:
+    title: Edge Acquisition Y Size
+    description: |
+      Size in the y direction of the edge acquisition guide window.
+    type: integer
+required:
+  [
+    "min_acq_xstart",
+    "min_acq_ystart",
+    "max_acq_xstop",
+    "max_acq_ystop",
+    "acq_xsize",
+    "acq_ysize",
+    "min_track_xstart",
+    "min_track_ystart",
+    "max_track_xstop",
+    "max_track_ystop",
+    "track_xsize",
+    "track_ysize",
+  ]
+
+flowStyle: block

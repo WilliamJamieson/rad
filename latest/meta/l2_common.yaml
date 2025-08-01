@@ -1,0 +1,13 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/l2_common-1.0.0
+
+title: Common Level 2 Metadata Properties
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/l1_common-1.0.0
+  - type: object
+    properties:
+      cal_step:
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/l2_cal_step-1.0.0

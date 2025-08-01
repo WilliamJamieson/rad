@@ -8,27 +8,21 @@ title: Segmentation map generated from a Level 2 file by the Source Catalog Step
 datamodel_name: SegmentationMapModel
 
 archive_meta: None
-type: object
-properties:
-  meta:
-    allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
-      - type: object
-        properties:
-          optical_element:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/wfi_optical_element-1.0.0
-          visit:
-            title: Visit Information
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
-        required: [optical_element, visit]
-  data:
-    title: Segmentation map
-    description: |
-      Segmentation map of an image model, zeros correspond to background.
-    tag: tag:stsci.edu:asdf/core/ndarray-1.*
-    ndim: 2
-    datatype: uint32
-    exact_datatype: true
-required: [meta, data]
+allOf:
+  - type: object
+    properties:
+      meta:
+        allOf:
+          - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
+          - type: object
+            properties:
+              optical_element:
+                $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/wfi_optical_element-1.0.0
+              visit:
+                title: Visit Information
+                tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
+            required: [optical_element, visit]
+    required: [meta]
+    propertyOrder: [meta]
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/data/segmentation_map-1.0.0
 flowStyle: block
-propertyOrder: [meta, data]

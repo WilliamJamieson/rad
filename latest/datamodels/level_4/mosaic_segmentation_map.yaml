@@ -8,25 +8,18 @@ title: Segmentation map generated from a Level 3 file by the Source Catalog Step
 datamodel_name: MosaicSegmentationMapModel
 
 archive_meta: None
-type: object
-properties:
-  meta:
-    allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
-      - type: object
-        properties:
-          basic:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
-        required: [basic]
-  data:
-    title: Segmentation map
-    description: |
-      Segmentation map of an image model, zeros correspond to background.
-    tag: tag:stsci.edu:asdf/core/ndarray-1.*
-    ndim: 2
-    datatype: uint32
-    exact_datatype: true
-
-required: [meta, data]
+allOf:
+  - type: object
+    properties:
+      meta:
+        allOf:
+          - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/segmentation_map_common-1.0.0
+          - type: object
+            properties:
+              basic:
+                tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
+            required: [basic]
+    required: [meta]
+    propertyOrder: [meta]
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/data/segmentation_map-1.0.0
 flowStyle: block
-propertyOrder: [meta, data]

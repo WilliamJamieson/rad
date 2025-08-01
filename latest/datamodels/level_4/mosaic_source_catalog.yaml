@@ -13,12 +13,7 @@ properties:
   meta:
     $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/mosaic_source_catalog_common-1.0.0
   source_catalog:
-    title: Source Catalog
-    description: |
-      Photometry and astrometry computed in the Source Catalog Step.
-    allOf:
-      - tag: tag:astropy.org:astropy/table/table-1.*
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/table/prompt_catalog-1.0.0
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/data/prompt_catalog-1.0.0
 
 required: [meta, source_catalog]
 flowStyle: block

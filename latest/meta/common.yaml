@@ -7,62 +7,17 @@ title: Common Metadata Properties
 
 allOf:
   # Meta Variables
-  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic-1.0.0
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/common-1.0.0
+  # Meta Objects
   - type: object
     properties:
-      # Meta Objects
-      coordinates:
-        title: Name Of The Coordinate Reference Frame
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
-      ephemeris:
-        title: Ephemeris Data Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ephemeris-1.0.0
-      exposure:
-        title: Exposure Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
       guide_star:
         title: Guide Star Window Information
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/guidestar-1.0.0
-      instrument:
-        title: WFI Observing Configuration
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode-1.0.0
-      observation:
-        title: Observation Identifiers
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation-1.0.0
-      pointing:
-        title: Spacecraft Pointing Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/pointing-1.0.0
-      program:
-        title: Program Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program-1.0.0
       ref_file:
         title: Reference File Information
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ref_file-1.0.0
       rcs:
         title: Relative Calibration System Information
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/rcs-1.0.0
-      velocity_aberration:
-        title: Velocity Aberration Correction Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/velocity_aberration-1.0.0
-      visit:
-        title: Visit Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
-      wcsinfo:
-        title: World Coordinate System (WCS) Parameters
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo-1.0.0
-    required:
-      [
-        coordinates,
-        ephemeris,
-        exposure,
-        guide_star,
-        instrument,
-        observation,
-        pointing,
-        program,
-        ref_file,
-        rcs,
-        velocity_aberration,
-        visit,
-        wcsinfo,
-      ]
+    required: [guide_star, ref_file, rcs]

@@ -1,0 +1,56 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/common-1.0.0
+
+title: Common Shared Metadata Properties
+
+allOf:
+  # Meta Variables
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic-1.0.0
+  # Meta Objects
+  - type: object
+    properties:
+      coordinates:
+        title: Name Of The Coordinate Reference Frame
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
+      ephemeris:
+        title: Ephemeris Data Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ephemeris-1.0.0
+      exposure:
+        title: Exposure Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
+      instrument:
+        title: WFI Observing Configuration
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode-1.0.0
+      observation:
+        title: Observation Identifiers
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation-1.0.0
+      pointing:
+        title: Spacecraft Pointing Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/pointing-1.0.0
+      program:
+        title: Program Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program-1.0.0
+      velocity_aberration:
+        title: Velocity Aberration Correction Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/velocity_aberration-1.0.0
+      visit:
+        title: Visit Information
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
+      wcsinfo:
+        title: World Coordinate System (WCS) Parameters
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo-1.0.0
+    required:
+      [
+        coordinates,
+        ephemeris,
+        exposure,
+        instrument,
+        observation,
+        pointing,
+        program,
+        velocity_aberration,
+        visit,
+        wcsinfo,
+      ]

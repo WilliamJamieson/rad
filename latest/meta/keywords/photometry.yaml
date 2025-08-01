@@ -1,9 +1,9 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/photometry-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/photometry-1.0.0
 
-title: Photometry Information
+title: Photometry information
 type: object
 properties:
   conversion_megajanskys:
@@ -59,8 +59,8 @@ properties:
     archive_catalog:
       datatype: float
       destination: [WFIExposure.pixel_area, SourceCatalog.pixel_area]
+required:
+  [conversion_megajanskys, conversion_megajanskys_uncertainty, pixel_area]
 propertyOrder:
   [conversion_megajanskys, conversion_megajanskys_uncertainty, pixel_area]
 flowStyle: block
-required:
-  [conversion_megajanskys, conversion_megajanskys_uncertainty, pixel_area]

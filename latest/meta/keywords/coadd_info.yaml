@@ -1,0 +1,86 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coadd_info-1.0.0
+
+title: Co-Addition Information
+type: object
+properties:
+  time_first:
+    title: Start Time of the First Exposure
+    description: >
+      The Universal Coordinated Time (UTC) start time of
+      the first exposure ordered in time used to create the
+      co-added product. The time is serialized on disk as an
+      International Organization for Standardization (ISO)
+      8601-compliant ISOT string. If opened in Python with the
+      asdf-astropy package installed, it may be read as an
+      astropy.time.Time object with all of the associated methods
+      and transforms available. See the documentation for
+      astropy.time.Time objects for more information.
+    tag: tag:stsci.edu:asdf/time/time-1.*
+    archive_catalog:
+      datatype: datetime2
+      destination: [WFIMosaic.time_first]
+  time_last:
+    title: End Time of the Last Exposure
+    description: >
+      The Universal Coordinated Time (UTC) end time of
+      the last exposure ordered in time used to create the
+      co-added product. The time is serialized on disk as an
+      International Organization for Standardization (ISO)
+      8601-compliant ISOT string. If opened in Python with the
+      asdf-astropy package installed, it may be read as an
+      astropy.time.Time object with all of the associated methods
+      and transforms available. See the documentation for
+      astropy.time.Time objects for more information.
+    tag: tag:stsci.edu:asdf/time/time-1.*
+    archive_catalog:
+      datatype: datetime2
+      destination: [WFIMosaic.time_last]
+  time_mean:
+    title: Mean Time of the Co-Added Data Product
+    description: >
+      The Universal Coordinated Time (UTC) mean start
+      time of the exposures used to create the co-added product.
+      The time is serialized on disk as an International
+      Organization for Standardization (ISO) 8601-compliant ISOT
+      string. If opened in Python with the asdf-astropy package
+      installed, it may be read as an astropy.time.Time object
+      with all of the associated methods and transforms available.
+      See the documentation for astropy.time.Time objects for more
+      information.
+    tag: tag:stsci.edu:asdf/time/time-1.*
+    archive_catalog:
+      datatype: datetime2
+      destination: [WFIMosaic.time_mean]
+  max_exposure_time:
+    title: Maximum Exposure Time (s)
+    description: >
+      Maximum exposure time of all pixels in the
+      co-added product in units of seconds. The exposure times of
+      each input pixel are drizzled onto the output frame, and
+      then the maximum is computed from all output pixels with
+      exposure time > 0 seconds.
+    type: number
+    archive_catalog:
+      datatype: float
+      destination: [WFIMosaic.max_exposure_time]
+  exposure_time:
+    title: Exposure Time (s)
+    description: >
+      A representative exposure time for the co-added
+      product in units of seconds. For Roman SOC products, the
+      exposure times of each input pixel are drizzled on the
+      output frame, and then the mean exposure time is computed
+      from all output pixels with exposure time > 0 seconds.
+      Please check the keyword meta.origin for contextual
+      information.
+    type: number
+    archive_catalog:
+      datatype: float
+      destination: [WFIMosaic.exposure_time]
+required: [time_first, time_last, time_mean, max_exposure_time, exposure_time]
+propertyOrder:
+  [time_first, time_last, time_mean, max_exposure_time, exposure_time]
+flowStyle: block

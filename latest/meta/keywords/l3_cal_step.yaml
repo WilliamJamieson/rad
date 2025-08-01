@@ -1,0 +1,23 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/l3_cal_step-1.0.0
+
+title: Level 3 Calibration Step status information
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/cal_step-1.0.0
+  - type: object
+    properties:
+      resample:
+        title: Resampling Step
+        description: >
+          Step in romancal which resamples and coadds each input 2D image based on its WCS
+          onto a grid, in order to combine multiple images into a single coadded product.
+        allOf:
+          - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared/cal_step_flag-1.0.0
+        archive_catalog:
+          datatype: nvarchar(15)
+          destination: [ScienceRefData.s_resample]
+    required: [resample]
+
+flowStyle: block

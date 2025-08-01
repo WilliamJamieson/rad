@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from enum import StrEnum
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import yaml
 from semantic_version import Version
@@ -13,6 +14,12 @@ from semantic_version import Version
 from rad import resources
 
 from ._schema import Schema
+
+
+class ManifestType(StrEnum):
+    LATEST = "latest"
+    STATIC = "static"
+    SSC = "ssc"
 
 
 class Manager(Mapping[str, Schema]):
@@ -39,20 +46,22 @@ class Manager(Mapping[str, Schema]):
         schemas: dict[str, Schema] | None = None,
         files_: Traversable | None = None,
         uri_prefix: str | None = None,
-        manifest_type: Literal["latest", "static"] | None = None,
+        manifest_type: ManifestType | None = None,
     ) -> None:
         self._schemas = schemas or {}
         self._files = files_ or files(resources)
         self._uri_prefix = uri_prefix or "asdf://stsci.edu/datamodels/roman/"
 
         self._manifest_file = self._get_manifest_file(manifest_type)
-
         self._tag_to_uri = self._create_tag_to_uri()
 
-    def _get_manifest_file(self, manifest_type: Literal["latest", "static"] | None = None) -> Path:
-        manifest_type = manifest_type or "latest"
+    def _get_manifest_file(self, manifest_type: ManifestType | None = None) -> Path | None:
+        if manifest_type == ManifestType.SSC:
+            return None
 
-        glob_pattern = "datamodels-*.yaml" if manifest_type == "latest" else "static-*.yaml"
+        manifest_type = manifest_type or ManifestType.LATEST
+
+        glob_pattern = "datamodels-*.yaml" if manifest_type == ManifestType.LATEST else "static-*.yaml"
 
         manifest = None
         for file in (self._files / "manifests").glob(glob_pattern):
@@ -66,6 +75,9 @@ class Manager(Mapping[str, Schema]):
         return manifest[0]
 
     def _create_tag_to_uri(self) -> dict[str, str]:
+        if self._manifest_file is None:
+            return {}
+
         tag_to_uri = {}
         with self._manifest_file.open("r") as f:
             manifest = yaml.safe_load(f)["tags"]
@@ -76,7 +88,7 @@ class Manager(Mapping[str, Schema]):
         return tag_to_uri
 
     @classmethod
-    def from_rad(cls, manifest_type: Literal["latest", "static"] | None = None) -> Manager:
+    def from_rad(cls, manifest_type: ManifestType | None = None) -> Manager:
         """
         Create a Manager instance from the rad resource manager.
         This method is used to initialize the manager with schemas defined in the rad package.
@@ -86,7 +98,18 @@ class Manager(Mapping[str, Schema]):
         for schema_uri in new._tag_to_uri.values():
             new._add_from_uri(schema_uri)
 
+        if manifest_type == ManifestType.SSC:
+            new._fill_ssc()
+
         return new
+
+    def _fill_ssc(self) -> None:
+        for file in (self._files / "schemas" / "ssc").glob("**/*.yaml"):
+            with file.open("r") as f:
+                schema = Schema.extract(yaml.safe_load(f))
+                if schema.id is None:
+                    raise self.NoSchemaIdError()
+                self.register(schema)
 
     def _add_from_uri(self, uri: str) -> Schema:
         with (self._files / f"{uri.split(self._uri_prefix)[-1]}.yaml").open("r") as f:

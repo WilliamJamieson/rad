@@ -8,3 +8,6 @@ if __name__ == "__main__":
 
     print("Create archive for the static schemas")
     Reader.from_rad(manifest_type="static").create_archive(Path(__file__).parent.parent / "static_archive.json")
+
+    print("Create archive for the SSC schemas")
+    Reader.from_rad(manifest_type="ssc").create_archive(Path(__file__).parent.parent / "ssc_archive.json")

@@ -60,7 +60,7 @@ class Link(Schema):
 
     def archive_data(self, name: str, manager: Manager) -> dict[str, Any] | None:
         if self.is_external:
-            return None
+            return super().archive_data(name, manager)
 
         return manager[self.link].archive_data(name, manager)
 

@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/associations-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/datamodels/other/associations-1.0.0
 
 title: Association Table Data Model
 
@@ -86,6 +86,7 @@ properties:
       required: [name, members]
 
 required: [asn_id, asn_pool, asn_type, asn_rule, products]
+
 flowStyle: block
 propertyOrder:
   [

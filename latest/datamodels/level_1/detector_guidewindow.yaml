@@ -13,40 +13,12 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic/level_1-1.0.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/common/guidewindow-1.0.0
       - type: object
         properties:
           instrument:
             title: WFI Observing Configuration
             tag: asdf://stsci.edu/datamodels/roman/tags/wfi_mode-1.2.0
-          fgs_modes_used:
-            title: FGS Guiding Modes
-            description: |
-              List of unique FGS guiding modes used during the guide window exposure.
-            type: array
-            items:
-              type: string
-              enum:
-                [
-                  "NOT_CONFIGURED",
-                  "STANDBY",
-                  "WIM_ACQ_VW",
-                  "WIM_ACQ_NA",
-                  "WIM_TRK",
-                  "WIM_TRK_S",
-                  "WSM_ACQ_HC",
-                  "WSM_ACQ_VC",
-                  "WSM_TRK",
-                  "WIM_DFC",
-                ]
-              maxLength: 20
-            sdf:
-              special_processing: VALUE_REQUIRED
-              source:
-                origin: TBD
-            archive_catalog:
-              datatype: nvarchar(20)
-              destination: [GuideWindow.gw_fgs_modes_used]
           acq_ma_table_id:
             title: Acquisition MA table ID
             description: |
@@ -95,35 +67,6 @@ properties:
               Effective exposure time for each tracking signal guide window
               resultant in seconds.
             type: number
-          guide_star_acq_num:
-            title: Guide Star Acquisition Number
-            description: |
-              Guide star acquisition number (1-9) for the guide window exposure.
-            type: integer
-            sdf:
-              special_processing: VALUE_REQUIRED
-              source:
-                origin: TBD
-            archive_catalog:
-              datatype: int
-              destination: [GuideWindow.gw_guide_star_acq_num]
-          guide_window_id:
-            title: Guide Window ID
-            description: |
-              A unique identification number of the guide window. This identifier combines the
-              visit identifier and guide star acquisition number, and is set in the visit information
-              uplinked to the observatory. As the number may be zero-padded, this value is saved as
-              a string. See technical report Roman-STScI-000193 "Roman Programmatic Data
-              Identification" for more information.
-            type: string
-            maxLength: 120
-            sdf:
-              special_processing: VALUE_REQUIRED
-              source:
-                origin: TBD
-            archive_catalog:
-              datatype: nvarchar(120)
-              destination: [GuideWindow.gw_guide_window_id]
           avg_face_filename:
             title: Averaged FACE Filename
             description: |
@@ -388,21 +331,18 @@ properties:
               ]
         required:
           [
-            "fgs_modes_used",
-            "acq_ma_table_id",
-            "acq_gw_cycles_per_sci_read",
-            "acq_pedestal_resultant_exp_time",
-            "acq_signal_resultant_exp_time",
-            "track_ma_table_id",
-            "track_gw_cycles_per_sci_read",
-            "track_pedestal_resultant_exp_time",
-            "track_signal_resultant_exp_time",
-            "guide_star_acq_num",
-            "guide_window_id",
-            "instrument",
-            "avg_face_filename",
-            "guide_window",
-            "guide_star",
+            acq_ma_table_id,
+            acq_gw_cycles_per_sci_read,
+            acq_pedestal_resultant_exp_time,
+            acq_signal_resultant_exp_time,
+            track_ma_table_id,
+            track_gw_cycles_per_sci_read,
+            track_pedestal_resultant_exp_time,
+            track_signal_resultant_exp_time,
+            instrument,
+            avg_face_filename,
+            guide_window,
+            guide_star,
           ]
   amp33:
     title: Guide Window Amplifier 33 Reference Pixel Information

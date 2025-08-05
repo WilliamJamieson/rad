@@ -12,12 +12,9 @@ allOf:
       optical_element:
         $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/helper/wfi_optical_element-1.0.0
       exposure:
-        title: Exposure Information
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
       ref_file:
-        title: Reference File Information
         tag: asdf://stsci.edu/datamodels/roman/tags/ref_file-1.1.0
       visit:
-        title: Visit Information
         tag: asdf://stsci.edu/datamodels/roman/tags/visit-1.2.0
     required: [optical_element, exposure, ref_file, visit]

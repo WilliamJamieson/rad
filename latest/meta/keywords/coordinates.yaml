@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/coordinates-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coordinates-1.0.0
 
 title: Name Of The Coordinate Reference Frame
 type: object
@@ -12,11 +12,16 @@ properties:
       Name of the celestial coordinate reference frame used
       for the World Coordinate System (WCS).
     type: string
-    default: ICRS
     enum: [ICRS]
     maxLength: 10
     archive_catalog:
       datatype: nvarchar(10)
-      destination: [WFIExposure.reference_frame, GuideWindow.reference_frame]
-flowStyle: block
+      destination:
+        [
+          WFIExposure.reference_frame,
+          GuideWindow.reference_frame,
+          WFIMosaic.reference_frame,
+        ]
 required: [reference_frame]
+
+flowStyle: block

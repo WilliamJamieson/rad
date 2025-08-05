@@ -1,0 +1,33 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/level_3-1.0.0
+
+title: Level 3 Basic Statistical Information
+
+type: object
+properties:
+  image_median:
+    title: Median Image Value (MJy/sr)
+    description: >
+      Median image value in units of megaJanskys per steradian (MJy/sr).
+    allOf:
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/shared-1.0.0#/definitions/image_median
+  image_rms:
+    title: Image Mean Absolute Deviation (MJy/sr)
+    description: >
+      Mean absolute deviation of the image values in
+      units of megaJanskys per steradian (MJy/sr).
+    allOf:
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/shared-1.0.0#/definitions/image_rms
+  good_pixel_fraction:
+    title: Fraction of Good Pixels
+    description: >
+      The fraction of pixels in the output image that
+      are considered good.
+    allOf:
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/shared-1.0.0#/definitions/good_pixel_fraction
+required: [image_median, image_rms, good_pixel_fraction]
+
+propertyOrder: [image_median, image_rms, good_pixel_fraction]
+flowStyle: block

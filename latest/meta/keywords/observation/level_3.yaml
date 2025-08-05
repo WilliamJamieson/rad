@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/level_3-1.0.0
+
+title: Level 3 Observation information
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/shared-1.0.0
+
+flowStyle: block

@@ -1,21 +1,24 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/program-1.1.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/shared-1.0.0
 
-title: Program Information
+title: Shared Program Information
+
 type: object
 properties:
   title:
     title: Proposal Title
     description: |
       The submitted proposal title of the program.
-    type: string
+    anyOf:
+      - type: string
+        maxLength: 200
+      - type: "null"
     sdf:
       special_processing: VALUE_REQUIRED
       source:
         origin: PSS:dms_visit.template
-    maxLength: 200
     archive_catalog:
       datatype: nvarchar(200)
       destination:
@@ -24,20 +27,23 @@ properties:
           GuideWindow.program_title,
           SourceCatalog.program_title,
           SegmentationMap.program_title,
+          WFIMosaic.program_title,
         ]
   investigator_name:
     title: Principal Investigator Name
     description: |
       The name of the principle investigator (PI) of the
       program.
-    type: string
+    anyOf:
+      - type: string
+        maxLength: 100
+      - type: "null"
     sdf:
       special_processing: VALUE_REQUIRED
       source:
         # There are a number of ways to get the pi_name.  Here is one
         # of them: "= apt('./ProposalInformation/PrincipalInvestigator/InvestigatorAddress/LastName') + ', ' + apt('./ProposalInformation/PrincipalInvestigator/InvestigatorAddress/FirstName')"
         origin: TBD
-    maxLength: 100
     archive_catalog:
       datatype: nvarchar(100)
       destination:
@@ -46,6 +52,7 @@ properties:
           GuideWindow.investigator_name,
           SourceCatalog.investigator_name,
           SegmentationMap.investigator_name,
+          WFIMosaic.investigator_name,
         ]
   category:
     title: Program Category
@@ -57,12 +64,14 @@ properties:
       survey (GAS), general investigator (GI), and observing conducted
       at the direction of the National Aeronautics and Space
       Administration (NASA).
-    type: string
+    anyOf:
+      - type: string
+        maxLength: 6
+      - type: "null"
     sdf:
       special_processing: VALUE_REQUIRED
       source:
         origin: PSS:dms_program.category
-    maxLength: 6
     archive_catalog:
       datatype: nvarchar(6)
       destination:
@@ -71,6 +80,7 @@ properties:
           GuideWindow.program_category,
           SourceCatalog.program_category,
           SegmentationMap.program_category,
+          WFIMosaic.program_category,
         ]
   subcategory:
     title: Program Subcategory
@@ -84,26 +94,28 @@ properties:
       program (OR), Wide Field Instrument (WFI), and Wavefront Sensing
       and Control (WFSC). All subcategories belong to only a subset of
       the meta.program.category values.
-    type: string
-    enum:
-      [
-        "CAL",
-        "CGI",
-        "CR",
-        "DR",
-        "GBTD",
-        "HLTD",
-        "HLWA",
-        "OR",
-        "WFI",
-        "WFSC",
-        "None",
-      ]
+    anyOf:
+      - type: string
+        enum:
+          [
+            "CAL",
+            "CGI",
+            "CR",
+            "DR",
+            "GBTD",
+            "HLTD",
+            "HLWA",
+            "OR",
+            "WFI",
+            "WFSC",
+            "None",
+          ]
+        maxLength: 15
+      - type: "null"
     sdf:
       special_processing: VALUE_REQUIRED
       source:
         origin: PSS:dms_program.subcategory
-    maxLength: 15
     archive_catalog:
       datatype: nvarchar(15)
       destination:
@@ -112,18 +124,21 @@ properties:
           GuideWindow.program_subcategory,
           SourceCatalog.program_subcategory,
           SegmentationMap.program_subcategory,
+          WFIMosaic.program_subcategory,
         ]
   science_category:
     title: Science Category
     description: |
       The science category assigned during the Time
       Allocation Committee (TAC) review process.
-    type: string
+    anyOf:
+      - type: string
+        maxLength: 50
+      - type: "null"
     sdf:
       special_processing: VALUE_REQUIRED
       source:
         origin: PSS:dms_program.science_category
-    maxLength: 50
     archive_catalog:
       datatype: nvarchar(50)
       destination:
@@ -132,8 +147,6 @@ properties:
           GuideWindow.science_category,
           SourceCatalog.science_category,
           SegmentationMap.science_category,
+          WFIMosaic.science_category,
         ]
-propertyOrder:
-  [title, investigator_name, category, subcategory, science_category]
-flowStyle: block
 required: [title, investigator_name, category, subcategory, science_category]

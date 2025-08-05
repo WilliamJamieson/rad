@@ -10,6 +10,5 @@ allOf:
   - type: object
     properties:
       program:
-        title: Program Information
-        tag: asdf://stsci.edu/datamodels/roman/tags/program-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_1-1.0.0
     required: [program]

@@ -1,0 +1,28 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/level_1-1.0.0
+
+title: Level 1 Program information
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/shared-1.0.0
+  - type: object
+    properties:
+      title:
+        not:
+          type: "null"
+      investigator_name:
+        not:
+          type: "null"
+      category:
+        not:
+          type: "null"
+      subcategory:
+        not:
+          type: "null"
+      science_category:
+        not:
+          type: "null"
+
+flowStyle: block

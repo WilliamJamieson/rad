@@ -17,8 +17,7 @@ properties:
       - type: object
         properties:
           instrument:
-            title: WFI Observing Configuration
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode-1.0.0
+            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_1-1.0.0
           acq_ma_table_id:
             title: Acquisition MA table ID
             description: |

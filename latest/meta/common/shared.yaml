@@ -11,25 +11,25 @@ allOf:
     properties:
       # Meta Objects
       coordinates:
-        tag: asdf://stsci.edu/datamodels/roman/tags/coordinates-1.0.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
       ephemeris:
         tag: asdf://stsci.edu/datamodels/roman/tags/ephemeris-1.1.0
       exposure:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
       instrument:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode-1.0.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_1-1.0.0
       observation:
-        tag: asdf://stsci.edu/datamodels/roman/tags/observation-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation/level_1-1.0.0
       pointing:
         tag: asdf://stsci.edu/datamodels/roman/tags/pointing-1.1.0
       program:
-        tag: asdf://stsci.edu/datamodels/roman/tags/program-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_1-1.0.0
       velocity_aberration:
         tag: asdf://stsci.edu/datamodels/roman/tags/velocity_aberration-1.0.0
       visit:
         tag: asdf://stsci.edu/datamodels/roman/tags/visit-1.2.0
       wcsinfo:
-        tag: asdf://stsci.edu/datamodels/roman/tags/wcsinfo-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo/level_1-1.0.0
     required:
       [
         coordinates,

@@ -10,6 +10,5 @@ allOf:
   - type: object
     properties:
       photometry:
-        title: Photometry Information
         tag: asdf://stsci.edu/datamodels/roman/tags/photometry-1.0.0
     required: [photometry]

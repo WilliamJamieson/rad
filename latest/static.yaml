@@ -293,6 +293,36 @@ tags:
     title: Basic mosaic metadata keywords
     description: |-
       Basic mosaic metadata keywords
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/coordinates-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/coordinates-1.0.0
+    title: Coordinate frame information
+    description: |-
+      Coordinate frame information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/cal_logs-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/cal_logs-1.0.0
+    title: Calibration log messages
+    description: |-
+      Calibration log message
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/observation-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/observation-1.1.0
+    title: Observation information
+    description: |-
+      Observation information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/program-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/program-1.1.0
+    title: Program information
+    description: |-
+      Program information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/statistics-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/statistics-1.0.0
+    title: Basic Statistical Information
+    description: |-
+      Basic Statistical Information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/wcsinfo-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/wcsinfo-1.1.0
+    title: Wcsinfo information
+    description: |-
+      Wcsinfo information
 
   # Tagged Scalars
   - tag_uri: asdf://stsci.edu/datamodels/roman/tags/calibration_software_name-1.0.0

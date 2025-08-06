@@ -1,9 +1,10 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/pointing-1.1.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/pointing-1.0.0
 
 title: Spacecraft Pointing Information
+
 type: object
 properties:
   pa_aperture:
@@ -143,6 +144,18 @@ properties:
     archive_catalog:
       datatype: float
       destination: [WFIExposure.target_dec, GuideWindow.target_dec]
+required:
+  [
+    pa_aperture,
+    pointing_engineering_source,
+    ra_v1,
+    dec_v1,
+    pa_v3,
+    target_aperture,
+    target_ra,
+    target_dec,
+  ]
+
 propertyOrder:
   [
     pa_aperture,
@@ -155,14 +168,3 @@ propertyOrder:
     target_dec,
   ]
 flowStyle: block
-required:
-  [
-    pa_aperture,
-    pointing_engineering_source,
-    ra_v1,
-    dec_v1,
-    pa_v3,
-    target_aperture,
-    target_ra,
-    target_dec,
-  ]

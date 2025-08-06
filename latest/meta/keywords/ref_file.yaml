@@ -1,9 +1,10 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/ref_file-1.1.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/ref_file-1.0.0
 
 title: Reference File Information
+
 type: object
 properties:
   crds:
@@ -245,4 +246,5 @@ required:
     saturation,
     refpix,
   ]
+
 flowStyle: block

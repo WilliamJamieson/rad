@@ -14,7 +14,7 @@ allOf:
       exposure:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
       ref_file:
-        tag: asdf://stsci.edu/datamodels/roman/tags/ref_file-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ref_file-1.0.0
       visit:
-        tag: asdf://stsci.edu/datamodels/roman/tags/visit-1.2.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
     required: [optical_element, exposure, ref_file, visit]

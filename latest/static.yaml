@@ -323,6 +323,56 @@ tags:
     title: Wcsinfo information
     description: |-
       Wcsinfo information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/ephemeris-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/ephemeris-1.1.0
+    title: Ephemeris information
+    description: |-
+      Ephemeris information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/outlier_detection-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/outlier_detection-1.0.0
+    title: Outlier Detection information
+    description: |-
+      Outlier Detection information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/photometry-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/photometry-1.0.0
+    title: Photometry information
+    description: |-
+      Photometry information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/pointing-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/pointing-1.1.0
+    title: Spacecraft Pointing information
+    description: |-
+      Spacecraft Pointing information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/rcs-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/rcs-1.1.0
+    title: Relative Calibration System Information
+    description: |-
+      Relative Calibration System Information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/ref_file-1.1.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/ref_file-1.1.0
+    title: Calibration reference file names.
+    description: |-
+      Calibration reference file names.
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/sky_background-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/sky_background-1.0.0
+    title: Sky Background Information
+    description: |-
+      Sky Background Information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/source_catalog-1.0.0
+    title: Source catalog for TweakReg
+    description: |-
+      Source catalog for TweakReg
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/velocity_aberration-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/velocity_aberration-1.0.0
+    title: Velocity aberration information
+    description: |-
+      Velocity aberration information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/visit-1.2.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/visit-1.2.0
+    title: Visit information
+    description: |-
+      Visit information
 
   # Tagged Scalars
   - tag_uri: asdf://stsci.edu/datamodels/roman/tags/calibration_software_name-1.0.0

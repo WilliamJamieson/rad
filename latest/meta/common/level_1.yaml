@@ -12,7 +12,7 @@ allOf:
       guide_star:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/guidestar-1.0.0
       ref_file:
-        tag: asdf://stsci.edu/datamodels/roman/tags/ref_file-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ref_file-1.0.0
       rcs:
-        tag: asdf://stsci.edu/datamodels/roman/tags/rcs-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/rcs-1.0.0
     required: [guide_star, ref_file, rcs]

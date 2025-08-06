@@ -13,7 +13,7 @@ allOf:
       coordinates:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
       ephemeris:
-        tag: asdf://stsci.edu/datamodels/roman/tags/ephemeris-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ephemeris-1.0.0
       exposure:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
       instrument:
@@ -21,13 +21,13 @@ allOf:
       observation:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation/level_1-1.0.0
       pointing:
-        tag: asdf://stsci.edu/datamodels/roman/tags/pointing-1.1.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/pointing-1.0.0
       program:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_1-1.0.0
       velocity_aberration:
-        tag: asdf://stsci.edu/datamodels/roman/tags/velocity_aberration-1.0.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/velocity_aberration-1.0.0
       visit:
-        tag: asdf://stsci.edu/datamodels/roman/tags/visit-1.2.0
+        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
       wcsinfo:
         tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo/level_1-1.0.0
     required:

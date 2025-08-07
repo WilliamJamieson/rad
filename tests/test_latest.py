@@ -5,10 +5,12 @@ Test that the latest schemas are up to date and properly linked into rest of the
 import importlib.resources as importlib_resources
 import json
 import re
+from collections.abc import Mapping
 from importlib.metadata import Distribution
 
 import pytest
 import yaml
+from asdf.treeutil import walk
 
 from rad import resources
 
@@ -120,3 +122,31 @@ class TestLastestResources:
                 assert schema == re.sub(base_tag_uri_regex, tag_uri, schema), (
                     f"Schema {schema_uri} has references to {tag_uri} that have not been updated!"
                 )
+
+    def test_latest_refs(self, rad_uri_prefix, current_resources, latest_uris, latest_uri):
+        """
+        Test that all `$ref` references within RAD point to another latest schema.
+        """
+
+        def callback(node):
+            if isinstance(node, Mapping) and "$ref" in node and node["$ref"].startswith(rad_uri_prefix):
+                ref_parts = node["$ref"].split("#/")
+                if len(ref_parts) == 1:
+                    assert ref_parts[0] in latest_uris, f"$ref: {ref_parts[0]} is not in the latest uris"
+                    return
+
+                if len(ref_parts) == 2:
+                    assert ref_parts[0] in latest_uris, f"$ref: {ref_parts[0]} is not in the latest uris"
+
+                    def_schema = current_resources[ref_parts[0]]
+                    for part in ref_parts[1].split("/"):
+                        if isinstance(def_schema, Mapping) and part in def_schema:
+                            def_schema = def_schema[part]
+                        else:
+                            raise AssertionError(f"{ref_parts[1]} not found in {ref_parts[0]} schema.")
+
+                    return
+
+                raise AssertionError(f"Invalid $ref: {node['$ref']}")
+
+        walk(current_resources[latest_uri], callback=callback)

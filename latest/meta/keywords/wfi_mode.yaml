@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/wfi_mode-1.2.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode-1.0.0
 
 title: Wide Field Instrument (WFI) Configuration Information
 type: object
@@ -28,7 +28,7 @@ properties:
         ]
   detector:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/wfi_detector-1.1.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/helper/wfi_detector-1.0.0
     title: Wide Field Instrument (WFI) Detector Identifier
     description: |
       Name of the Wide Field Instrument (WFI) detector used
@@ -43,7 +43,7 @@ properties:
         [WFIExposure.detector, GuideWindow.detector, WFICommon.detector]
   optical_element:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/wfi_optical_element-1.2.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/helper/wfi_optical_element-1.0.0
     title: Wide Field Instrument (WFI) Optical Element
     description: |
       Name of the optical element used to take the science
@@ -60,6 +60,7 @@ properties:
           GuideWindow.optical_element,
           WFICommon.optical_element,
         ]
+required: [detector, optical_element, name]
+
 propertyOrder: [detector, optical_element, name]
 flowStyle: block
-required: [detector, optical_element, name]

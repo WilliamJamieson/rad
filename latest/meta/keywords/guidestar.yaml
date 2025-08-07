@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/guidestar-1.2.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/guidestar-1.0.0
 
 title: Guide Star and Guide Window Information
 
@@ -27,7 +27,7 @@ properties:
       destination: [WFIExposure.guide_window_id, GuideWindow.guide_window_id]
   guide_mode:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/guidewindow_modes-1.1.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/helper/guidewindow_modes-1.0.0
     sdf:
       special_processing: VALUE_REQUIRED
       source:
@@ -116,7 +116,7 @@ properties:
     archive_catalog:
       datatype: nvarchar(10)
       destination: [WFIExposure.epoch, GuideWindow.epoch]
-propertyOrder:
+required:
   [
     guide_window_id,
     guide_mode,
@@ -127,7 +127,8 @@ propertyOrder:
     guide_star_id,
     epoch,
   ]
-required:
+
+propertyOrder:
   [
     guide_window_id,
     guide_mode,

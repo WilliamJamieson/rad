@@ -4,6 +4,7 @@ $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
 id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/ephemeris-1.0.0
 
 title: Ephemeris Data Information
+
 type: object
 properties:
   ephemeris_reference_frame:
@@ -143,17 +144,3 @@ required:
     velocity_y,
     velocity_z,
   ]
-
-propertyOrder:
-  [
-    type,
-    time,
-    ephemeris_reference_frame,
-    spatial_x,
-    spatial_y,
-    spatial_z,
-    velocity_x,
-    velocity_y,
-    velocity_z,
-  ]
-flowStyle: block

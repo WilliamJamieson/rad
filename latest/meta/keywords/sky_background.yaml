@@ -28,6 +28,3 @@ properties:
       been subtracted form the image or not.
     type: boolean
 required: [level, method, subtracted]
-
-propertyOrder: [level, method, subtracted]
-flowStyle: block

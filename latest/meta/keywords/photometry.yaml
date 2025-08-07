@@ -62,7 +62,3 @@ properties:
       destination: [WFIExposure.pixel_area, SourceCatalog.pixel_area]
 required:
   [conversion_megajanskys, conversion_megajanskys_uncertainty, pixel_area]
-
-propertyOrder:
-  [conversion_megajanskys, conversion_megajanskys_uncertainty, pixel_area]
-flowStyle: block

@@ -28,6 +28,3 @@ properties:
     allOf:
       - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/shared-1.0.0#/definitions/good_pixel_fraction
 required: [image_median, image_rms, good_pixel_fraction]
-
-propertyOrder: [image_median, image_rms, good_pixel_fraction]
-flowStyle: block

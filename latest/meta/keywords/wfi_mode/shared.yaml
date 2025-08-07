@@ -4,6 +4,7 @@ $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
 id: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/shared-1.0.0
 
 title: Shared Wide Field Instrument (WFI) Configuration Information
+
 definitions:
   optical_element:
     title: Wide Field Instrument (WFI) Optical Element

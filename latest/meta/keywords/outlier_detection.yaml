@@ -13,6 +13,3 @@ properties:
       Bit mask parameter sent to resample.
     type: string
 required: [good_bits]
-
-propertyOrder: [good_bits]
-flowStyle: block

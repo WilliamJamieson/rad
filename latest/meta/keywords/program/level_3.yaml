@@ -7,5 +7,3 @@ title: Level 3 Program information
 
 allOf:
   - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/shared-1.0.0
-
-flowStyle: block

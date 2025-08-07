@@ -155,16 +155,3 @@ required:
     target_ra,
     target_dec,
   ]
-
-propertyOrder:
-  [
-    pa_aperture,
-    pointing_engineering_source,
-    ra_v1,
-    dec_v1,
-    pa_v3,
-    target_aperture,
-    target_ra,
-    target_dec,
-  ]
-flowStyle: block

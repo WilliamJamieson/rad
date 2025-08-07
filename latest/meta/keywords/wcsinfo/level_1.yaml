@@ -197,17 +197,3 @@ required:
     roll_ref,
     s_region,
   ]
-
-propertyOrder:
-  [
-    aperture_name,
-    v2_ref,
-    v3_ref,
-    vparity,
-    v3yangle,
-    ra_ref,
-    dec_ref,
-    roll_ref,
-    s_region,
-  ]
-flowStyle: block

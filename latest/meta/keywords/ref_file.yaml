@@ -246,5 +246,3 @@ required:
     saturation,
     refpix,
   ]
-
-flowStyle: block

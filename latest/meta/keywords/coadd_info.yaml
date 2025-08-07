@@ -82,7 +82,3 @@ properties:
       datatype: float
       destination: [WFIMosaic.exposure_time]
 required: [time_first, time_last, time_mean, max_exposure_time, exposure_time]
-propertyOrder:
-  [time_first, time_last, time_mean, max_exposure_time, exposure_time]
-
-flowStyle: block

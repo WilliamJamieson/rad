@@ -76,6 +76,3 @@ properties:
       datatype: int
       destination: [WFIExposure.counts]
 required: [active, electronics, bank, led, counts]
-
-propertyOrder: [active, electronics, bank, led, counts]
-flowStyle: block

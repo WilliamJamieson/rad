@@ -311,23 +311,3 @@ required:
     read_pattern,
     truncated,
   ]
-
-propertyOrder:
-  [
-    type,
-    start_time,
-    end_time,
-    engineering_quality,
-    nresultants,
-    data_problem,
-    frame_time,
-    exposure_time,
-    effective_exposure_time,
-    ma_table_name,
-    ma_table_number,
-    ma_table_id,
-    read_pattern,
-    truncated,
-    sdf_log_file,
-  ]
-flowStyle: block

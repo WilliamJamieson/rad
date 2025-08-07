@@ -184,5 +184,3 @@ required:
     skycell_name,
     rotation_matrix,
   ]
-
-flowStyle: block

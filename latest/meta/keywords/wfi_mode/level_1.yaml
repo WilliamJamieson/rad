@@ -33,5 +33,3 @@ allOf:
           - not:
               type: "null"
     required: [detector, optical_element]
-
-flowStyle: block

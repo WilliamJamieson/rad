@@ -47,6 +47,3 @@ properties:
       datatype: float
       destination: [WFIExposure.scale_factor, GuideWindow.scale_factor]
 required: [ra_reference, dec_reference, scale_factor]
-
-propertyOrder: [ra_reference, dec_reference, scale_factor]
-flowStyle: block

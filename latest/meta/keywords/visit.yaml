@@ -185,6 +185,3 @@ properties:
           SegmentationMap.visit_internal_target,
         ]
 required: [dither, type, start_time, nexposures, internal_target]
-
-propertyOrder: [dither, type, start_time, nexposures, internal_target]
-flowStyle: block

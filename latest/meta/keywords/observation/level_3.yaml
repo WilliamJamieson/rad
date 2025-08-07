@@ -7,5 +7,3 @@ title: Level 3 Observation information
 
 allOf:
   - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/shared-1.0.0
-
-flowStyle: block

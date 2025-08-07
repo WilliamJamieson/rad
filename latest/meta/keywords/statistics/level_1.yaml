@@ -44,6 +44,3 @@ properties:
     allOf:
       - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/shared-1.0.0#/definitions/good_pixel_fraction
 required: [zodiacal_light, image_median, image_rms, good_pixel_fraction]
-
-propertyOrder: [zodiacal_light, image_median, image_rms, good_pixel_fraction]
-flowStyle: block

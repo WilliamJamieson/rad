@@ -18,5 +18,3 @@ allOf:
         allOf:
           - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/shared-1.0.0#/definitions/optical_element
     required: [optical_element]
-
-flowStyle: block

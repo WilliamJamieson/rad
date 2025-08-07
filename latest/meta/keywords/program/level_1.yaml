@@ -24,5 +24,3 @@ allOf:
       science_category:
         not:
           type: "null"
-
-flowStyle: block

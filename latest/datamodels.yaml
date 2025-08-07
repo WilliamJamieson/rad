@@ -8,7 +8,101 @@ description: |-
 asdf_standard_requirement:
   gte: 1.1.0
 tags:
-  # Metadata Modules
+  # Level 1 Datamodels
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/face_guidewindow-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/face_guidewindow-1.0.0
+    title: Level 1 FACE Guide Star Window Information schema
+    description: |-
+      Level 1 FACE Guide Star Window Information schema
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/detector_guidewindow-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/detector_guidewindow-1.0.0
+    title: Level 1 Detector Guide Star Window Information schema
+    description: |-
+      Level 1 Detector Guide Star Window Information schema
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/science_raw-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/science_raw-1.0.0
+    title: Roman WFI Raw Science Data datamodel
+    description: |-
+      Roman WFI Raw Science Data datamodel
+
+  # Level 2 Datamodels
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/ramp_fit_output-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/ramp_fit_output-1.0.0
+    title: Wfi level 2 image information
+    description: |-
+      Wfi level 2 image information
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/ramp-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/ramp-1.0.0
+    title: Ramp schema
+    description: |-
+      Ramp schema
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/wfi_wcs-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/wfi_wcs-1.0.0
+    title: Roman Wide Field Instrument (WFI) Level 2 (L2) WCS
+    description: |-
+      Roman Wide Field Instrument (WFI) Level 2 (L2) WCS and modified WCS applicable for Science Raw (L1).
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/image-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/image-1.0.0
+    title: Wfi level 2 image information
+    description: |-
+      Wfi level 2 image information
+
+  # Level 3 Datamodels
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_3/mosaic-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_3/mosaic-1.0.0
+    title: Wfi level 3 mosaic information
+    description: |-
+      Wfi level 3 mosaic information
+
+  # Level 4 Datamodels
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/segmentation_map-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/segmentation_map-1.0.0
+    title: Segmentation map
+    description: |-
+      Segmentation map computed by the Source Catalog Step
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/mosaic_segmentation_map-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/mosaic_segmentation_map-1.0.0
+    title: Mosaic segmentation map
+    description: |-
+      Segmentation map computed by the Source Catalog Step for the mosaic
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/image_source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/image_source_catalog-1.0.0
+    title: Image source catalog
+    description: |-
+      Photometry and astrometry computed by the Source Catalog Step
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/multiband_source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/multiband_source_catalog-1.0.0
+    title: Multiband source catalog
+    description: |-
+      Photometry and astrometry computed by the Multiband Catalog Step
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/forced_image_source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/forced_image_source_catalog-1.0.0
+    title: Forced image source catalog
+    description: |-
+      Photometry and astrometry computed by the Source Catalog Step
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/mosaic_source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/mosaic_source_catalog-1.0.0
+    title: Mosaic source catalog
+    description: |-
+      Photometry and astrometry computed by the Source Catalog Step
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/forced_mosaic_source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/forced_mosaic_source_catalog-1.0.0
+    title: Forced mosaic source catalog
+    description: |-
+      Photometry and astrometry computed by the Source Catalog Step
+
+  # Other Datamodels
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/other/associations-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/other/associations-1.0.0
+    title: Association table
+    description: |-
+      Association table
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/other/msos_stack-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/other/msos_stack-1.0.0
+    title: MSOS Stack Level 3 Schema
+    description: |-
+      Level 3 schema for SSC's MSOS stack products
+
   # Reference Modules
   - tag_uri: asdf://stsci.edu/datamodels/roman/tags/reference_files/abvegaoffset-1.2.0
     schema_uri: asdf://stsci.edu/datamodels/roman/schemas/reference_files/abvegaoffset-1.2.0
@@ -105,234 +199,3 @@ tags:
     title: Multiple Accumulation Table Reference File Schema
     description: |-
       Multiple Accumulation Table Reference File Schema
-  # Misc
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/face_guidewindow-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/face_guidewindow-1.0.0
-    title: Level 1 FACE Guide Star Window Information schema
-    description: |-
-      Level 1 FACE Guide Star Window Information schema
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/detector_guidewindow-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/detector_guidewindow-1.0.0
-    title: Level 1 Detector Guide Star Window Information schema
-    description: |-
-      Level 1 Detector Guide Star Window Information schema
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/science_raw-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/science_raw-1.0.0
-    title: Roman WFI Raw Science Data datamodel
-    description: |-
-      Roman WFI Raw Science Data datamodel
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/ramp_fit_output-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/ramp_fit_output-1.0.0
-    title: Wfi level 2 image information
-    description: |-
-      Wfi level 2 image information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/ramp-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/ramp-1.0.0
-    title: Ramp schema
-    description: |-
-      Ramp schema
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/wfi_wcs-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/wfi_wcs-1.0.0
-    title: Roman Wide Field Instrument (WFI) Level 2 (L2) WCS
-    description: |-
-      Roman Wide Field Instrument (WFI) Level 2 (L2) WCS and modified WCS applicable for Science Raw (L1).
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_2/image-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_2/image-1.0.0
-    title: Wfi level 2 image information
-    description: |-
-      Wfi level 2 image information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_3/mosaic-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_3/mosaic-1.0.0
-    title: Wfi level 3 mosaic information
-    description: |-
-      Wfi level 3 mosaic information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/segmentation_map-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/segmentation_map-1.0.0
-    title: Segmentation map
-    description: |-
-      Segmentation map computed by the Source Catalog Step
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/mosaic_segmentation_map-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/mosaic_segmentation_map-1.0.0
-    title: Mosaic segmentation map
-    description: |-
-      Segmentation map computed by the Source Catalog Step for the mosaic
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/image_source_catalog-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/image_source_catalog-1.0.0
-    title: Image source catalog
-    description: |-
-      Photometry and astrometry computed by the Source Catalog Step
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/multiband_source_catalog-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/multiband_source_catalog-1.0.0
-    title: Multiband source catalog
-    description: |-
-      Photometry and astrometry computed by the Multiband Catalog Step
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/forced_image_source_catalog-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/forced_image_source_catalog-1.0.0
-    title: Forced image source catalog
-    description: |-
-      Photometry and astrometry computed by the Source Catalog Step
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/mosaic_source_catalog-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/mosaic_source_catalog-1.0.0
-    title: Mosaic source catalog
-    description: |-
-      Photometry and astrometry computed by the Source Catalog Step
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_4/forced_mosaic_source_catalog-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_4/forced_mosaic_source_catalog-1.0.0
-    title: Forced mosaic source catalog
-    description: |-
-      Photometry and astrometry computed by the Source Catalog Step
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/other/associations-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/other/associations-1.0.0
-    title: Association table
-    description: |-
-      Association table
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/other/msos_stack-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/other/msos_stack-1.0.0
-    title: MSOS Stack Level 3 Schema
-    description: |-
-      Level 3 schema for SSC's MSOS stack products
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_step/level_2-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_step/level_2-1.0.0
-    title: Level 2 Calibration Step status information
-    description: |-
-      Level 2 Calibration Step status information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_step/level_3-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_step/level_3-1.0.0
-    title: Level 3 Calibration Step status information
-    description: |-
-      Level 3 Calibration Step status information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/exposure-1.0.0
-    title: Exposure information
-    description: |-
-      Exposure information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/guidestar-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/guidestar-1.0.0
-    title: Guidestar information
-    description: |-
-      Guidestar information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/mosaic_basic-1.0.0
-    title: Basic mosaic metadata keywords
-    description: |-
-      Basic mosaic metadata keywords
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coordinates-1.0.0
-    title: Coordinate frame information
-    description: |-
-      Coordinate frame information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_logs-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_logs-1.0.0
-    title: Calibration log messages
-    description: |-
-      Calibration log messages
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coadd_info-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coadd_info-1.0.0
-    title: Co-Addition Information
-    description: |-
-      Co-Addition Information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/individual_image_meta-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/individual_image_meta-1.0.0
-    title: Selected, Tabulated Input Level 2 (L2) Calibrated Rate Image Metadata
-    description: |-
-      Selected, Tabulated Input Level 2 (L2) Calibrated Rate Image Metadata
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_1-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/level_1-1.0.0
-    title: Level 1 Roman WFI Instrument Mode
-    description: |-
-      Level 1 Roman WFI Instrument Mode
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_3-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/level_3-1.0.0
-    title: Level 3 Roman WFI Instrument Mode
-    description: |-
-      Level 3 Roman WFI Instrument Mode
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation/level_1-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/level_1-1.0.0
-    title: Level 1 Observation information
-    description: |-
-      Level 1 Observation information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation/level_3-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/level_3-1.0.0
-    title: Level 3 Observation information
-    description: |-
-      Level 3 Observation information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_1-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/level_1-1.0.0
-    title: Level 1 Program information
-    description: |-
-      Level 1 Program information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_3-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/level_3-1.0.0
-    title: Level 3 Program information
-    description: |-
-      Level 3 Program information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/statistics/level_1-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/level_1-1.0.0
-    title: Level 1 Basic Statistical Information
-    description: |-
-      Level 1 Basic Statistical Information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/statistics/level_3-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/level_3-1.0.0
-    title: Level 3 Basic Statistical Information
-    description: |-
-      Level 3 Basic Statistical Information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo/level_1-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wcsinfo/level_1-1.0.0
-    title: Level 1 Wcsinfo information
-    description: |-
-      Level 1 Wcsinfo information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo/level_3-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wcsinfo/level_3-1.0.0
-    title: Level 3 Wcsinfo information
-    description: |-
-      Level 3 Wcsinfo information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ephemeris-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/ephemeris-1.0.0
-    title: Ephemeris information
-    description: |-
-      Ephemeris information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/visit-1.0.0
-    title: Visit information
-    description: |-
-      Visit information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/photometry-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/photometry-1.0.0
-    title: Photometry information
-    description: |-
-      Photometry information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/source_catalog-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/source_catalog-1.0.0
-    title: Source catalog for TweakReg
-    description: |-
-      Source catalog for TweakReg
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/pointing-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/pointing-1.0.0
-    title: Spacecraft Pointing information
-    description: |-
-      Spacecraft Pointing information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/rcs-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/rcs-1.0.0
-    title: Relative Calibration System Information
-    description: |-
-      Relative Calibration System Information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/velocity_aberration-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/velocity_aberration-1.0.0
-    title: Velocity aberration information
-    description: |-
-      Velocity aberration information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/outlier_detection-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/outlier_detection-1.0.0
-    title: Outlier Detection information
-    description: |-
-      Outlier Detection information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/sky_background-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/sky_background-1.0.0
-    title: Sky Background Information
-    description: |-
-      Sky Background Information
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ref_file-1.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/ref_file-1.0.0
-    title: Calibration reference file names
-    description: |-
-      Calibration reference file names

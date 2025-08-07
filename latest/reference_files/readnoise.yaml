@@ -15,6 +15,7 @@ properties:
       - type: object
         properties:
           reftype:
+            type: string
             enum: [READNOISE]
       - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type-1.3.0
   data:

@@ -10,21 +10,21 @@ allOf:
   - type: object
     properties:
       cal_logs:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_logs-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_logs-1.0.0
       coordinates:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coordinates-1.0.0
       coadd_info:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coadd_info-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coadd_info-1.0.0
       individual_image_meta:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/individual_image_meta-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/individual_image_meta-1.0.0
       instrument:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_3-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/level_3-1.0.0
       observation:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation/level_3-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/level_3-1.0.0
       program:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_3-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/level_3-1.0.0
       statistics:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/statistics/level_3-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/statistics/level_3-1.0.0
     required:
       [
         cal_logs,

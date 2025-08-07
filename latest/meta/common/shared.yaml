@@ -11,25 +11,25 @@ allOf:
     properties:
       # Meta Objects
       coordinates:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/coordinates-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coordinates-1.0.0
       ephemeris:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/ephemeris-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/ephemeris-1.0.0
       exposure:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/exposure-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/exposure-1.0.0
       instrument:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_1-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/level_1-1.0.0
       observation:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/observation/level_1-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation/level_1-1.0.0
       pointing:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/pointing-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/pointing-1.0.0
       program:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_1-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/level_1-1.0.0
       velocity_aberration:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/velocity_aberration-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/velocity_aberration-1.0.0
       visit:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/visit-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/visit-1.0.0
       wcsinfo:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo/level_1-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wcsinfo/level_1-1.0.0
     required:
       [
         coordinates,

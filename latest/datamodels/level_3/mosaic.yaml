@@ -25,7 +25,7 @@ properties:
                 type: string
             required: [name]
           cal_step:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_step/level_3-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_step/level_3-1.0.0
           resample:
             title: Resample Parameters
             type: object
@@ -88,7 +88,7 @@ properties:
             title: World Coordinate System (WCS)
             tag: tag:stsci.edu:gwcs/wcs-*
           wcsinfo:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wcsinfo/level_3-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wcsinfo/level_3-1.0.0
         required: [association, cal_step, resample, wcs, wcsinfo]
   data:
     title: Science Data (MJy / steradian)

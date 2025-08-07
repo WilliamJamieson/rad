@@ -16,7 +16,7 @@ properties:
       - type: object
         properties:
           basic:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/mosaic_basic-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/mosaic_basic-1.0.0
         required: [basic]
   data:
     title: Segmentation map

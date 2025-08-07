@@ -10,4 +10,4 @@ allOf:
   - type: object
     properties:
       cal_step:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/cal_step/level_2-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_step/level_2-1.0.0

@@ -17,7 +17,7 @@ properties:
       - type: object
         properties:
           instrument:
-            tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/wfi_mode/level_1-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wfi_mode/level_1-1.0.0
           acq_ma_table_id:
             title: Acquisition MA table ID
             description: |

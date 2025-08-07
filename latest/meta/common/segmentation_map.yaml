@@ -10,5 +10,5 @@ allOf:
   - type: object
     properties:
       program:
-        tag: asdf://stsci.edu/datamodels/roman/tags/meta/keywords/program/level_1-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program/level_1-1.0.0
     required: [program]

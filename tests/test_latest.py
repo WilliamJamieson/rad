@@ -150,3 +150,10 @@ class TestLastestResources:
                 raise AssertionError(f"Invalid $ref: {node['$ref']}")
 
         walk(current_resources[latest_uri], callback=callback)
+
+    def test_latest_manifest_entries(self, latest_tagged_uri, current_resources):
+        """
+        Check that tagged entries in the latest manifest are all datamodels
+        """
+
+        assert "datamodel_name" in current_resources[latest_tagged_uri], f"{latest_tagged_uri} is tagged but not a datamodel."

@@ -6,7 +6,9 @@ id: asdf://stsci.edu/datamodels/roman/schemas/cal_logs-1.0.0
 title: Calibration Log Messages
 description: |
   String array of log messages recording the steps, failures,
-  and outputs associated with running romancal steps.
+  and outputs of running pipeline steps. These log messages are typically
+  the same as those printed to the standard output (stdout) during
+  pipeline processing
 type: array
 items:
   type: string

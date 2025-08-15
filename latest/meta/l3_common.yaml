@@ -1,12 +1,12 @@
 %YAML 1.1
 ---
 $schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
-id: asdf://stsci.edu/datamodels/roman/schemas/l3_common-2.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/meta/l3_common-2.0.0
 
 title: Common Level 3 Metadata
 
 allOf:
-  - $ref: asdf://stsci.edu/datamodels/roman/schemas/shared-1.0.0
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/shared-2.0.0
   - type: object
     properties:
       data_release_id:

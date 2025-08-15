@@ -13,7 +13,7 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/basic-2.0.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/basic-2.0.0
       - type: object
         properties:
           instrument:

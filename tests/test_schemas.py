@@ -32,7 +32,7 @@ ARRAY_TAG_XFAILS = (
 
 REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_3/mosaic-2.0.0",)
 
-NESTED_REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/l3_common-2.0.0",)
+NESTED_REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/meta/l3_common-2.0.0",)
 
 
 class TestSchemaContent:

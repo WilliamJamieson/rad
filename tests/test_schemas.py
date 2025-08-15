@@ -30,7 +30,7 @@ ARRAY_TAG_XFAILS = (
     # <resource uri>
 )
 
-REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-2.0.0",)
+REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_3/mosaic-2.0.0",)
 
 NESTED_REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/l3_common-2.0.0",)
 

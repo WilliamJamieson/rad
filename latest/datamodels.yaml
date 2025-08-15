@@ -8,12 +8,6 @@ description: |-
 asdf_standard_requirement:
   gte: 1.1.0
 tags:
-  # Object Modules
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/wfi_mosaic-2.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-2.0.0
-    title: Wfi level 3 mosaic information
-    description: |-
-      Wfi level 3 mosaic information
   # Reference Modules
   - tag_uri: asdf://stsci.edu/datamodels/roman/tags/reference_files/abvegaoffset-2.0.0
     schema_uri: asdf://stsci.edu/datamodels/roman/schemas/reference_files/abvegaoffset-2.0.0
@@ -196,3 +190,10 @@ tags:
     title: Roman Wide Field Instrument (WFI) Level 2 (L2) WCS
     description: |-
       Roman Wide Field Instrument (WFI) Level 2 (L2) WCS and modified WCS applicable for Science Raw (L1).
+
+  # Level 3 models
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_3/mosaic-2.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_3/mosaic-2.0.0
+    title: Wfi level 3 mosaic information
+    description: |-
+      Wfi level 3 mosaic information

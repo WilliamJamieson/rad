@@ -16,25 +16,25 @@ properties:
       - type: object
         properties:
           coordinates:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/coordinates-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/coordinates-2.0.0
           ephemeris:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/ephemeris-1.1.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/ephemeris-2.0.0
           exposure:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure-1.3.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/exposure-2.0.0
           instrument:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/wfi_mode-1.2.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/instrument-2.0.0
           observation:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/observation-1.1.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/observation-2.0.0
           pointing:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/pointing-1.1.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/pointing-2.0.0
           program:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/program-1.1.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program-2.0.0
           velocity_aberration:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/velocity_aberration-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/velocity_aberration-2.0.0
           visit:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/visit-1.2.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/visit-2.0.0
           wcsinfo:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/wcsinfo-1.1.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/wcsinfo-2.0.0
           wcs_fit_results:
             title: tweakreg/GAIA fit results
             description: |

@@ -16,11 +16,11 @@ properties:
       - type: object
         properties:
           basic:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/mosaic_basic-1.2.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/mosaic_basic-2.0.0
           photometry:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/photometry-1.0.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/photometry-2.0.0
           program:
-            $ref: asdf://stsci.edu/datamodels/roman/schemas/program-1.1.0
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/program-2.0.0
         required: [basic, photometry, program]
   source_catalog:
     title: Source Catalog

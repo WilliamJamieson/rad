@@ -21,7 +21,7 @@ allOf:
           destination: [WFIMosaic.data_release_id]
 
       cal_logs:
-        $ref: asdf://stsci.edu/datamodels/roman/schemas/cal_logs-1.0.0
+        $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/keywords/cal_logs-2.0.0
 
       coordinates:
         title: Celestial Coordinate Reference Frame

@@ -9,16 +9,6 @@ asdf_standard_requirement:
   gte: 1.1.0
 tags:
   # Object Modules
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/l1_face_guidewindow-2.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/l1_face_guidewindow-2.0.0
-    title: Level 1 FACE Guide Star Window Information schema
-    description: |-
-      Level 1 FACE Guide Star Window Information schema
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/l1_detector_guidewindow-2.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/l1_detector_guidewindow-2.0.0
-    title: Level 1 Detector Guide Star Window Information schema
-    description: |-
-      Level 1 Detector Guide Star Window Information schema
   - tag_uri: asdf://stsci.edu/datamodels/roman/tags/ramp-2.0.0
     schema_uri: asdf://stsci.edu/datamodels/roman/schemas/ramp-2.0.0
     title: Ramp schema
@@ -29,11 +19,6 @@ tags:
     title: Ramp fit output schema
     description: |-
       Ramp fit output schema
-  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/wfi_science_raw-2.0.0
-    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/wfi_science_raw-2.0.0
-    title: Roman WFI Raw Science Data datamodel
-    description: |-
-      Basic Roman Raw Science
   - tag_uri: asdf://stsci.edu/datamodels/roman/tags/wfi_image-2.0.0
     schema_uri: asdf://stsci.edu/datamodels/roman/schemas/wfi_image-2.0.0
     title: Wfi level 2 image information
@@ -193,3 +178,20 @@ tags:
     title: MSOS Stack Level 3 Schema
     description: |-
       Level 3 schema for SSC's MSOS stack products
+
+  # Level 1 models
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/guidewindow/detector-2.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/guidewindow/detector-2.0.0
+    title: Level 1 Detector Guide Star Window Information schema
+    description: |-
+      Level 1 Detector Guide Star Window Information schema
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/guidewindow/face-2.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/guidewindow/face-2.0.0
+    title: Level 1 FACE Guide Star Window Information schema
+    description: |-
+      Level 1 FACE Guide Star Window Information schema
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/datamodels/level_1/science_raw-2.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/datamodels/level_1/science_raw-2.0.0
+    title: Roman WFI Raw Science Data datamodel
+    description: |-
+      Roman WFI Raw Science Data datamodel

@@ -411,6 +411,9 @@ class TestTaggedSchemaContent:
                     elif class_name.startswith("MatableRef"):
                         class_name = "MATableRef" + class_name.split("MatableRef")[-1]
 
+                if "level_1/guidewindow" in schema_uri:
+                    class_name = f"L1{class_name}Guidewindow"
+
                 datamodel_name = f"{class_name}Model"
                 assert node["datamodel_name"] == datamodel_name, (
                     f"datamodel_name {node['datamodel_name']} does not match expected {datamodel_name}"

@@ -443,7 +443,7 @@ _P_EXPTYPE_PATTERN = _CURRENT_RESOURCES[
 _OPTICAL_ELEMENT_SCHEMA_URIS = tuple(
     _get_latest_uri(prefix)
     for prefix in (
-        # "asdf://stsci.edu/datamodels/roman/schemas/reference_files/abvegaoffset",
+        "asdf://stsci.edu/datamodels/roman/schemas/reference_files/abvegaoffset",
         "asdf://stsci.edu/datamodels/roman/schemas/reference_files/apcorr",
         # "asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom",
     )

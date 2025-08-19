@@ -440,6 +440,14 @@ _EXPOSURE_TYPE_ELEMENTS = tuple(
 _P_EXPTYPE_PATTERN = _CURRENT_RESOURCES[
     _get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type")
 ]["properties"]["exposure"]["properties"]["p_exptype"]["pattern"]
+_OPTICAL_ELEMENT_SCHEMA_URIS = tuple(
+    _get_latest_uri(prefix)
+    for prefix in (
+        # "asdf://stsci.edu/datamodels/roman/schemas/reference_files/abvegaoffset",
+        "asdf://stsci.edu/datamodels/roman/schemas/reference_files/apcorr",
+        # "asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom",
+    )
+)
 
 
 @pytest.fixture(scope="session")
@@ -465,6 +473,14 @@ def phot_table_key(request):
 def optical_element(request):
     """
     Get the optical element from the request.
+    """
+    return request.param
+
+
+@pytest.fixture(scope="session", params=_OPTICAL_ELEMENT_SCHEMA_URIS)
+def optical_element_schema_uri(request):
+    """
+    Get a schema uri for a schema that has properties related to optical elements.
     """
     return request.param
 

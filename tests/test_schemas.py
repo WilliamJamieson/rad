@@ -468,6 +468,41 @@ class TestReferenceFileSchemas:
         assert uri in latest_uris, f"{uri} is not in the list of schemas to be tested."
 
 
+class TestEnumElementConstistency:
+    """
+    Tests for consistency between certain enum schemas and the entries in other schemas
+    """
+
+    def test_optical_element_properties(self, optical_element_schema_uri, optical_element, current_resources):
+        """
+        Confirm that each optical element is present as a property of the schema
+        """
+        schema = current_resources[optical_element_schema_uri]
+
+        if "data" in schema["properties"]:
+            assert optical_element in schema["properties"]["data"]["properties"]
+        elif "phot_table" in schema["properties"]:
+            assert optical_element in schema["properties"]["phot_table"]["properties"]
+        else:
+            raise ValueError("No optical_element object found")
+
+    def test_optical_element_properties_exist(self, optical_element_schema_uri, optical_elements, current_resources):
+        """
+        Confirm that the optical_element filter in wfi_img_photom.yaml matches optical_element
+        """
+        schema = current_resources[optical_element_schema_uri]
+
+        if "data" in schema["properties"]:
+            properties = schema["properties"]["data"]["properties"]
+        elif "phot_table" in schema["properties"]:
+            properties = schema["properties"]["phot_table"]["properties"]
+        else:
+            raise ValueError("No optical_element object found")
+
+        for prop in properties:
+            assert prop in optical_elements, f"Optical element {prop} not found in optical_elements."
+
+
 class TestPatternElementConsistency:
     def test_phot_table_keys_have_optical_element_entry(self, phot_table_key_patterns, optical_element):
         """

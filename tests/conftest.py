@@ -428,9 +428,6 @@ def _get_latest_uri(prefix):
     return latest_uri
 
 
-_PHOT_TABLE_KEY_PATTERNS = _CURRENT_RESOURCES[
-    _get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom")
-]["properties"]["phot_table"]["patternProperties"]
 _OPTICAL_ELEMENTS = tuple(
     _CURRENT_RESOURCES[_get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/wfi_optical_element")]["enum"]
 )
@@ -445,28 +442,9 @@ _OPTICAL_ELEMENT_SCHEMA_URIS = tuple(
     for prefix in (
         "asdf://stsci.edu/datamodels/roman/schemas/reference_files/abvegaoffset",
         "asdf://stsci.edu/datamodels/roman/schemas/reference_files/apcorr",
-        # "asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom",
+        "asdf://stsci.edu/datamodels/roman/schemas/reference_files/wfi_img_photom",
     )
 )
-
-
-@pytest.fixture(scope="session")
-def phot_table_key_patterns():
-    """
-    Get the pattern for the photometry table key used by the reference files.
-    """
-    return tuple(compile(pattern) for pattern in _PHOT_TABLE_KEY_PATTERNS.keys())
-
-
-@pytest.fixture(
-    scope="session",
-    params=tuple(p for pattern in _PHOT_TABLE_KEY_PATTERNS.keys() for p in pattern.split(")$")[0].split("(")[-1].split("|")),
-)
-def phot_table_key(request):
-    """
-    Get the photometry table key from the request.
-    """
-    return request.param
 
 
 @pytest.fixture(scope="session", params=_OPTICAL_ELEMENTS)

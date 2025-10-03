@@ -141,6 +141,14 @@ def latest_exposure_dir(latest_dir):
     return latest_dir / "exposure"
 
 
+@pytest.fixture(scope="session")
+def latest_mosaic_dir(latest_dir):
+    """
+    Get the path to the latest mosaic directory.
+    """
+    return latest_dir / "mosaic"
+
+
 @pytest.fixture(scope="session", params=_LATEST_TOP_LEVEL_PATHS)
 def latest_top_level_path(request):
     """

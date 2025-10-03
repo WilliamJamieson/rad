@@ -136,7 +136,13 @@ class TestLastestResources:
         )
 
     def test_tagged_schema_path(
-        self, latest_tagged_schema_uri, latest_dir, latest_reference_files_dir, latest_exposure_dir, latest_uri_paths
+        self,
+        latest_tagged_schema_uri,
+        latest_dir,
+        latest_reference_files_dir,
+        latest_exposure_dir,
+        latest_mosaic_dir,
+        latest_uri_paths,
     ):
         """
         Check that all datamodels are in the top-level directory and all reference files are in the reference_files directory.
@@ -150,6 +156,10 @@ class TestLastestResources:
             if "/exposure/" in latest_tagged_schema_uri:
                 assert path.parent == latest_exposure_dir, (
                     f"{latest_tagged_schema_uri} is an exposure schema that is not in the exposure directory."
+                )
+            elif "/mosaic/" in latest_tagged_schema_uri:
+                assert path.parent == latest_mosaic_dir, (
+                    f"{latest_tagged_schema_uri} is a mosaic schema that is not in the mosaic directory."
                 )
             else:
                 assert path.parent == latest_dir, (

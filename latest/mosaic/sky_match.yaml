@@ -1,0 +1,21 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/mosaic/sky_match-1.0.0
+
+title: Sky Match Output Schema
+
+datamodel_name: SkyMatchModel
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/mosaic/flux-1.0.0
+  - type: object
+    properties:
+      meta:
+        type: object
+        properties:
+          background:
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/sky_background-1.0.0
+
+        required: [background]
+    required: [meta]

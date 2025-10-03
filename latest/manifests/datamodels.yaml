@@ -188,3 +188,58 @@ tags:
     title: MSOS Stack Level 3 Schema
     description: |-
       Level 3 schema for SSC's MSOS stack products
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/dq_init-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/dq_init-1.0.0
+    title: DQ Init Output Schema
+    description: |-
+      Output model schema for the DQ Init step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/saturation-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/saturation-1.0.0
+    title: Saturation Output Schema
+    description: |-
+      Output model schema for the Saturation step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/refpix-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/refpix-1.0.0
+    title: Reference Pixel Correction Output Schema
+    description: |-
+      Output model schema for Reference Pixel Correction step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/linearity-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/linearity-1.0.0
+    title: Linearity Output Schema
+    description: |-
+      Output model schema for the Linearity step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/ramp_fit-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/ramp_fit-1.0.0
+    title: Ramp Fit Output Schema
+    description: |-
+      Output model schema for the Ramp Fit step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/dark_current-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/dark_current-1.0.0
+    title: Dark Current Output Schema
+    description: |-
+      Output model schema for the Dark Current step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/assign_wcs-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/assign_wcs-1.0.0
+    title: Assign WCS Output Schema
+    description: |-
+      Output model schema for the Assign WCS step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/flat_field-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/flat_field-1.0.0
+    title: Flat Field Output Schema
+    description: |-
+      Output model schema for the Flat Field step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/photom-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/photom-1.0.0
+    title: Photom Output Schema
+    description: |-
+      Output model schema for the Photom step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/source_catalog-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/source_catalog-1.0.0
+    title: Source Catalog Output Schema
+    description: |-
+      Output model schema for the Source Catalog step of the Roman Exposure (Level 2) Calibration Pipeline
+  - tag_uri: asdf://stsci.edu/datamodels/roman/tags/exposure/tweak_reg-1.0.0
+    schema_uri: asdf://stsci.edu/datamodels/roman/schemas/exposure/tweak_reg-1.0.0
+    title: TweakReg Output Schema
+    description: |-
+      Output model schema for the TweakReg step of the Roman Exposure (Level 2) Calibration Pipeline

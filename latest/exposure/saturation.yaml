@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/exposure/saturation-1.0.0
+
+title: Saturation Output Schema
+
+datamodel_name: SaturationModel
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure/dq_init-1.0.0

@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/exposure/dark_current-1.0.0
+
+title: Dark Current Output Schema
+
+datamodel_name: DarkCurrentModel
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure/ramp_fit-1.0.0

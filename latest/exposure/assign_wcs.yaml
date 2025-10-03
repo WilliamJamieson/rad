@@ -1,0 +1,21 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/exposure/assign_wcs-1.0.0
+
+title: Assign WCS Output Schema
+
+datamodel_name: AssignWcsModel
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure/dark_current-1.0.0
+  - type: object
+    properties:
+      meta:
+        type: object
+        properties:
+          wcs:
+            title: WCS Object
+            tag: tag:stsci.edu:gwcs/wcs-*
+        required: [wcs]
+    required: [meta]

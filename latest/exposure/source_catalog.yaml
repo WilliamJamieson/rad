@@ -1,0 +1,20 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/exposure/source_catalog-1.0.0
+
+title: Source Catalog Output Schema
+
+datamodel_name: SourceCatalogModel
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure/photom-1.0.0
+  - type: object
+    properties:
+      meta:
+        type: object
+        properties:
+          source_catalog:
+            $ref: asdf://stsci.edu/datamodels/roman/schemas/meta/source_catalog-1.0.0
+        required: [source_catalog]
+    required: [meta]

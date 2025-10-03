@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/exposure/flat_field-1.0.0
+
+title: Flat Field Output Schema
+
+datamodel_name: FlatFieldModel
+
+allOf:
+  - $ref: asdf://stsci.edu/datamodels/roman/schemas/exposure/assign_wcs-1.0.0

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 __all__ = ["archive_entries", "archive_schema"]
 
 
-def archive_schema(schema: dict[str, Any]) -> dict[str, Any]:
+def archive_schema(schema: dict[str, Any]) -> dict[str, Any] | None:
     """
     Process a schema for use by the MAST archive system.
 
@@ -58,7 +58,7 @@ def archive_schema(schema: dict[str, Any]) -> dict[str, Any]:
     return schema
 
 
-def _flatten_dict(data: dict[str, Any], parent_key: str | None = None) -> dict[str, Any]:
+def _flatten_dict(data: abc.MutableMapping[str, Any], parent_key: str | None = None) -> abc.MutableMapping[str, Any]:
     """
     Flatten a nested dictionary structure into a single-level dictionary.
 
@@ -76,11 +76,11 @@ def _flatten_dict(data: dict[str, Any], parent_key: str | None = None) -> dict[s
     """
     parent_key = parent_key or ""
 
-    items = []
+    items: list[tuple[str, Any]] = []
     for key, value in data.items():
         new_key = f"{parent_key}.{key}" if parent_key else key
 
-        if isinstance(value, abc.Mapping):
+        if isinstance(value, abc.MutableMapping):
             items.extend(_flatten_dict(value, new_key).items())
         else:
             items.append((new_key, value))
@@ -102,12 +102,15 @@ def _path_archive(schema: dict[str, Any]) -> dict[str, ArchiveInfo]:
     dict[str, Any]
         data-path: archive information
     """
+
     archive_filter = archive_schema(schema)
+    if not archive_filter:
+        return {}
     archive_filter.pop("archive_meta")
 
     flat_schema = _flatten_dict(archive_filter)
 
-    data = {}
+    data: dict[str, ArchiveInfo] = {}
     for key_path, value in flat_schema.items():
         base_path, archive_key = key_path.rsplit(".", 1)
 
@@ -115,10 +118,10 @@ def _path_archive(schema: dict[str, Any]) -> dict[str, ArchiveInfo]:
             item for item in base_path.split(".") if item != "properties" and item != "archive_catalog" and item != "meta"
         )
 
+        # MyPy typing issues, this will assemble dicts of the correct form for ArchiveInfo by the time the loop is done
         if path not in data:
-            data[path] = {}
-
-        data[path][archive_key] = value
+            data[path] = {}  # type: ignore[typeddict-item]
+        data[path][archive_key] = value  # type: ignore[literal-required]
 
     return data
 

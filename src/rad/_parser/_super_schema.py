@@ -51,14 +51,14 @@ def _get_schema_from_uri(schema_uri: str) -> dict[str, Any]:
 
         return node
 
-    return asdf.treeutil.walk_and_modify(schema, resolve_refs)
+    return asdf.treeutil.walk_and_modify(schema, resolve_refs)  # type: ignore[no-any-return]
 
 
-def _deep_merge(target: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
+def _deep_merge(target: abc.MutableMapping[str, Any], source: abc.MutableMapping[str, Any]) -> abc.MutableMapping[str, Any]:
     for key, value in source.items():
         if key in target:
-            if isinstance(target[key], abc.Mapping):
-                if not isinstance(value, abc.Mapping):
+            if isinstance(target[key], abc.MutableMapping):
+                if not isinstance(value, abc.MutableMapping):
                     raise ValueError(f"Cannot merge non-mapping value {value} into {target[key]}")
                 _deep_merge(target[key], value)
             elif isinstance(target[key], list) and isinstance(value, list) and key == "required":
@@ -91,12 +91,12 @@ def super_schema(schema_uri: str) -> dict[str, Any]:
 
     schema = _get_schema_from_uri(schema_uri)
 
-    def callback(node: dict[str, Any]) -> dict[str, Any]:
-        if isinstance(node, abc.Mapping) and "$schema" in node:
+    def callback(node: Any) -> Any:
+        if isinstance(node, abc.MutableMapping) and "$schema" in node:
             del node["$schema"]
-        if isinstance(node, abc.Mapping) and "id" in node:
+        if isinstance(node, abc.MutableMapping) and "id" in node:
             del node["id"]
-        if isinstance(node, abc.Mapping) and "allOf" in node:
+        if isinstance(node, abc.MutableMapping) and "allOf" in node:
             # Special case for table columns, we want them to remain in the super schema
             # for display purposes, but remove the allOf combiner as it cannot be merged
             # easily. This is fine as the super schema is not used for validation. Only
@@ -108,7 +108,7 @@ def super_schema(schema_uri: str) -> dict[str, Any]:
 
             target = copy.deepcopy(node["allOf"][0])
             for item in node["allOf"][1:]:
-                if isinstance(item, abc.Mapping):
+                if isinstance(item, abc.MutableMapping):
                     item = copy.deepcopy(item)
                     if "$schema" in item:
                         del item["$schema"]
@@ -131,4 +131,4 @@ def super_schema(schema_uri: str) -> dict[str, Any]:
     if meta_:
         schema["$schema"] = meta_
 
-    return schema
+    return schema  # type: ignore[no-any-return]

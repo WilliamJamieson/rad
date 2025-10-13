@@ -14,9 +14,9 @@ from ._super_schema import super_schema
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing import Any, TypeDict
+    from typing import Any, TypedDict
 
-    class ArchiveOutput(TypeDict):
+    class ArchiveOutput(TypedDict):
         super_schemas: dict[Path, dict[str, Any]]
         archive_schemas: dict[str, dict[str, Any]]
         archive_data: list[str]
@@ -66,7 +66,10 @@ def _process(verbose: bool = False) -> ArchiveOutput:
         if "archive_meta" in schema:
             if verbose:
                 print("        -> archive information")
-            archive_schemas[uri] = archive_schema(schema)
+
+            if schema_ := archive_schema(schema):
+                archive_schemas[uri] = schema_
+
             archive_data.extend(archive_entries(schema))
 
     return {

@@ -13,6 +13,7 @@ properties:
   columns:
     allOf:
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -23,6 +24,7 @@ properties:
                       type: string
                       pattern: ^flagged_spatial_index$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -33,6 +35,7 @@ properties:
                       type: string
                       pattern: ^bbox_xmax$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -43,6 +46,7 @@ properties:
                       type: string
                       pattern: ^bbox_xmin$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -53,6 +57,7 @@ properties:
                       type: string
                       pattern: ^bbox_ymax$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -63,6 +68,7 @@ properties:
                       type: string
                       pattern: ^bbox_ymin$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -73,6 +79,7 @@ properties:
                       type: string
                       pattern: ^image_flags$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -83,6 +90,7 @@ properties:
                       type: string
                       pattern: ^label$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -93,6 +101,7 @@ properties:
                       type: string
                       pattern: ^segment_area$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -103,6 +112,7 @@ properties:
                       type: string
                       pattern: ^dec$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -113,6 +123,7 @@ properties:
                       type: string
                       pattern: ^dec_centroid$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -123,6 +134,7 @@ properties:
                       type: string
                       pattern: ^dec_centroid_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -133,6 +145,7 @@ properties:
                       type: string
                       pattern: ^dec_centroid_win$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -143,6 +156,7 @@ properties:
                       type: string
                       pattern: ^dec_centroid_win_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -153,6 +167,7 @@ properties:
                       type: string
                       pattern: ^ra$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -163,6 +178,7 @@ properties:
                       type: string
                       pattern: ^ra_centroid$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -173,6 +189,7 @@ properties:
                       type: string
                       pattern: ^ra_centroid_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -183,6 +200,7 @@ properties:
                       type: string
                       pattern: ^ra_centroid_win$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -193,6 +211,7 @@ properties:
                       type: string
                       pattern: ^ra_centroid_win_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -203,6 +222,7 @@ properties:
                       type: string
                       pattern: ^x_centroid$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -213,6 +233,7 @@ properties:
                       type: string
                       pattern: ^x_centroid_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -223,6 +244,7 @@ properties:
                       type: string
                       pattern: ^x_centroid_win$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -233,6 +255,7 @@ properties:
                       type: string
                       pattern: ^x_centroid_win_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -243,6 +266,7 @@ properties:
                       type: string
                       pattern: ^y_centroid$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -253,6 +277,7 @@ properties:
                       type: string
                       pattern: ^y_centroid_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -263,6 +288,7 @@ properties:
                       type: string
                       pattern: ^y_centroid_win$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -273,6 +299,7 @@ properties:
                       type: string
                       pattern: ^y_centroid_win_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -283,6 +310,7 @@ properties:
                       type: string
                       pattern: ^aper_bkg_flux$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -293,6 +321,7 @@ properties:
                       type: string
                       pattern: ^aper_bkg_flux_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -303,6 +332,7 @@ properties:
                       type: string
                       pattern: ^aper[0-9]{2}_flux$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -313,6 +343,7 @@ properties:
                       type: string
                       pattern: ^aper[0-9]{2}_flux_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -323,6 +354,7 @@ properties:
                       type: string
                       pattern: ^kron_abmag$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -333,6 +365,7 @@ properties:
                       type: string
                       pattern: ^kron_abmag_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -343,6 +376,7 @@ properties:
                       type: string
                       pattern: ^kron_flux$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -353,6 +387,7 @@ properties:
                       type: string
                       pattern: ^kron_flux_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -363,6 +398,7 @@ properties:
                       type: string
                       pattern: ^segment_flux$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -373,6 +409,7 @@ properties:
                       type: string
                       pattern: ^segment_flux_err$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -383,6 +420,7 @@ properties:
                       type: string
                       pattern: ^warning_flags$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -393,6 +431,7 @@ properties:
                       type: string
                       pattern: ^cxx$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -403,6 +442,7 @@ properties:
                       type: string
                       pattern: ^cxy$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -413,6 +453,7 @@ properties:
                       type: string
                       pattern: ^cyy$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -423,6 +464,7 @@ properties:
                       type: string
                       pattern: ^ellipticity$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -433,6 +475,7 @@ properties:
                       type: string
                       pattern: ^fluxfrac_radius_50$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -443,6 +486,7 @@ properties:
                       type: string
                       pattern: ^is_extended$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -453,6 +497,7 @@ properties:
                       type: string
                       pattern: ^fwhm$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -463,6 +508,7 @@ properties:
                       type: string
                       pattern: ^kron_radius$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -473,6 +519,7 @@ properties:
                       type: string
                       pattern: ^orientation_pix$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -483,6 +530,7 @@ properties:
                       type: string
                       pattern: ^orientation_sky$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -493,6 +541,7 @@ properties:
                       type: string
                       pattern: ^roundness1$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -503,6 +552,7 @@ properties:
                       type: string
                       pattern: ^semimajor$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -513,6 +563,7 @@ properties:
                       type: string
                       pattern: ^semiminor$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -523,6 +574,7 @@ properties:
                       type: string
                       pattern: ^sharpness$
       - not:
+          type: array
           items:
             not:
               allOf:
@@ -533,6 +585,7 @@ properties:
                       type: string
                       pattern: ^nn_distance$
       - not:
+          type: array
           items:
             not:
               allOf:

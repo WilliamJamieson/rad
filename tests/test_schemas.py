@@ -393,7 +393,22 @@ class TestSchemaContent:
         def callback(node):
             """Callback to check for array type"""
             if isinstance(node, Mapping) and any(keyword in node for keyword in array_keywords):
-                assert node.get("type") == "array", "Schemas with pattern must have type: array"
+                assert node.get("type") == "array", f"Schemas with any of {array_keywords} must have type: array"
+
+        asdf.treeutil.walk(schema, callback)
+
+    def test_type_numeric(self, schema):
+        """
+        Check that if a schema has a minimum, maximum, exclusiveMinimum, or exclusiveMaximum,
+        then it has type: number
+        """
+        numeric_keywords = ("multipleOf", "maximum", "exclusiveMaximum", "minimum", "exclusiveMinimum")
+
+        def callback(node):
+            """Callback to check for array type"""
+            if isinstance(node, Mapping) and any(keyword in node for keyword in numeric_keywords):
+                type_ = node.get("type")
+                assert type_ in ("integer", "number"), f"Schemas with any of {numeric_keywords} must have type: number or integer"
 
         asdf.treeutil.walk(schema, callback)
 

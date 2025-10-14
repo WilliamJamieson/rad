@@ -1,300 +1,417 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
+from subprocess import run
+from sys import version_info
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING
 
 from asdf.schema import load_schema
+from asdf.tags.core.ndarray import asdf_datatype_to_numpy_dtype
 
-from rad.node._utils import name_from_uri
+from ._utils import name_from_uri
 
 if TYPE_CHECKING:
     from typing import Any
 
+# Pathlib `walk_up` was added in Python 3.12 otherwise we need to use os.path.relpath
+# The Pathlib formulation is supperior so we should make it clear that's our preferred
+# approach when we can drop support for Python 3.11
+if version_info >= (3, 12):
 
-class BaseStub(ABC):
+    def _relative_path(target: Path, current: Path) -> Path:
+        """
+        Relative path from current to target
+        """
+        # MyPy is picking up the signature issue because it assumes that we are
+        # in the lowest supported version of Python (3.11) by this package. So
+        # It will complain that `walk_up` is not a valid argument.
+        return target.relative_to(current, walk_up=True)  # type: ignore[call-arg]
+else:
+    from os.path import relpath
+
+    def _relative_path(target: Path, current: Path) -> Path:
+        """
+        Relative path from current to target
+        """
+        return Path(relpath(target.as_posix(), current.as_posix()))
+
+
+class Base(ABC):
     """
     Base class for all stub
     """
 
-    @property
-    @abstractmethod
-    def has_text(self) -> bool:
-        pass
-
     @abstractmethod
     def text(self) -> str:
         pass
 
 
 @dataclass
-class StubImport(BaseStub):
-    modules: set[str]
-    from_: dict[str, set[str]]
-
-    @property
-    def has_text(self):
-        return bool(self.modules) or bool(self.from_)
+class Import(Base):
+    items: dict[str, set[str]]
 
     def text(self) -> str:
-        text = ""
-        for module in sorted(self.modules):
-            text += f"import {module}\n"
-        for from_, imports in sorted(self.from_.items()):
-            text += f"from {from_} import {', '.join(sorted(imports))}\n"
-        return text
-
-    @classmethod
-    def empty(cls) -> StubImport:
-        return cls(set(), {})
-
-    def update(self, other: StubImport) -> None:
-        self.modules |= other.modules
-
-        for from_, imports in other.from_.items():
-            if from_ not in self.from_:
-                self.from_[from_] = set()
-
-            self.from_[from_] |= imports
-
-
-@dataclass
-class StubImports(BaseStub):
-    python: StubImport
-    package: StubImport
-    rad: StubImport
-    subs: StubImport
-
-    @property
-    def has_text(self):
-        return self.python.has_text or self.package.has_text or self.rad.has_text or self.subs.has_text
-
-    def text(self):
         text = "from __future__ import annotations\n\n"
-
-        if self.python.has_text:
-            text += f"{self.python.text()}\n"
-        if self.package.has_text:
-            text += f"{self.package.text()}\n"
-        if self.rad.has_text:
-            text += f"{self.rad.text()}\n"
-        if self.subs.has_text:
-            text += f"{self.subs.text()}\n"
-
+        for item, imports in sorted(self.items.items()):
+            text += f"from {item} import {', '.join(sorted(imports))}\n"
         return text
 
-    @classmethod
-    def empty(cls) -> StubImports:
-        return cls(StubImport.empty(), StubImport.empty(), StubImport.empty(), StubImport.empty())
+    def add_import(self, module: str, type_: str) -> None:
+        if module not in self.items:
+            self.items[module] = set()
+
+        self.items[module].add(type_)
+
+    def relative_import(self, target_path: Path, current_path: Path, type_: str) -> None:
+        # Compute the relative module paths
+        path = _relative_path(target_path, current_path)
+
+        # Convert the convert the relative path to a module import string
+        module = path.as_posix().replace("..", "").replace("/", ".")
+        self.add_import(module, type_)
 
     @classmethod
-    def alias(cls) -> StubImports:
-        imports = cls.empty()
-        imports.python.from_["typing"] = {"TypeAlias"}
-        return imports
+    def empty(cls) -> Import:
+        return cls({})
 
-    def update(self, other: StubImports) -> None:
-        self.python.update(other.python)
-        self.package.update(other.package)
-        self.rad.update(other.rad)
-        self.subs.update(other.subs)
+    def any(self) -> None:
+        self.add_import("typing", "Any")
+
+    def type_alias(self) -> None:
+        self.add_import("typing", "TypeAlias")
+
+    def annotated(self) -> None:
+        self.add_import("typing", "Annotated")
+
+    def literal(self) -> None:
+        self.add_import("typing", "Literal")
+
+    def dtype(self, dtype: str) -> None:
+        self.add_import("numpy", dtype)
+
+    def ndarray(self) -> None:
+        self.add_import("numpy.typing", "NDArray")
+
+    def time(self) -> None:
+        self.add_import("astropy.time", "Time")
+
+    def unit(self) -> None:
+        self.add_import("astropy.units", "Unit")
+
+    def quantity(self) -> None:
+        self.add_import("astropy.units", "Quantity")
+
+    def table(self) -> None:
+        self.add_import("astropy.table", "Table")
+
+    def wcs(self) -> None:
+        self.add_import("gwcs", "WCS")
+
+    def object_node(self) -> None:
+        self.add_import("rad.node", "ObjectNode")
+
+    def array_node(self) -> None:
+        self.add_import("rad.node", "ArrayNode")
+
+    def metadata(self) -> None:
+        self.add_import("rad.node", "Metadata")
+
+    def archive_catalog(self) -> None:
+        self.add_import("rad.node", "ArchiveCatalog")
 
 
 @dataclass
-class StubObject(BaseStub):
+class TypeAnnotation(Base):
+    type: str
+    argument: TypeAnnotation | list[TypeAnnotation] | None = None
+
+    def text(self) -> str:
+        text = self.type
+
+        if self.argument:
+            if not isinstance(self.argument, list):
+                self.argument = [self.argument]
+            text += f"[{' | '.join(arg.text() for arg in self.argument)}]"
+
+        return text
+
+
+@dataclass
+class Type(Base, ABC):
     name: str
 
-
-@dataclass
-class StubAlias(StubObject):
-    type_: str | None
-
     @property
-    def has_text(self):
-        return bool(self.type_)
-
-    def text(self):
-        text = ""
-        if self.type_:
-            text += f"{self.name}: TypeAlias = {self.type_}\n"
-
-        return text
-
-    @classmethod
-    def empty(cls, name: str) -> StubAlias:
-        return cls(name, None)
-
-    @classmethod
-    def from_schema_scalar(cls, name: str, schema: dict[str, Any], stub: StubFile, stubs: StubFiles) -> StubAlias | StubEnum:
-        type_ = schema.get("type")
-        match type_:
-            case "string":
-                if "enum" in schema:
-                    return StubEnum.from_schema_enum(name, schema, stub)
-
-                return cls(name, "str")
-            case "number":
-                return cls(name, "float")
-            case "integer":
-                if "enum" in schema:
-                    stub.imports.python.update(StubImport(set(), {"typing": {"Literal"}}))
-
-                    return cls(name, f"Literal[{', '.join([str(v) for v in schema['enum']])}]")
-                return cls(name, "int")
-            case "boolean":
-                return cls(name, "bool")
-            case "null":
-                return cls(name, "None")
-            case "array":
-                stub.imports.rad.update(StubImport(set(), {"rad._node": {"LNode"}}))
-
-                items = schema.get("items")
-                if items is None:
-                    stub.imports.python.update(StubImport(set(), {"typing": {"Any"}}))
-
-                    return cls(name, "LNode[Any]")
-
-                if (item_type_ := stub.process_schema(f"{name}Item", items, stubs).type_) is None:
-                    stub.imports.python.update(StubImport(set(), {"typing": {"Any"}}))
-
-                return cls(name, f"LNode[{item_type_ or 'Any'}]")
-            case _:
-                raise ValueError(f"Unknown scalar type: {type_}")
-
-    @classmethod
-    def from_schema_anyof(cls, name: str, schema: dict[str, Any], stub: StubFile, stubs: StubFiles) -> StubAlias:
-        if "anyOf" not in schema:
-            raise ValueError("Schema must have an anyOf")
-
-        types = []
-        for sub_schema in schema["anyOf"]:
-            if type_ := stub.process_schema("Base", sub_schema, stubs).type_:
-                types.append(type_)
-
-        if not types:
-            stub.imports.python.update(StubImport(set(), {"typing": {"Any"}}))
-
-        return cls(name, " | ".join(sorted(set(types))) if types else "Any")
-
-    @classmethod
-    def from_schema_tag(cls, name: str, schema: dict[str, Any], stub: StubFile, stubs: StubFiles) -> StubAlias:
-        tag = schema.get("tag")
-        if tag is None:
-            raise ValueError("Schema must have a tag")
-
-        match tag:
-            case "tag:stsci.edu:asdf/time/time-1.*":
-                stub.imports.package.update(StubImport(set(), {"astropy.time": {"Time"}}))
-                return cls(name, "Time")
-
-            case "tag:stsci.edu:asdf/core/ndarray-1.*":
-                datatype = f"np.{schema['datatype']}"
-                stub.imports.package.update(StubImport(set(), {"numpy": {datatype}, "numpy.typing": {"NDArray"}}))
-                return cls(name, f"NDArray[{datatype}]")
-
-            case "tag:stsci.edu:asdf/unit/unit-1.*" | "tag:astropy.org:astropy/units/unit-1.*":
-                stub.imports.package.update(StubImport(set(), {"astropy.units": {"Unit"}}))
-                unit = " |".join([f'Unit("{u}")' for u in schema.get("enum", [])])
-                if not unit:
-                    unit = "Unit"
-                return cls(name, unit)
-
-            case "tag:stsci.edu:asdf/unit/quantity-1.*":
-                stub.imports.package.update(StubImport(set(), {"astropy.units": {"Quantity"}}))
-                unit_alias = cls.from_schema_tag(f"{name}Unit", schema["unit"], stub, stubs)
-                return cls(name, f"Quantity[{unit_alias.type_}]")
-
-            case "tag:astropy.org:astropy/table/table-1.*":
-                stub.imports.package.update(StubImport(set(), {"astropy.table": {"Table"}}))
-                return cls(name, "Table")
-
-            case "tag:stsci.edu:gwcs/wcs-*":
-                stub.imports.package.update(StubImport(set(), {"gwcs": {"WCS"}}))
-                return cls(name, "WCS")
-
-            case _:
-                stub.imports.python.update(StubImport(set(), {"typing": {"Any"}}))
-                return cls(name, "Any")
-
-
-@dataclass
-class StubEnum(StubObject):
-    values: list[str]
-    docs: str | None = None
-
-    @property
-    def type_(self) -> str:
-        return self.name
-
-    @property
-    def has_text(self):
-        return bool(self.name) or bool(self.values)
+    @abstractmethod
+    def annotation(self) -> Annotation:
+        pass
 
     @staticmethod
-    def _name_from_value(value: str) -> str:
-        return value.upper().replace("/", "_").replace("-", "_")
+    def extract_docs(schema: dict[str, Any]) -> tuple[str | None, str | None]:
+        title: str | None = schema.get("title")
+        if title is not None:
+            title = dedent(title)
 
-    def text(self):
-        text = f"class {self.name}(StrEnum):\n"
+        description: str | None = schema.get("description")
+        if description is not None:
+            description = dedent(description)
 
-        if self.docs:
-            text += indent('"""\n', "    ")
-            text += indent(f"{self.docs}\n", "    ")
-            text += indent('"""\n\n', "    ")
-
-        for value in self.values:
-            text += indent(f'{self._name_from_value(value)} = "{value}"\n', "    ")
-
-        return text
-
-    @classmethod
-    def from_schema_enum(cls, name: str, schema: dict[str, Any], stub: StubFile) -> StubEnum | StubAlias:
-        if "enum" not in schema:
-            raise ValueError("Schema must have an enum")
-
-        if schema.get("type") != "string":
-            raise ValueError("Schema enum must be of type string")
-
-        # Determine the docstring
-        docs = dedent(schema.get("title", ""))
-        if description := dedent(schema.get("description", "")):
-            docs += f"\n\n{description}"
-
-        values = schema["enum"]
-        if "id" not in schema:
-            stub.imports.python.update(StubImport(set(), {"typing": {"Literal"}}))
-            return StubAlias(name, f"Literal[{', '.join([repr(v) for v in values])}]")
-
-        stub.imports.python.update(StubImport(set(), {"enum": {"StrEnum"}}))
-
-        enum_ = cls(name, values, docs)
-        stub.add_class(enum_)
-
-        return enum_
+        return title, description
 
 
 @dataclass
-class StubClass(StubObject):
-    bases: list[str] | None
-    docs: str | None
-    properties: dict[str, str]
-    required: list[str] | None = None
+class Annotation(Type):
+    annotations: list[TypeAnnotation]
+
+    title: str | None = None
+    description: str | None = None
+    datatype: str | None = None
+    destination: list[str] | None = None
+
+    @classmethod
+    def empty(cls, type_: str | None = None) -> Annotation:
+        type_ = type_ or "Any"
+        return cls(name=type_, annotations=[TypeAnnotation(type_)])
 
     @property
-    def type_(self) -> str:
-        return self.name
+    def is_annotated(self) -> bool:
+        return bool(self.title) or bool(self.description) or bool(self.datatype) or bool(self.destination)
 
     @property
-    def has_text(self):
-        return bool(self.name) or any(self.bases) or bool(self.docs) or bool(self.properties) or self.imports.has_text
+    def has_archive_catalog(self) -> bool:
+        return bool(self.datatype) or bool(self.destination)
+
+    def _add_annotated(self, text: str) -> str:
+        if self.title or self.description or self.datatype or self.destination:
+            meta = []
+
+            if self.title:
+                meta.append(f"title={self.title!r}")
+
+            if self.description:
+                meta.append(f"description={self.description!r}")
+
+            if self.datatype or self.destination:
+                archive = []
+
+                if self.datatype:
+                    archive.append(f"datatype={self.datatype!r}")
+
+                if self.destination:
+                    archive.append(f"destination={tuple(self.destination)!r}")
+
+                meta.append(f"archive_catalog=ArchiveCatalog({', '.join(archive)})")
+
+            return f"Annotated[{text}, Metadata({', '.join(meta)})]"
+
+        return text
 
     def text(self):
-        if self.bases:
-            text = f"class {self.name}({','.join(self.bases)}):\n"
+        if not self.annotations:
+            text = "Any"
         else:
-            text = f"class {self.name}:\n"
+            text = " | ".join([ann.text() for ann in self.annotations])
+
+        return self._add_annotated(text)
+
+    @property
+    def annotation(self):
+        return self
+
+    @staticmethod
+    def extract_archive_catalog(schema: dict[str, Any]) -> tuple[str | None, list[str] | None]:
+        archive_catalog = schema.get("archive_catalog")
+        if not archive_catalog:
+            return None, None
+
+        return archive_catalog.get("datatype"), archive_catalog.get("destination")
+
+    def apply_imports(self, module: Module) -> None:
+        if self.is_annotated:
+            module.imports.annotated()
+            module.imports.metadata()
+
+        if self.has_archive_catalog:
+            module.imports.archive_catalog()
+
+        if not self.annotations:
+            module.imports.any()
+
+    @classmethod
+    def _from_metadata(cls, name: str, schema: dict[str, Any], annotations: list[TypeAnnotation], module: Module) -> Annotation:
+        title, description = cls.extract_docs(schema)
+        datatype, destination = cls.extract_archive_catalog(schema)
+
+        if "id" in schema:
+            if module.type != name:
+                raise ValueError(f"Schema id '{schema['id']}' does not match expected annotation name '{name}'")
+
+        annotation = cls(
+            name=name,
+            annotations=annotations,
+            title=title,
+            description=description,
+            datatype=datatype,
+            destination=destination,
+        )
+        annotation.apply_imports(module)
+        return annotation
+
+    @staticmethod
+    def _formulate_literal(enum: list[Any], type_: type, module: Module) -> list[TypeAnnotation]:
+        module.imports.literal()
+        return [TypeAnnotation("Literal", TypeAnnotation(", ".join([f"{type_(e)!r}" for e in enum])))]
+
+    @classmethod
+    def from_schema_scalar(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Annotation:
+        enum = schema.get("enum")
+
+        match type_ := schema.get("type"):
+            case "string":
+                annotations = cls._formulate_literal(enum, str, module) if enum else [TypeAnnotation("str")]
+
+                return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+            case "integer":
+                annotations = cls._formulate_literal(enum, int, module) if enum else [TypeAnnotation("int")]
+
+                return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+            case "number":
+                annotations = cls._formulate_literal(enum, float, module) if enum else [TypeAnnotation("float")]
+
+                return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+            case "boolean":
+                bool_enum = []
+                for value in enum or []:
+                    if value == "True":
+                        bool_enum.append(True)
+                    elif value == "False":
+                        bool_enum.append(False)
+                    else:
+                        raise ValueError(f"Schema for {name} has invalid boolean enum value '{value}'")
+                annotations = cls._formulate_literal(bool_enum, bool, module) if bool_enum else [TypeAnnotation("bool")]
+
+                return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+            case "null":
+                return cls._from_metadata(name=name, schema=schema, annotations=[TypeAnnotation("None")], module=module)
+            case _:
+                raise ValueError(f"Schema for {name} has unsupported type '{type_}'")
+
+    @classmethod
+    def from_schema_tag(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Annotation:
+        if "tag" not in schema:
+            raise ValueError(f"Schema for {name} has invalid tag")
+
+        match schema["tag"]:
+            case "tag:stsci.edu:asdf/time/time-1.*":
+                module.imports.time()
+                annotations = [TypeAnnotation("Time")]
+
+            case "tag:astropy.org:astropy/table/table-1.*":
+                module.imports.table()
+                annotations = [TypeAnnotation("Table")]
+
+            case "tag:stsci.edu:gwcs/wcs-*":
+                module.imports.wcs()
+                annotations = [TypeAnnotation("WCS")]
+
+            case "tag:stsci.edu:asdf/core/ndarray-1.*":
+                dtype = schema.get("datatype")
+                if not dtype:
+                    raise ValueError(f"Schema for {name} ndarray tag must have a datatype")
+
+                # Convert the ASDF datatype to a numpy dtype and then to a string to write an import
+                #   from
+                np_dtype = asdf_datatype_to_numpy_dtype(dtype).type.__name__
+
+                module.imports.dtype(np_dtype)
+                module.imports.ndarray()
+
+                annotations = [TypeAnnotation("NDArray", [TypeAnnotation(np_dtype)])]
+
+            case "tag:stsci.edu:asdf/unit/unit-1.*" | "tag:astropy.org:astropy/units/unit-1.*":
+                module.imports.unit()
+
+                annotations = [TypeAnnotation("Unit", [TypeAnnotation(f'"{u}"')]) for u in schema.get("enum", [])]
+                if not annotations:
+                    annotations = [TypeAnnotation("Unit")]
+
+            case "tag:stsci.edu:asdf/unit/quantity-1.*":
+                module.imports.quantity()
+                arguments = cls.from_schema_tag(f"{name}Unit", schema.get("unit", {}), module, package).annotations
+                annotations = [TypeAnnotation("Quantity", arguments)]
+
+            case _:
+                module.imports.any()
+                annotations = [TypeAnnotation("Any")]
+
+        return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+
+    @classmethod
+    def from_schema_array(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Annotation:
+        # Add the array import
+        module.imports.array_node()
+
+        items = schema.get("items")
+        if items is None:
+            # Items is required for arrays
+            module.imports.any()
+
+            arguments = [TypeAnnotation("Any")]
+        else:
+            annotation = module.process(f"{name}Item", items, package).annotation
+            if annotation.is_annotated or annotation.has_archive_catalog:
+                raise ValueError(f"Items of array for {name} cannot be annotated or have archive_catalog")
+
+            arguments = annotation.annotations
+
+        annotations = [TypeAnnotation("ArrayNode", arguments)]
+        return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+
+    @classmethod
+    def from_schema_anyof(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Annotation:
+        if "anyOf" not in schema or not isinstance(schema["anyOf"], list) or not schema["anyOf"]:
+            raise ValueError(f"Schema for {name} has invalid anyOf")
+
+        annotations = []
+        for index, subschema in enumerate(schema["anyOf"]):
+            ann = module.process(f"{name}_{index}", subschema, package).annotation
+            if ann.is_annotated or ann.has_archive_catalog:
+                raise ValueError(f"Subschema {index} of anyOf for {name} cannot be annotated or have archive_catalog")
+            annotations.extend(ann.annotations)
+
+        return cls._from_metadata(name=name, annotations=annotations, schema=schema, module=module)
+
+
+@dataclass
+class Class(Type):
+    bases: list[str] | None
+    docs: str | None
+    properties: dict[str, Annotation]
+    required: list[str] | None
+    syntax_override: dict[str, tuple[str, Annotation]] | None = None
+
+    @property
+    def annotation(self):
+        return Annotation.empty(self.name)
+
+    @property
+    def type(self) -> str:
+        return self.name
+
+    @classmethod
+    def empty(cls, name: str) -> Class:
+        return cls(name=name, bases=None, docs=None, properties={}, required=None)
+
+    def text(self):
+        text = f"class {self.name}"
+
+        if self.bases:
+            text += f"({', '.join(self.bases)}):\n"
+        else:
+            text += "(ObjectNode):\n"
 
         if self.docs:
             text += indent('"""\n', "    ")
@@ -306,154 +423,183 @@ class StubClass(StubObject):
         else:
             text += indent("__required__ = ()\n\n", "    ")
 
-        for name, type_ in sorted(self.properties.items()):
-            text += indent(f"{name}: {type_}\n", "    ")
+        for name, annotation in sorted(self.properties.items()):
+            text += indent(f"{name}: {annotation.text()}\n", "    ")
+
+        if self.properties:
+            text += "\n"
+
+        if self.syntax_override:
+            for bad_name, (good_name, annotation) in self.syntax_override.items():
+                text += indent(
+                    dedent(
+                        f"""\
+                        @property
+                        def {good_name}(self) -> {annotation}:
+                            \"\"\"Alias for `{bad_name}` to avoid syntax issues.\"\"\"
+                            return self['{bad_name}']
+                        """
+                    ),
+                    "    ",
+                )
 
         return text
 
+    @staticmethod
+    def _sanitize_property_name(name: str) -> tuple[str, str]:
+        if name == "pass":
+            return name, "pass_"
+
+        return name, name
+
     @classmethod
-    def from_schema_object(cls, name: str, schema: dict[str, Any], stub: StubFile, stubs: StubFiles) -> StubClass:
+    def _from_metadata(
+        cls,
+        name: str,
+        bases: list[str] | None,
+        properties: dict[str, Annotation],
+        schema: dict[str, Any],
+        module: Module,
+    ) -> Class:
+        title, description = cls.extract_docs(schema)
+
         if "id" in schema:
-            if stub.name != name:
-                raise ValueError("Schema id does not match the class name")
+            if module.type != name:
+                raise ValueError(f"Schema id '{schema['id']}' does not match expected class name '{name}'")
 
-            stub.name = name
+        title, description = cls.extract_docs(schema)
 
-        # Determine the docstring
-        docs = dedent(schema.get("title", ""))
-        if description := dedent(schema.get("description", "")):
-            docs += f"\n\n{description}"
+        docs = ""
+        if title:
+            docs += f"{title}\n"
+
+        if description:
+            docs += f"{indent(description, '    ') if docs else description}\n"
+
+        required = schema.get("required")
+
+        sanatized_properties = {}
+        syntax_override = {}
+        for prop_name, prop_annotation in properties.items():
+            bad_name, good_name = cls._sanitize_property_name(prop_name)
+            if bad_name == good_name:
+                sanatized_properties[bad_name] = prop_annotation
+            else:
+                syntax_override[bad_name] = (good_name, prop_annotation)
+
+        class_ = cls(
+            name=name,
+            bases=bases,
+            docs=docs if docs else None,
+            properties=sanatized_properties,
+            required=required,
+            syntax_override=syntax_override if syntax_override else None,
+        )
+        module.add(class_)
+
+        return class_
+
+    @classmethod
+    def from_schema_object(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Class:
+        # There is no "AllOf" here so it must be the start of an inheritance chain,
+        #   so its base class is ObjectNode
+        module.imports.object_node()
 
         properties = {}
         for prop_name, prop_schema in schema.get("properties", {}).items():
             cls_name = "".join([p.capitalize() for p in prop_name.split("_")])
-            processed = stub.process_schema(cls_name, prop_schema, stubs)
-            match processed:
-                case StubClass() | StubFile():
-                    properties[prop_name] = processed.name
-                case StubAlias():
-                    if processed.type_ is None:
-                        stub.imports.python.update(StubImport(set(), {"typing": {"Any"}}))
+            properties[prop_name] = module.process(cls_name, prop_schema, package).annotation
 
-                    properties[prop_name] = processed.type_ or "Any"
-
-        stub.imports.rad.update(StubImport(set(), {"rad._node": {"DNode"}}))
-
-        class_ = cls(name, ["DNode"], docs, properties, schema.get("required"))
-        stub.add_class(class_)
-
-        return class_
+        return cls._from_metadata(name=name, bases=None, properties=properties, schema=schema, module=module)
 
     @classmethod
-    def from_schema_allof(
-        cls, name: str, schema: dict[str, Any], stub: StubFile, stubs: StubFiles
-    ) -> StubClass | StubAlias | StubFile | StubEnum:
+    def from_schema_allof(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Class | Type:
         if "allOf" not in schema:
-            raise ValueError("Schema must have an allOf")
+            raise ValueError(f"Schema for {name} has invalid allOf")
 
-        if len(schema["allOf"]) == 1:
-            return stub.process_schema(name, schema["allOf"][0], stubs)
+        all_of = schema["allOf"]
+        if len(all_of) == 1:
+            new_schema = deepcopy(schema)
+            del new_schema["allOf"]
+            new_schema.update(all_of[0])
+
+            return module.process(name, new_schema, package)
 
         bases = []
-        object_schema = None
-        for sub_schema in schema["allOf"]:
+        for index, sub_schema in enumerate(all_of):
+            # Bail out for when we have a tag and some other things, those
+            #   should all be simple restrictions on the tag type
             if "tag" in sub_schema:
-                return StubAlias.from_schema_tag(name, sub_schema, stub, stubs)
+                new_schema = deepcopy(schema)
+                del new_schema["allOf"]
+                new_schema.update(sub_schema)
+                return module.process(name, new_schema, package)
 
-            if "$ref" in sub_schema:
-                bases.append(stub.process_schema("Base", sub_schema, stubs).name)
+            if "not" in sub_schema:
+                module.imports.any()
+                return Annotation.empty()
 
-            if sub_schema.get("type") == "object":
-                if object_schema is not None:
-                    raise ValueError("Schema can only have one object in allOf")
-                object_schema = sub_schema
+            type_ = module.process(f"{name}_allOf{index}", sub_schema, package)
+            if not isinstance(type_, Class | Module):
+                raise ValueError(f"Subschema {index} of allOf for {name} must be an object")
 
-        class_ = cls.from_schema_object(name, object_schema or {}, stub, stubs)
-        class_.bases = bases
+            bases.append(type_.type)
 
-        return class_
+        return cls._from_metadata(name, bases, {}, schema, module)
+
+
+class File(Base, ABC):
+    @property
+    @abstractmethod
+    def file_path(self) -> Path:
+        pass
+
+    @property
+    @abstractmethod
+    def path(self) -> Path:
+        pass
+
+    @property
+    def local_import(self) -> str:
+        return f".{self.path.stem}"
+
+    def write(self, base_path: Path, ruff_format: bool = True) -> None:
+        path = base_path / self.file_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        with path.open("w", encoding="utf-8") as f:
+            f.write(self.text())
+
+        if ruff_format:
+            run(["ruff", "format", str(path)])  # noqa: S603, S607
 
 
 @dataclass
-class StubClasses(BaseStub):
-    classes: dict[str, StubClass | StubEnum]
+class Module(Type, File):
+    imports: Import
+    annotations: dict[str, Annotation]
+    classes: dict[str, Class]
 
     @property
-    def has_text(self):
-        return bool(self.classes) and any(cls.has_text for cls in self.classes)
-
-    def text(self):
-        text = ""
-        for cls in self.classes.values():
-            if cls.has_text:
-                text += f"{cls.text()}\n\n"
-        return text
-
-    @classmethod
-    def empty(cls) -> StubClasses:
-        return cls({})
-
-    def add_class(self, class_: StubClass | StubEnum) -> None:
-        if class_.name in self.classes:
-            raise ValueError(f"Class {class_.name} already exists in StubClasses")
-
-        self.classes[class_.name] = class_
-
-
-@dataclass
-class StubFile(StubObject):
-    imports: StubImports
-    alias: StubAlias | None
-    classes: StubClasses | None
-    path: Path
-
-    @property
-    def type_(self) -> str:
+    def uri(self) -> str:
         return self.name
 
     @property
-    def has_text(self):
-        return self.imports.has_text or self.alias.has_text or self.classes.has_text
+    def type(self) -> str:
+        type_ = "".join([p.capitalize() for p in name_from_uri(self.uri).split("_")])
+        if "reference_files" in self.uri:
+            type_ += "Ref"
+        return type_
 
-    def relative_import(self, other: StubFile) -> StubImport:
-        # This is python 3.12+
-        path = (other.path.parent / other.path.stem).relative_to(self.path.parent / self.path.stem, walk_up=True).as_posix()  # type: ignore[call-arg]
-        path = path.replace("..", "").replace("/", ".")
+    @property
+    def annotation(self):
+        return Annotation.empty(self.type)
 
-        return StubImport(set(), {path: {other.name}})
-
-    def add_class(self, class_: StubClass | StubEnum) -> None:
-        if self.classes is None:
-            if self.alias is not None:
-                raise ValueError("StubFile cannot have both aliases and classes")
-
-            self.classes = StubClasses.empty()
-        self.classes.add_class(class_)
-
-    def text(self):
-        text = f"{self.imports.text()}\n"
-        text += f'__all__ = ("{self.name}",)\n\n'
-
-        if self.alias is not None:
-            text += f"{self.alias.text()}\n"
-
-        if self.classes is not None:
-            text += f"\n{self.classes.text()}\n"
-
-        return text
-
-    @classmethod
-    def empty(cls, name, path: Path) -> StubFile:
-        return cls(name, StubImports.empty(), None, None, path)
-
-    @classmethod
-    def from_schema(cls, schema: dict[str, Any], stubs: StubFiles) -> StubFile:
-        uri = schema.get("id")
-        if not uri:
-            raise ValueError("Schema must have an id")
-
+    @property
+    def path(self) -> Path:
         # Remove the version suffix
-        path = uri.rsplit("-", 1)[0]
+        path = self.uri.rsplit("-", 1)[0]
+
         # Remove the base URI
         path = path.split("asdf://stsci.edu/datamodels/roman/schemas/")[-1]
         if len(split := path.rsplit("/", 1)) == 1:
@@ -461,133 +607,238 @@ class StubFile(StubObject):
         else:
             path = f"{split[0]}/_{split[1]}"
 
-        name = "".join([p.capitalize() for p in name_from_uri(uri).split("_")])
-        if "reference_files" in uri:
-            name += "Ref"
+        # Add the .py suffix
+        return Path(f"{path}.py")
 
-        stub = cls.empty(name, Path(f"{path}.py"))
-        processed = stub.process_schema(name, schema, stubs)
-        if isinstance(processed, StubAlias):
-            stub.alias = processed
+    @property
+    def file_path(self) -> Path:
+        return self.path
 
-        return stub
+    def text(self) -> str:
+        text = f"{self.imports.text()}\n"
+        text += f"__all__ = ('{self.type}',)\n\n"
 
-    def process_schema(self, name: str, schema: dict[str, Any], stubs: StubFiles) -> StubClass | StubAlias | StubFile | StubEnum:
+        if self.annotations:
+            for name, annotation in self.annotations.items():
+                text += f"{name}: TypeAlias = {annotation.text()}\n"
+            text += "\n"
+
+        if self.classes:
+            for cls in self.classes.values():
+                text += f"{cls.text()}\n"
+
+        return text
+
+    @classmethod
+    def empty(cls, uri: str) -> Module:
+        return cls(
+            name=uri,
+            imports=Import.empty(),
+            annotations={},
+            classes={},
+        )
+
+    def add(self, type_: Annotation | Class) -> None:
+        match type_:
+            case Annotation():
+                if type_.name in self.annotations:
+                    raise ValueError(f"Annotation '{type_.name}' already exists in module '{self.uri}'")
+                self.annotations[type_.name] = type_
+            case Class():
+                if type_.name in self.classes:
+                    raise ValueError(f"Class '{type_.name}' already exists in module '{self.uri}'")
+                self.classes[type_.name] = type_
+            case _:
+                raise ValueError(f"Cannot add type '{type_}' to module '{self.uri}'")
+
+    def import_module(self, module: Module) -> None:
+        # Get the module paths without the .py suffix
+        target_path = module.path.parent / module.path.stem
+        current_path = self.path.parent / self.path.stem
+
+        self.imports.relative_import(target_path, current_path, module.type)
+
+    @classmethod
+    def from_schema(cls, schema: dict[str, Any], package: Package) -> Module:
+        uri = schema.get("id")
+        if not uri or not uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/"):
+            raise ValueError(f"Schema id '{uri}' is not a valid RAD schema URI")
+
+        module = cls.empty(uri)
+        output = module.process(module.type, schema, package)
+
+        if isinstance(output, Annotation):
+            module.add(output)
+
+        if module.annotations:
+            module.imports.type_alias()
+
+        return module
+
+    def process(self, name: str, schema: dict[str, Any], package: Package) -> Type:
         type_ = schema.get("type")
         if not type_:
             if "anyOf" in schema:
-                type_ = "anyOf"
+                return Annotation.from_schema_anyof(name, schema, self, package)
+
             elif "allOf" in schema:
-                type_ = "allOf"
+                return Class.from_schema_allof(name, schema, self, package)
+
             elif "$ref" in schema:
-                type_ = "$ref"
+                return package.resolve_ref(schema, self)
+
             elif "tag" in schema:
-                type_ = "tag"
+                return Annotation.from_schema_tag(name, schema, self, package)
+
             else:
-                raise ValueError(f"Schema for {name} must have a type, anyOf, or allOf")
+                self.imports.any()
+                return Annotation.empty()
 
         match type_:
-            case "object":
-                return StubClass.from_schema_object(name, schema, self, stubs)
-            case "string" | "number" | "integer" | "boolean" | "null" | "array":
-                return StubAlias.from_schema_scalar(name, schema, self, stubs)
-            case "allOf":
-                return StubClass.from_schema_allof(name, schema, self, stubs)
-            case "anyOf":
-                return StubAlias.from_schema_anyof(name, schema, self, stubs)
-            case "$ref":
-                return stubs.schema_ref(schema, self)
+            case "string" | "number" | "integer" | "boolean" | "null":
+                return Annotation.from_schema_scalar(name, schema, self, package)
+
+            case "array":
+                return Annotation.from_schema_array(name, schema, self, package)
+
             case "tag":
-                return StubAlias.from_schema_tag(name, schema, self, stubs)
+                return Annotation.from_schema_tag(name, schema, self, package)
+
+            case "object":
+                return Class.from_schema_object(name, schema, self, package)
+
             case _:
-                raise ValueError(f"Unknown schema type: {type_}")
-
-    def write(self, base_path: Path) -> None:
-        if not self.has_text:
-            raise ValueError("StubFile has no text to write")
-
-        path = base_path / self.path
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        with path.open("w", encoding="utf-8") as f:
-            f.write(self.text())
+                raise ValueError(f"Schema for {name} has unsupported type '{type_}'")
 
 
 @dataclass
-class StubFiles:
-    files: dict[str, StubFile]
+class Init(File):
+    modules: dict[str, Module]
+    imports: Import
+    inits: dict[Path, Init]
+    module_path: Path
 
-    def schema_ref(self, schema: dict[str, Any], stub: StubFile) -> StubFile:
-        uri = schema.get("$ref")
-        if not uri:
-            raise ValueError("Schema must have a $ref")
+    @property
+    def path(self) -> Path:
+        return self.module_path
 
-        if uri not in self.files:
-            self.add_ref(uri)
+    @property
+    def file_path(self) -> Path:
+        return self.module_path / "__init__.py"
 
-        file = self.files[uri]
-        stub.imports.subs.update(stub.relative_import(file))
+    @classmethod
+    def empty(cls, path: Path) -> Init:
+        return cls(modules={}, imports=Import.empty(), inits={}, module_path=path)
 
-        return file
+    def add_module(self, module: Module) -> None:
+        self.modules[module.uri] = module
+        self.imports.add_import(module.local_import, module.type)
+
+    def add_init(self, init: Init) -> None:
+        self.inits[init.module_path] = init
+
+    @property
+    def api(self) -> list[str]:
+        api = []
+
+        for module in self.modules.values():
+            self.imports.add_import(module.local_import, module.type)
+            api.append(module.type)
+
+        for init in self.inits.values():
+            for entry in init.api:
+                self.imports.add_import(init.local_import, entry)
+
+            api.extend(init.api)
+
+        if len(api) != len(set(api)):
+            raise ValueError(f"Duplicate __all__ entries found in package at '{self.module_path}'")
+
+        return sorted(api)
+
+    def text(self):
+        api = self.api
+
+        text = f"{self.imports.text()}\n"
+        text += "__all__ = (\n"
+        text += indent(",\n".join([f'"{entry}"' for entry in api]), "    ")
+        text += "\n)\n"
+
+        return text
+
+
+@dataclass
+class Package:
+    modules: dict[str, Module]
+
+    @classmethod
+    def empty(cls) -> Package:
+        return cls(modules={})
 
     def add_ref(self, uri: str) -> None:
-        if uri in self.files:
-            raise ValueError(f"Schema {uri} already exists in StubFiles")
+        if uri in self.modules:
+            return
 
-        print(f"Parsing {uri}")
+        if not uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/"):
+            raise ValueError(f"Schema id '{uri}' is not a valid RAD schema URI")
 
         schema = load_schema(uri)
-        stub = StubFile.from_schema(schema, self)
-        self.files[uri] = stub
+        self.modules[uri] = Module.from_schema(schema, self)
+
+    def resolve_ref(self, schema: dict[str, Any], module: Module) -> Module:
+        uri = schema.get("$ref")
+        if not uri:
+            raise ValueError(f"Schema $ref '{uri}' is not a valid RAD schema URI")
+
+        if uri not in self.modules:
+            self.add_ref(uri)
+
+        ref = self.modules[uri]
+        module.import_module(ref)
+
+        return ref
 
     @classmethod
-    def empty(cls) -> StubFiles:
-        return cls({})
-
-    @classmethod
-    def from_manifest(cls, uri: str) -> StubFiles:
+    def from_manifest(cls, uri: str) -> Package:
         """
         Create a StubFiles object from a schema manifest
         """
-        stubs = cls.empty()
+        package = cls.empty()
         manifest = load_schema(uri)
 
         for item in manifest["tags"]:
-            stubs.add_ref(item["schema_uri"])
+            package.add_ref(item["schema_uri"])
 
-        return stubs
+        return package
 
-    def write(self, base_path: Path) -> None:
-        for stub in self.files.values():
-            stub.write(base_path)
+    @property
+    def sub_packages(self) -> dict[Path, Init]:
+        """
+        Find the sub-packages for this package organized by path
+        """
+        sub_packages: dict[Path, Init] = {}
 
+        def _ensure_init(path: Path, child: Init | None = None) -> None:
+            if path not in sub_packages:
+                init = Init.empty(path)
+                sub_packages[path] = init
 
-if __name__ == "__main__":
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/source_catalog-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/photometry-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/filename-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/file_date-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/basic-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/telescope-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/origin-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/coordinates-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/sky_background-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/wcsinfo-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/enums/cal_step_flag-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/enums/guidewindow_modes-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/enums/exposure_type-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/exposure-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/meta/common-1.0.0"
-    # # uri = "asdf://stsci.edu/datamodels/roman/schemas/wfi_science_raw-1.4.0"
-    # uri = "asdf://stsci.edu/datamodels/roman/schemas/wfi_image-1.4.0"
-    # stubs = StubFiles({})
-    # stubs.add_ref(uri)
+                # Insure we don't add the root to itself
+                if path.parent != path:
+                    _ensure_init(path.parent, init)
+            if child:
+                sub_packages[path].add_init(child)
 
-    # print(stubs.files[uri].text())
+        for module in self.modules.values():
+            sub_package_path = module.path.parent
+            _ensure_init(sub_package_path)
+            sub_packages[sub_package_path].add_module(module)
 
-    manifest_uri = "asdf://stsci.edu/datamodels/roman/manifests/datamodels-1.5.0"
-    stubs = StubFiles.from_manifest(manifest_uri)
-    for uri, stub in stubs.files.items():
-        print(f"{uri} -> {stub.path}")
+        return sub_packages
 
-    stubs.write(Path(__file__).parent / "nodes")
+    def write(self, base_path: Path, ruff_format: bool = True) -> None:
+        for module in self.modules.values():
+            module.write(base_path, ruff_format=ruff_format)
+
+        for init in self.sub_packages.values():
+            init.write(base_path, ruff_format=ruff_format)

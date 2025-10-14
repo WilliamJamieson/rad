@@ -1,0 +1,17 @@
+%YAML 1.1
+---
+$schema: asdf://stsci.edu/datamodels/roman/schemas/rad_schema-1.0.0
+id: asdf://stsci.edu/datamodels/roman/schemas/test_schemas/ref_schema-1.0.0
+
+title: A schema to use as a $ref example
+type: object
+properties:
+  prop0:
+    anyOf:
+      - type: number
+      - type: "null"
+  prop1:
+    type: string
+  prop2:
+    type: boolean
+required: [prop0, prop1, prop2]

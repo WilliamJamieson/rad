@@ -17,12 +17,17 @@ _RAD_URI_PREFIX = "asdf://stsci.edu/datamodels/roman/"
 _MANIFEST_URI_PREFIX = f"{_RAD_URI_PREFIX}manifests/"
 _SCHEMA_URI_PREFIX = f"{_RAD_URI_PREFIX}schemas/"
 _METASCHEMA_URI = f"{_SCHEMA_URI_PREFIX}rad_schema-1.0.0"
+_ARCHIVE_URI = f"{_SCHEMA_URI_PREFIX}archive/intermediate_format-1.0.0"
 
 
 # Get all the schema URIs from the ASDF resource manager cached to the current session
 # to avoid loading them multiple times
 _MANIFEST_URIS = tuple(uri for uri in asdf.get_config().resource_manager if uri.startswith(_MANIFEST_URI_PREFIX))
-_SCHEMA_URIS = tuple(u for u in asdf.get_config().resource_manager if u.startswith(_SCHEMA_URI_PREFIX) and u != _METASCHEMA_URI)
+_SCHEMA_URIS = tuple(
+    u
+    for u in asdf.get_config().resource_manager
+    if u.startswith(_SCHEMA_URI_PREFIX) and u != _METASCHEMA_URI and u != _ARCHIVE_URI
+)
 _URIS = _SCHEMA_URIS + _MANIFEST_URIS + (_METASCHEMA_URI,)
 
 
@@ -289,6 +294,14 @@ def metaschema_uri():
     Get the metaschema URI.
     """
     return _METASCHEMA_URI
+
+
+@pytest.fixture(scope="session")
+def archive_uri():
+    """
+    Get the archive schema URI.
+    """
+    return _ARCHIVE_URI
 
 
 @pytest.fixture(scope="session")

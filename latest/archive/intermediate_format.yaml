@@ -1,0 +1,111 @@
+%YAML 1.1
+---
+$schema: "http://json-schema.org/draft-04/schema"
+id: asdf://stsci.edu/datamodels/roman/schemas/archive/intermediate_format-1.0.0
+
+title: RAD Intermediate Format Schema
+description: |
+  A schema that describes the intermediate format for extracting the archive
+  information from the RAD schemas.
+
+definitions:
+  archive_object:
+    title: The Archive Catalog Information for Object
+    description: |
+      The information that is needed to describe a single archive object that
+      has a set of leaf attributes
+    type: object
+    properties:
+      name:
+        title: Name of the object
+        description: |
+          The name of the object as it appears in the schema
+        type: string
+      title:
+        title: Title of the object
+        description: |
+          The title of the object as it appears in the schema (if it exists)
+        oneOf:
+          - type: string
+          - type: null
+      description:
+        title: Description of the object
+        description: |
+          The description of the object as it appears in the schema (if it exists)
+        oneOf:
+          - type: string
+          - type: null
+      archive_meta:
+        title: Archive Metadata
+        description: |
+          The archive metadata string from the RAD schema (if this object has one)
+        oneOf:
+          - type: string
+          - type: null
+      properties:
+        type: array
+        items:
+          oneOf:
+            - $ref: "asdf://stsci.edu/datamodels/roman/schemas/archive/intermediate_format-1.0.0#/definitions/archive_object"
+            - title: Archive Catalog Information for Attribute
+              description: |
+                The information that is needed for the archive on each attribute.
+                That is the leaf nodes of the schema information.
+              type: object
+              properties:
+                name:
+                  title: Name of the attribute
+                  description: |
+                    The keyword as it appears in the schema
+                  type: string
+                title:
+                  title: Title of the attribute
+                  description: |
+                    The title of the attribute as it appears in the schema (if it exists)
+                  oneOf:
+                    - type: string
+                    - type: null
+                description:
+                  title: Description of the attribute
+                  description: |
+                    The description of the attribute as it appears in the schema (if it exists)
+                  oneOf:
+                    - type: string
+                    - type: null
+                datatype:
+                  title: Archive Datatype
+                  description: |
+                    The datatype of the attribute specified by the `archive_catalog` designation
+                    in the RAD schema
+                  anyOf:
+                    - type: string
+                      enum:
+                        [
+                          datetime2,
+                          float,
+                          int,
+                          nchar(1),
+                          nvarchar(max),
+                          bigint,
+                          smallint,
+                          tinyint,
+                        ]
+                    - type: string
+                      pattern: "^nvarchar\\([0-9]+\\)$"
+                destination:
+                  title: Archive Destination
+                  description: |
+                    The destination table and column of the attribute specified by the
+                    `archive_catalog` designation in the RAD schema
+                  type: array
+                  items:
+                    type: string
+                    pattern: "^[A-Za-z0-9]+\\.[a-z0-9_]+$"
+                  minItems: 1
+                  uniqueItems: true
+              required: [name, title, description, datatype, destination]
+    required: [name, title, description, archive_meta, properties]
+
+type: array
+items:
+  $ref: "asdf://stsci.edu/datamodels/roman/schemas/archive/intermediate_format-1.0.0#/definitions/archive_object"

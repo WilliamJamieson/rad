@@ -23,7 +23,7 @@ def test_manifest_integration(manifest_path, manifest_uris):
     assert content == asdf.get_config().resource_manager[uri]
 
 
-def test_schema_integration(schema_path, schema_uris, metaschema_uri):
+def test_schema_integration(schema_path, schema_uris, metaschema_uri, archive_uri):
     """
     Check that the schema is properly integrated with the asdf library.
     """
@@ -38,7 +38,7 @@ def test_schema_integration(schema_path, schema_uris, metaschema_uri):
         with pytest.raises(KeyError, match=r"Resource unavailable for URI: .*"):
             asdf.get_config().resource_manager[uri]
     else:
-        assert uri in schema_uris or uri == metaschema_uri
+        assert uri in schema_uris or uri == metaschema_uri or uri == archive_uri
         assert content == asdf.get_config().resource_manager[uri]
 
 

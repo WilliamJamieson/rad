@@ -29,12 +29,12 @@ ARRAY_TAG_XFAILS = (
 )
 
 REQUIRED_SKIPS = (
-    "asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-1.4.0",
-    "asdf://stsci.edu/datamodels/roman/schemas/meta/l3_catalog_common-1.0.0",
-    "asdf://stsci.edu/datamodels/roman/schemas/multiband_source_catalog-1.1.0",
+    "asdf://stsci.edu/datamodels/roman/schemas/wfi_mosaic-1.5.0",
+    "asdf://stsci.edu/datamodels/roman/schemas/meta/l3_catalog_common-1.1.0",
+    "asdf://stsci.edu/datamodels/roman/schemas/multiband_source_catalog-1.2.0",
 )
 
-NESTED_REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/meta/l3_common-1.0.0",)
+NESTED_REQUIRED_SKIPS = ("asdf://stsci.edu/datamodels/roman/schemas/meta/l3_common-1.1.0",)
 
 
 class TestSchemaContent:
@@ -345,6 +345,29 @@ class TestSchemaContent:
                         else:
                             raise ValueError(f"Could not find part {part} in schema {ref_uri}")
                 assert ref_uri in latest_uris, f"$ref {node['$ref']} does not point to the latest version of the schema"
+
+        asdf.treeutil.walk(schema, callback)
+
+    def test_type_object_insurance(self, schema):
+        """
+        Check that if a schema has a properties key or patternProperties key, then
+        it has type: object
+        """
+        object_keywords = (
+            "properties",
+            "patternProperties",
+            "required",
+            "additionalProperties",
+            "maxProperties",
+            "minProperties",
+            "dependencies",
+        )
+
+        def callback(node):
+            """Callback to check for object type"""
+            if isinstance(node, Mapping):
+                if any(keyword in node for keyword in object_keywords):
+                    assert node.get("type") == "object", "Schemas with properties must have type: object"
 
         asdf.treeutil.walk(schema, callback)
 

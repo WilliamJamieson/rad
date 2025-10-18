@@ -6,7 +6,9 @@ from __future__ import annotations
 
 from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
-from typing import TYPE_CHECKING
+from inspect import isclass
+from types import MappingProxyType
+from typing import TYPE_CHECKING, get_type_hints
 
 import numpy as np
 from asdf.lazy_nodes import AsdfDictNode, AsdfListNode
@@ -73,7 +75,9 @@ class ObjectNode(MutableMapping, _NodeMixin):
     Base class for handling all "object" (dict-like) data nodes for RAD schemas.
     """
 
-    __slots__ = ("_data", "_read_tag")
+    __slots__ = ("_data", "_read_tag", "_wrappers")
+
+    _wrappers: MappingProxyType[str, type[ObjectNode]]
 
     def __init__(self, node=None):
         super().__init__(node)
@@ -86,6 +90,48 @@ class ObjectNode(MutableMapping, _NodeMixin):
         else:
             raise ValueError("Initializer only accepts dicts")
 
+        self._wrappers = MappingProxyType(
+            {
+                key: type_
+                for key, type_ in get_type_hints(self.__class__).items()
+                if isclass(type_) and (issubclass(type_, ObjectNode) or issubclass(type_, ArrayNode))
+            }
+        )
+
+    @classmethod
+    def _required(cls) -> tuple[str, ...]:
+        """
+        Return the required fields for this node, if any.
+        """
+        required = set(getattr(cls, "__required__", ()))
+        for cls_ in cls.__bases__:
+            base_required = getattr(cls_, "_required", None)
+            if base_required is not None:
+                required.update(base_required())
+        return tuple(sorted(required))
+
+    def _needs_to_wrap(self, key: str, value: Any) -> bool:
+        """
+        Determine if the given key/value pair needs to be wrapped into a node.
+        """
+        return key in self._wrappers and not isinstance(value, self._wrappers[key])
+
+    def _get_node(self, key: str) -> Any:
+        """
+        Get the node value for the given key, wrapping it if necessary.
+        """
+        if key in self._data:
+            value = self._data[key]
+            if self._needs_to_wrap(key, value):
+                wrapped_value = self._wrappers[key](value)
+                self._data[key] = wrapped_value
+
+                return wrapped_value
+            return value
+
+        # Raise the correct error for the attribute not being found
+        raise AttributeError(f"No such attribute ({key}) found in node: {type(self)}")
+
     def __getattr__(self, key):
         """
         Permit accessing dict keys as attributes, assuming they are legal Python
@@ -96,23 +142,22 @@ class ObjectNode(MutableMapping, _NodeMixin):
         if key.startswith("_"):
             raise AttributeError(f"No attribute {key}")
 
-        # If the key is in the schema, then we can return the value
-        if key in self._data:
-            # Return objects as node classes, if applicable
-            return self._wrap(self._data[key])
+        # Return objects as node classes, if applicable
+        return self._wrap(self._data[key])
 
-        # Raise the correct error for the attribute not being found
-        raise AttributeError(f"No such attribute ({key}) found in node: {type(self)}")
+    def _set_node(self, key: str, value: Any) -> None:
+        if self._needs_to_wrap(key, value):
+            value = self._wrappers[key](value)
+
+        self._data[key] = value
 
     def __setattr__(self, key, value):
         """
         Permit assigning dict keys as attributes.
         """
-
         # Private keys should just be in the normal __dict__
         if key[0] != "_":
-            # Finally set the value
-            self._data[key] = self._unwrap(value)
+            self._set_node(key, value)
         else:
             if key in ObjectNode.__slots__:
                 ObjectNode.__dict__[key].__set__(self, value)
@@ -184,14 +229,14 @@ class ObjectNode(MutableMapping, _NodeMixin):
 
     def __getitem__(self, key):
         """Dictionary style access data"""
-        if key in self._data:
-            return self._data[key]
-
-        raise KeyError(f"No such key ({key}) found in node")
+        try:
+            return self._get_node(key)
+        except AttributeError as e:
+            raise KeyError(f"No such key ({key}) found in node") from e
 
     def __setitem__(self, key, value):
         """Dictionary style access set data"""
-        self._data[key] = value
+        self._set_node(key, value)
 
     def __delitem__(self, key):
         """Dictionary style access delete data"""

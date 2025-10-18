@@ -4,18 +4,17 @@ Base classes for RAD data nodes.
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
-from typing import TYPE_CHECKING
+from inspect import isclass
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Any, get_type_hints
 
 import numpy as np
 from asdf.lazy_nodes import AsdfDictNode, AsdfListNode
 from asdf.tags.core import ndarray
 from astropy.time import Time
-
-if TYPE_CHECKING:
-    from typing import Any
-
 
 __all__ = ("ArrayNode", "ObjectNode")
 
@@ -39,33 +38,36 @@ class _NodeMixin:
     def __init__(self, *args, **kwargs):
         self._read_tag = None
 
-    @staticmethod
-    def _wrap(value: Any) -> Any | ObjectNode | ArrayNode:
+    @abstractmethod
+    def __asdf_traverse__(self):
         """
-        Convert dict to DNode and list to LNode
+        ASDF traverse method for things like info/search
         """
-        # Return objects as node classes, if applicable
-        if isinstance(value, dict | AsdfDictNode):
-            return ObjectNode(value)
 
-        if isinstance(value, list | AsdfListNode):
-            return ArrayNode(value)
-
-        return value
-
-    @staticmethod
-    def _unwrap(value: Any) -> Any | dict[str, Any] | list[Any]:
+    @property
+    @abstractmethod
+    def _node_data(self) -> dict[str, Any] | list[Any]:
         """
-        Convert DNode to dict and LNode to list
+        Return the underlying data for this node
         """
-        # use "type(...) is" so that we don't unwrap subclasses
-        if type(value) is ObjectNode:
-            return value._data
 
-        if type(value) is ArrayNode:
-            return value.data
+    @_node_data.setter
+    @abstractmethod
+    def _node_data(self, value: Any) -> None:
+        """
+        Set the underlying data for this node
+        """
 
-        return value
+    def copy(self):
+        """
+        Create a copy of this node
+        """
+        instance = self.__class__.__new__(self.__class__)
+
+        instance._read_tag = self._read_tag
+        instance._node_data = self._node_data.copy()
+
+        return instance
 
 
 class ObjectNode(MutableMapping, _NodeMixin):
@@ -73,7 +75,10 @@ class ObjectNode(MutableMapping, _NodeMixin):
     Base class for handling all "object" (dict-like) data nodes for RAD schemas.
     """
 
-    __slots__ = ("_data", "_read_tag")
+    __slots__ = ("_data", "_read_tag", "_wrappers")
+
+    _wrappers: MappingProxyType[str, type[ObjectNode]]
+    _data: dict[str, Any]
 
     def __init__(self, node=None):
         super().__init__(node)
@@ -86,6 +91,48 @@ class ObjectNode(MutableMapping, _NodeMixin):
         else:
             raise ValueError("Initializer only accepts dicts")
 
+        self._wrappers = MappingProxyType(
+            {
+                key: type_
+                for key, type_ in get_type_hints(self.__class__).items()
+                if isclass(type_) and (issubclass(type_, ObjectNode) or issubclass(type_, ArrayNode))
+            }
+        )
+
+    @classmethod
+    def _required(cls) -> tuple[str, ...]:
+        """
+        Return the required fields for this node, if any.
+        """
+        required = set(getattr(cls, "__required__", ()))
+        for cls_ in cls.__bases__:
+            base_required = getattr(cls_, "_required", None)
+            if base_required is not None:
+                required.update(base_required())
+        return tuple(sorted(required))
+
+    def _needs_to_wrap(self, key: str, value: Any) -> bool:
+        """
+        Determine if the given key/value pair needs to be wrapped into a node.
+        """
+        return key in self._wrappers and not isinstance(value, self._wrappers[key])
+
+    def _get_node(self, key: str) -> Any:
+        """
+        Get the node value for the given key, wrapping it if necessary.
+        """
+        if key in self._data:
+            value = self._data[key]
+            if self._needs_to_wrap(key, value):
+                wrapped_value = self._wrappers[key](value)
+                self._data[key] = wrapped_value
+
+                return wrapped_value
+            return value
+
+        # Raise the correct error for the attribute not being found
+        raise AttributeError(f"No such attribute ({key}) found in node: {type(self)}")
+
     def __getattr__(self, key):
         """
         Permit accessing dict keys as attributes, assuming they are legal Python
@@ -96,23 +143,21 @@ class ObjectNode(MutableMapping, _NodeMixin):
         if key.startswith("_"):
             raise AttributeError(f"No attribute {key}")
 
-        # If the key is in the schema, then we can return the value
-        if key in self._data:
-            # Return objects as node classes, if applicable
-            return self._wrap(self._data[key])
+        return self._get_node(key)
 
-        # Raise the correct error for the attribute not being found
-        raise AttributeError(f"No such attribute ({key}) found in node: {type(self)}")
+    def _set_node(self, key: str, value: Any) -> None:
+        if self._needs_to_wrap(key, value):
+            value = self._wrappers[key](value)
+
+        self._data[key] = value
 
     def __setattr__(self, key, value):
         """
         Permit assigning dict keys as attributes.
         """
-
         # Private keys should just be in the normal __dict__
         if key[0] != "_":
-            # Finally set the value
-            self._data[key] = self._unwrap(value)
+            self._set_node(key, value)
         else:
             if key in ObjectNode.__slots__:
                 ObjectNode.__dict__[key].__set__(self, value)
@@ -178,20 +223,30 @@ class ObjectNode(MutableMapping, _NodeMixin):
         """Asdf traverse method for things like info/search"""
         return dict(self)
 
+    @property
+    def _node_data(self) -> dict[str, Any]:
+        """Return the underlying data for this node"""
+        return self._data
+
+    @_node_data.setter
+    def _node_data(self, value: dict[str, Any]) -> None:
+        """Set the underlying data for this node"""
+        self._data = value
+
     def __len__(self):
         """Define length of the node"""
         return len(self._data)
 
     def __getitem__(self, key):
         """Dictionary style access data"""
-        if key in self._data:
-            return self._data[key]
-
-        raise KeyError(f"No such key ({key}) found in node")
+        try:
+            return self._get_node(key)
+        except AttributeError as e:
+            raise KeyError(f"No such key ({key}) found in node") from e
 
     def __setitem__(self, key, value):
         """Dictionary style access set data"""
-        self._data[key] = value
+        self._set_node(key, value)
 
     def __delitem__(self, key):
         """Dictionary style access delete data"""
@@ -208,15 +263,6 @@ class ObjectNode(MutableMapping, _NodeMixin):
         """Define a representation"""
         return repr(self._data)
 
-    def copy(self):
-        """Handle copying of the node"""
-        instance = self.__class__.__new__(self.__class__)
-
-        instance._read_tag = self._read_tag
-        instance._data = self._data.copy()
-
-        return instance
-
 
 class ArrayNode(MutableSequence, _NodeMixin):
     """
@@ -225,6 +271,8 @@ class ArrayNode(MutableSequence, _NodeMixin):
     """
 
     __slots__ = ("_read_tag", "data")
+
+    data: list[Any]
 
     def __init__(self, node=None):
         super().__init__(node=node)
@@ -239,10 +287,10 @@ class ArrayNode(MutableSequence, _NodeMixin):
             raise ValueError("Initializer only accepts lists")
 
     def __getitem__(self, index):
-        return self._wrap(self.data[index])
+        return self.data[index]
 
     def __setitem__(self, index, value):
-        self.data[index] = self._unwrap(value)
+        self.data[index] = value
 
     def __delitem__(self, index):
         del self.data[index]
@@ -255,6 +303,16 @@ class ArrayNode(MutableSequence, _NodeMixin):
 
     def __asdf_traverse__(self):
         return list(self)
+
+    @property
+    def _node_data(self) -> list[Any]:
+        """Return the underlying data for this node"""
+        return self.data
+
+    @_node_data.setter
+    def _node_data(self, value: list[Any]) -> None:
+        """Set the underlying data for this node"""
+        self.data = value
 
     def __setattr__(self, key, value):
         if key in ArrayNode.__slots__:
@@ -269,11 +327,3 @@ class ArrayNode(MutableSequence, _NodeMixin):
             return self.data == other
         else:
             return False
-
-    def copy(self):
-        """Handle copying of the node"""
-        instance = self.__class__.__new__(self.__class__)
-
-        instance.data = self.data.copy()
-        instance._read_tag = self._read_tag
-        return instance

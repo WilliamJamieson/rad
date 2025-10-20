@@ -72,11 +72,19 @@ class TestSchemaContent:
             """Callback for required properties being present"""
             if isinstance(node, Mapping) and "required" in node:
                 assert node.get("type", "object") == "object"
-                property_names = set(node.get("properties", {}).keys())
                 required_names = set(node["required"])
-                if not required_names.issubset(property_names):
-                    message = f"required references names that do not exist: {','.join(required_names - property_names)}"
-                    raise ValueError(message)
+                property_names = set(node.get("properties", {}).keys())
+                pattern_properties = set(node.get("patternProperties", {}).keys())
+                for name in required_names:
+                    if name in property_names:
+                        continue
+
+                    for pattern in pattern_properties:
+                        if match(pattern, name):
+                            break
+                    else:
+                        message = f"required references name that does not exist: {name}"
+                        raise ValueError(message)
 
         asdf.treeutil.walk(schema, callback)
 

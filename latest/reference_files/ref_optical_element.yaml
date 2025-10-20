@@ -7,10 +7,6 @@ title: Optical Element Reference Schema
 
 type: object
 properties:
-  instrument:
-    type: object
-    properties:
-      optical_element:
-        $ref: asdf://stsci.edu/datamodels/roman/schemas/enums/wfi_optical_element-1.0.0
-    required: [optical_element]
-required: [instrument]
+  optical_element:
+    $ref: asdf://stsci.edu/datamodels/roman/schemas/enums/wfi_optical_element-1.0.0
+required: [optical_element]

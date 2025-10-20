@@ -11,13 +11,16 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-1.3.0
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_basic-1.0.0
       - type: object
         properties:
           reftype:
             type: string
             enum: [EPSF]
+          instrument:
+            allOf:
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_instrument-1.0.0
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
           oversample:
             title: Oversampling Factor
             description: Factor by which the WFI pixels have been oversampled
@@ -52,7 +55,7 @@ properties:
             type: array
             items:
               type: number
-        required: [pixel_x, pixel_y]
+        required: [instrument, pixel_x, pixel_y]
   psf:
     title: ePSF Stamps
     description: Postage stamps of ePSF models. The 5-dimensional array is

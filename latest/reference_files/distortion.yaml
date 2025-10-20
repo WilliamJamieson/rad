@@ -11,17 +11,19 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-1.3.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_basic-1.0.0
       - type: object
-
         input_units: "pixel"
         output_units: "arcsec"
-
         properties:
           reftype:
             type: string
             enum: [DISTORTION]
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
+          instrument:
+            allOf:
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_instrument-1.0.0
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
+        required: [instrument]
   coordinate_distortion_transform:
     title: Distortion Transform Model with inputs in "pixel" and outputs in "arcsec"
     description: |

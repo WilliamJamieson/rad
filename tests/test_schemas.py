@@ -581,7 +581,9 @@ class TestReferenceFileSchemas:
         if ref_file_uri in schema_tag_map:
             for item in ref_file_schema["properties"]["meta"]["allOf"]:
                 if isinstance(item, dict) and "$ref" in item:
-                    assert item["$ref"].startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-")
+                    assert item["$ref"].startswith(
+                        "asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-"
+                    ) or item["$ref"].startswith("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_basic-")
                     return
 
             raise ValueError("ref_common not found in meta")

@@ -11,12 +11,16 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-1.3.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_basic-1.0.0
       - type: object
         properties:
           reftype:
             type: string
             enum: [DARK]
+          instrument:
+            allOf:
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_instrument-1.0.0
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
           exposure:
             allOf:
               - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type-1.4.0
@@ -36,8 +40,7 @@ properties:
                       ma_table_number.
                     type: integer
                 required: [ma_table_name, ma_table_number]
-        required: [exposure]
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
+        required: [instrument, exposure]
   dq:
     title: 2-D Data Quality Array
     description: |

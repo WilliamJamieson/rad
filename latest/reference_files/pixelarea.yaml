@@ -11,12 +11,16 @@ type: object
 properties:
   meta:
     allOf:
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_common-1.3.0
+      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_basic-1.0.0
       - type: object
         properties:
           reftype:
             type: string
             enum: [AREA]
+          instrument:
+            allOf:
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_instrument-1.0.0
+              - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
           photometry:
             type: object
             properties:
@@ -36,8 +40,7 @@ properties:
                     unit: arcsec**2
                   - type: "null"
             required: [pixelarea_steradians, pixelarea_arcsecsq]
-        required: [photometry]
-      - $ref: asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_optical_element-1.4.0
+        required: [instrument, photometry]
   data:
     title: Pixel Area Array
     description: |

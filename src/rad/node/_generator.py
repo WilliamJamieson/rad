@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
+from re import match
 from subprocess import run
 from sys import version_info
 from textwrap import dedent, indent
@@ -15,6 +16,7 @@ from asdf.tags.core.ndarray import asdf_datatype_to_numpy_dtype
 from ._utils import name_from_uri
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
     from typing import Any
 
 # Pathlib `walk_up` was added in Python 3.12 otherwise we need to use os.path.relpath
@@ -61,6 +63,9 @@ class Import(Base):
         return text
 
     def add_import(self, module: str, type_: str) -> None:
+        if module == ".":
+            return
+
         if module not in self.items:
             self.items[module] = set()
 
@@ -160,6 +165,19 @@ class Type(Base, ABC):
             description = dedent(description)
 
         return title, description
+
+    @staticmethod
+    def class_name(name: str) -> str:
+        return "".join([p.capitalize() for p in name.split("_")])
+
+    @staticmethod
+    def _sanitize_name(name: str) -> tuple[str, str]:
+        if name == "pass":
+            return name, "pass_"
+
+        new_name = name.replace("~", "_tilde_")
+
+        return name, new_name
 
 
 @dataclass
@@ -445,22 +463,22 @@ class Class(Type):
 
         return text
 
-    @staticmethod
-    def _sanitize_property_name(name: str) -> tuple[str, str]:
-        if name == "pass":
-            return name, "pass_"
+    def add_property(self, name: str, annotation: Annotation) -> None:
+        bad_name, good_name = self._sanitize_name(name)
 
-        return name, name
+        if good_name in self.properties:
+            raise ValueError(f"Property '{name}' already exists in class '{self.name}'")
+
+        if bad_name != good_name:
+            if self.syntax_override is None:
+                self.syntax_override = {}
+
+            self.syntax_override[bad_name] = (good_name, annotation)
+        else:
+            self.properties[name] = annotation
 
     @classmethod
-    def _from_metadata(
-        cls,
-        name: str,
-        bases: list[str] | None,
-        properties: dict[str, Annotation],
-        schema: dict[str, Any],
-        module: Module,
-    ) -> Class:
+    def _from_metadata(cls, name: str, schema: dict[str, Any], module: Module) -> Class:
         title, description = cls.extract_docs(schema)
 
         if "id" in schema:
@@ -478,22 +496,13 @@ class Class(Type):
 
         required = schema.get("required")
 
-        sanatized_properties = {}
-        syntax_override = {}
-        for prop_name, prop_annotation in properties.items():
-            bad_name, good_name = cls._sanitize_property_name(prop_name)
-            if bad_name == good_name:
-                sanatized_properties[bad_name] = prop_annotation
-            else:
-                syntax_override[bad_name] = (good_name, prop_annotation)
-
         class_ = cls(
             name=name,
-            bases=bases,
+            bases=None,
             docs=docs if docs else None,
-            properties=sanatized_properties,
+            properties={},
             required=required,
-            syntax_override=syntax_override if syntax_override else None,
+            syntax_override=None,
         )
         module.add(class_)
 
@@ -505,12 +514,29 @@ class Class(Type):
         #   so its base class is ObjectNode
         module.imports.object_node()
 
-        properties = {}
-        for prop_name, prop_schema in schema.get("properties", {}).items():
-            cls_name = "".join([p.capitalize() for p in prop_name.split("_")])
-            properties[prop_name] = module.process(cls_name, prop_schema, package).annotation
+        class_ = cls._from_metadata(name=name, schema=schema, module=module)
 
-        return cls._from_metadata(name=name, bases=None, properties=properties, schema=schema, module=module)
+        for prop_name, prop_schema in schema.get("properties", {}).items():
+            cls_name = cls.class_name(prop_name)
+            class_.add_property(prop_name, module.process(f"{name}_{cls_name}", prop_schema, package).annotation)
+
+        pattern_properties = {}
+        for index, (pattern, pattern_schema) in enumerate(schema.get("patternProperties", {}).items()):
+            cls_name = f"PatternProperty{index}"
+            pattern_properties[pattern] = module.process(f"{name}_{cls_name}", pattern_schema, package).annotation
+
+        if pattern_properties:
+            for required in schema.get("required", []):
+                if required not in class_.properties:
+                    for pattern, annotation in pattern_properties.items():
+                        if match(pattern, required):
+                            class_.add_property(required, annotation)
+                            break
+                    else:
+                        module.imports.any()
+                        class_.add_property(required, Annotation.empty())
+
+        return class_
 
     @classmethod
     def from_schema_allof(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Class | Type:
@@ -525,6 +551,8 @@ class Class(Type):
 
             return module.process(name, new_schema, package)
 
+        class_ = cls._from_metadata(name=name, schema=schema, module=module)
+
         bases = []
         for index, sub_schema in enumerate(all_of):
             # Bail out for when we have a tag and some other things, those
@@ -533,10 +561,14 @@ class Class(Type):
                 new_schema = deepcopy(schema)
                 del new_schema["allOf"]
                 new_schema.update(sub_schema)
+
+                del module.classes[class_.name]
                 return module.process(name, new_schema, package)
 
             if "not" in sub_schema:
                 module.imports.any()
+
+                del module.classes[class_.name]
                 return Annotation.empty()
 
             type_ = module.process(f"{name}_allOf{index}", sub_schema, package)
@@ -545,7 +577,9 @@ class Class(Type):
 
             bases.append(type_.type)
 
-        return cls._from_metadata(name, bases, {}, schema, module)
+        class_.bases = bases[::-1]
+
+        return class_
 
 
 class File(Base, ABC):
@@ -614,6 +648,34 @@ class Module(Type, File):
     def file_path(self) -> Path:
         return self.path
 
+    def ordered_classes(self) -> Generator[Class, None, None]:
+        independent_classes = []
+        for cls in self.classes.values():
+            for base in cls.bases or []:
+                if base in self.classes:
+                    break
+            else:
+                independent_classes.append(cls.name)
+
+        for name in independent_classes:
+            yield self.classes[name]
+
+        dependent_classes: list[str] = []
+        for cls in self.classes.values():
+            if cls.name not in independent_classes:
+                base_indices = set()
+                for base in cls.bases or []:
+                    if base in dependent_classes:
+                        base_indices.add(dependent_classes.index(base) + 1)
+                    else:
+                        base_indices.add(0)
+
+                insert_index = max(base_indices)
+                dependent_classes.insert(insert_index, cls.name)
+
+        for name in dependent_classes:
+            yield self.classes[name]
+
     def text(self) -> str:
         text = f"{self.imports.text()}\n"
         text += f"__all__ = ('{self.type}',)\n\n"
@@ -624,19 +686,26 @@ class Module(Type, File):
             text += "\n"
 
         if self.classes:
-            for cls in self.classes.values():
+            for cls in self.ordered_classes():
                 text += f"{cls.text()}\n"
 
         return text
 
+    def get_class(self, name: str) -> Class:
+        name = self.class_name(name)
+        return self.classes[name]
+
     @classmethod
-    def empty(cls, uri: str) -> Module:
-        return cls(
+    def empty(cls, uri: str, package: Package) -> Module:
+        module = cls(
             name=uri,
             imports=Import.empty(),
             annotations={},
             classes={},
         )
+        package.add_module(module)
+
+        return module
 
     def add(self, type_: Annotation | Class) -> None:
         match type_:
@@ -651,12 +720,12 @@ class Module(Type, File):
             case _:
                 raise ValueError(f"Cannot add type '{type_}' to module '{self.uri}'")
 
-    def import_module(self, module: Module) -> None:
+    def import_module(self, module: Module, type_: str | None = None) -> None:
         # Get the module paths without the .py suffix
         target_path = module.path.parent / module.path.stem
         current_path = self.path.parent / self.path.stem
 
-        self.imports.relative_import(target_path, current_path, module.type)
+        self.imports.relative_import(target_path, current_path, type_ or module.type)
 
     @classmethod
     def from_schema(cls, schema: dict[str, Any], package: Package) -> Module:
@@ -664,7 +733,11 @@ class Module(Type, File):
         if not uri or not uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/"):
             raise ValueError(f"Schema id '{uri}' is not a valid RAD schema URI")
 
-        module = cls.empty(uri)
+        module = cls.empty(uri, package)
+        if definitions := schema.get("definitions"):
+            for def_name, def_schema in definitions.items():
+                module.process(cls._sanitize_name(cls.class_name(def_name))[1], def_schema, package)
+
         output = module.process(module.type, schema, package)
 
         if isinstance(output, Annotation):
@@ -775,6 +848,12 @@ class Package:
     def empty(cls) -> Package:
         return cls(modules={})
 
+    def add_module(self, module: Module) -> None:
+        if module.uri in self.modules:
+            raise ValueError(f"Module '{module.uri}' already exists in package")
+
+        self.modules[module.uri] = module
+
     def add_ref(self, uri: str) -> None:
         if uri in self.modules:
             return
@@ -783,17 +862,27 @@ class Package:
             raise ValueError(f"Schema id '{uri}' is not a valid RAD schema URI")
 
         schema = load_schema(uri)
-        self.modules[uri] = Module.from_schema(schema, self)
+        Module.from_schema(schema, self)
 
-    def resolve_ref(self, schema: dict[str, Any], module: Module) -> Module:
-        uri = schema.get("$ref")
-        if not uri:
-            raise ValueError(f"Schema $ref '{uri}' is not a valid RAD schema URI")
-
+    def get_uri(self, uri: str) -> Module:
         if uri not in self.modules:
             self.add_ref(uri)
 
-        ref = self.modules[uri]
+        return self.modules[uri]
+
+    def resolve_ref(self, schema: dict[str, Any], module: Module) -> Module | Class:
+        uri: str | None = schema.get("$ref")
+        if not uri:
+            raise ValueError(f"Schema $ref '{uri}' is not a valid RAD schema URI")
+
+        if "#/definitions/" in uri:
+            def_uri, def_name = uri.split("#/definitions/", 1)
+            ref_module = self.get_uri(def_uri)
+            class_ = ref_module.get_class(def_name)
+            module.import_module(ref_module, class_.type)
+            return class_
+
+        ref = self.get_uri(uri)
         module.import_module(ref)
 
         return ref

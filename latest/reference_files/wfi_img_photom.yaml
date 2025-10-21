@@ -149,7 +149,6 @@ properties:
         PRISM,
         DARK,
       ]
-    additionalProperties: false
 required: [meta, phot_table]
 flowStyle: block
 propertyOrder: [meta, phot_table]

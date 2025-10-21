@@ -426,9 +426,11 @@ class TestClass:
 class TestModule:
     """Test the Module class"""
 
-    def test_empty(self):
+    def test_empty(self, package):
         """Test creating an empty Module"""
-        empty = Module.empty("my_uri")
+        assert package.modules == {}
+
+        empty = Module.empty("my_uri", package)
 
         assert isinstance(empty, Module)
         assert isinstance(empty, Type)
@@ -437,9 +439,11 @@ class TestModule:
         assert empty.annotations == {}
         assert empty.classes == {}
 
-    def test_uri(self):
+        assert package.modules == {"my_uri": empty}
+
+    def test_uri(self, package):
         """Test the uri property"""
-        module = Module.empty("my_uri")
+        module = Module.empty("my_uri", package)
 
         assert module.uri == "my_uri"
 
@@ -453,14 +457,14 @@ class TestModule:
             ("asdf://stsci.edu/datamodels/roman/schemas/reference_files/other-1.0.0", "OtherRef"),
         ],
     )
-    def test_type(self, uri, truth):
+    def test_type(self, uri, truth, package):
         """Test the type property"""
-        module = Module.empty(uri)
+        module = Module.empty(uri, package)
         assert module.type == truth
 
-    def test_annotation(self):
+    def test_annotation(self, package):
         """Test the annotation property"""
-        module = Module.empty("asdf://stsci.edu/datamodels/roman/schemas/my_class-1.0.0")
+        module = Module.empty("asdf://stsci.edu/datamodels/roman/schemas/my_class-1.0.0", package)
         assert module.annotation == Annotation.empty("MyClass")
 
     @pytest.mark.parametrize(
@@ -470,9 +474,9 @@ class TestModule:
             ("asdf://stsci.edu/datamodels/roman/schemas/subdir/my_class-1.0.0", Path("subdir/_my_class.py")),
         ],
     )
-    def test_path(self, uri, truth):
+    def test_path(self, uri, truth, package):
         """Test the path property"""
-        module = Module.empty(uri)
+        module = Module.empty(uri, package)
         assert module.path == truth
 
     def test_text(self):

@@ -19,6 +19,9 @@ def test_parse_schema(package, schema_uri):
         except SyntaxError as e:
             raise AssertionError(f"Syntax error in module {uri}") from e
 
+    # print(package.modules[schema_uri].text())
+    # assert False
+
 
 def test_load_nodes(latest_datamodels_uri, tmp_path):
     """

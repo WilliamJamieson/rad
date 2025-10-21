@@ -5,9 +5,6 @@ id: asdf://stsci.edu/datamodels/roman/schemas/tables/forced_catalog_table-1.1.0
 
 title: Forced source catalog table schema
 
-definitions:
-  $ref: "asdf://stsci.edu/datamodels/roman/schemas/tables/source_catalog_columns-1.1.0#/definitions"
-
 type: object
 properties:
   columns:

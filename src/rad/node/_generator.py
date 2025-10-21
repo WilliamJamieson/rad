@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from asdf.schema import load_schema
 from asdf.tags.core.ndarray import asdf_datatype_to_numpy_dtype
 
+from . import _mixins as mixins
 from ._utils import name_from_uri
 
 if TYPE_CHECKING:
@@ -124,6 +125,9 @@ class Import(Base):
 
     def metadata(self) -> None:
         self.add_import("rad.node", "Metadata")
+
+    def mixin(self, mixin: str) -> None:
+        self.add_import("rad.node._mixins", mixin)
 
     def archive_catalog(self) -> None:
         self.add_import("rad.node", "ArchiveCatalog")
@@ -477,6 +481,13 @@ class Class(Type):
         else:
             self.properties[name] = annotation
 
+    def add_mixin(self, module: Module) -> None:
+        if (mixin_name := f"{self.name}Mixin") in mixins.__all__:
+            if self.bases is None:
+                self.bases = []
+            module.imports.mixin(mixin_name)
+            self.bases.append(mixin_name)
+
     @classmethod
     def _from_metadata(cls, name: str, schema: dict[str, Any], module: Module) -> Class:
         title, description = cls.extract_docs(schema)
@@ -505,6 +516,8 @@ class Class(Type):
             syntax_override=None,
         )
         module.add(class_)
+
+        class_.add_mixin(module)
 
         return class_
 

@@ -973,7 +973,7 @@ class TestModule:
                 c: float
 
 
-            class SimpleMultipleAllof(SimpleMultipleAllof_allOf0, SimpleMultipleAllof_allOf1):
+            class SimpleMultipleAllof(SimpleMultipleAllof_allOf1, SimpleMultipleAllof_allOf0):
                 \"\"\"
                 A simple multiple allOf
                     This is a multiple allOf schema
@@ -1038,7 +1038,7 @@ class TestModule:
                 b: Annotated[str, Metadata(description='A string')]
 
 
-            class SimpleMultipleAllof(RefSchema, SimpleMultipleAllof_allOf1):
+            class SimpleMultipleAllof(SimpleMultipleAllof_allOf1, RefSchema):
                 \"\"\"
                 A simple multiple allOf
                     This is a multiple allOf schema

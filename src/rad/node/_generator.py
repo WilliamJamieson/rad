@@ -100,6 +100,9 @@ class Import(Base):
         self.add_import("numpy", dtype)
 
     def ndarray(self) -> None:
+        self.add_import("numpy", "ndarray")
+
+    def ndarray_type(self) -> None:
         self.add_import("numpy.typing", "NDArray")
 
     def time(self) -> None:
@@ -347,11 +350,14 @@ class Annotation(Type):
                 # Convert the ASDF datatype to a numpy dtype and then to a string to write an import
                 #   from
                 np_dtype = asdf_datatype_to_numpy_dtype(dtype).type.__name__
-
                 module.imports.dtype(np_dtype)
-                module.imports.ndarray()
 
-                annotations = [TypeAnnotation("NDArray", [TypeAnnotation(np_dtype)])]
+                if (ndim := schema.get("ndim")) is None:
+                    module.imports.ndarray_type()
+                    annotations = [TypeAnnotation("NDArray", [TypeAnnotation(np_dtype)])]
+                else:
+                    module.imports.ndarray()
+                    annotations = [TypeAnnotation("ndarray", [TypeAnnotation(f"tuple[{', '.join(['int'] * ndim)}], {np_dtype}")])]
 
             case "tag:stsci.edu:asdf/unit/unit-1.*" | "tag:astropy.org:astropy/units/unit-1.*":
                 module.imports.unit()

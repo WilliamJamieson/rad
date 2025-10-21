@@ -103,9 +103,16 @@ class TestImport:
         assert import_.items == {"numpy": {"dtype"}}
 
     def test_ndarray(self):
-        """Test adding NDArray import"""
+        """Test adding ndarrayimport"""
         import_ = Import.empty()
         import_.ndarray()
+
+        assert import_.items == {"numpy": {"ndarray"}}
+
+    def test_ndarray_type(self):
+        """Test adding NDArray import"""
+        import_ = Import.empty()
+        import_.ndarray_type()
 
         assert import_.items == {"numpy.typing": {"NDArray"}}
 
@@ -741,6 +748,18 @@ class TestModule:
                        from typing import Annotated, TypeAlias
                        """),
                 "NDArray[uint16]",
+            ),
+            (
+                "tag:stsci.edu:asdf/core/ndarray-1.*",
+                {"datatype": "uint16", "ndim": 3},
+                dedent("""\
+                       from __future__ import annotations
+
+                       from numpy import ndarray, uint16
+                       from rad.node import ArchiveCatalog, Metadata
+                       from typing import Annotated, TypeAlias
+                       """),
+                "ndarray[tuple[int, int, int], uint16]",
             ),
             (
                 "tag:stsci.edu:asdf/unit/unit-1.*",

@@ -21,7 +21,6 @@ from . import _mixins as mixins
 from ._utils import name_from_uri
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
     from typing import Any
 
 # Pathlib `walk_up` was added in Python 3.12 otherwise we need to use os.path.relpath
@@ -160,6 +159,12 @@ class Import(Base):
         Add the `from typing import Literal` statement
         """
         self.add_import("typing", "Literal")
+
+    def proxy(self) -> None:
+        """
+        Add the `from types import MappingProxyType` statement
+        """
+        self.add_import("types", "MappingProxyType")
 
     def dtype(self, dtype: str) -> None:
         """
@@ -875,16 +880,24 @@ class Class(Type):
         The dictionary of property names to their Annotations.
     required : list[str] | None
         The list of required property names for this class, if any.
-    syntax_override : dict[str, str] | None
-        A mapping of original property names to sanitized property names to avoid syntax issues.
-        -> these will be added with a property getter and setter to alias the original name.
+    alias : dict[str, str] | None
+        A mapping from a sanitized alias of a property name to its original name in the schema.
+        --> This will allow the generated class to have valid Python identifiers while
+            transparently mapping back to the original schema names in the underlying data
+            storage layer.
+    uri : str | None
+        The URI of the schema this class was generated from, if any.
+    tag : str | None
+        The tag for the schema this class was generated from, if any.
     """
 
     bases: list[str] | None
     docs: str | None
     properties: dict[str, Annotation]
     required: list[str] | None
-    syntax_override: dict[str, str] | None = None
+    alias: dict[str, str] | None = None
+    uri: str | None = None
+    tag: str | None = None
 
     @property
     def annotation(self):
@@ -894,6 +907,18 @@ class Class(Type):
     def type(self) -> str:
         """The type name of the class."""
         return self.name
+
+    @property
+    def dependencies(self) -> set[str]:
+        """
+        The set of class names that this class depends on via its properties.
+        """
+        deps = set()
+        for annotation in self.properties.values():
+            for ann in annotation.annotations:
+                deps.add(ann.type)
+
+        return deps | set(self.bases or [])
 
     @classmethod
     def empty(cls, name: str) -> Class:
@@ -929,11 +954,28 @@ class Class(Type):
             text += indent(f"{self.docs}\n", "    ")
             text += indent('"""\n\n', "    ")
 
+        # Add the schema URI if we have one
+        if self.uri:
+            text += indent(f"__uri__ = {self.uri!r}\n", "    ")
+        else:
+            text += indent("__uri__ = None\n", "    ")
+
+        # Add the schema tag if we have one
+        if self.tag:
+            text += indent(f"__tag__ = {self.tag!r}\n", "    ")
+        else:
+            text += indent("__tag__ = None\n", "    ")
+
         # Add the required properties tuple
         if self.required:
             text += indent(f"__required__ = {tuple(sorted(set(self.required)))}\n\n", "    ")
         else:
             text += indent("__required__ = ()\n\n", "    ")
+
+        # Add the Alias mapping if we have any
+        if self.alias:
+            # Add the alias dictionary if we have any syntax overrides
+            text += indent(f"__alias__ = MappingProxyType({self.alias})\n\n", "    ")
 
         # Add all the properties with their annotations
         #   These are simply type hints of the form:
@@ -943,28 +985,6 @@ class Class(Type):
 
         if self.properties:
             text += "\n"
-
-        # Add any syntax override properties
-        #   These are all @property getters and setters to alias bad names to good names
-        #   so that the stored information in the _data dictionary can be accessed
-        #   with the name as it appears in the schema
-        if self.syntax_override:
-            for bad_name, good_name in self.syntax_override.items():
-                text += indent(
-                    dedent(
-                        f"""\
-                        @property
-                        def {good_name}(self) -> Any:
-                            \"\"\"Alias for `{bad_name}` to avoid syntax issues.\"\"\"
-                            return self['{bad_name}']
-
-                        @{good_name}.setter
-                        def {good_name}(self, value: Any) -> None:
-                            self['{bad_name}'] = value
-                        """
-                    ),
-                    "    ",
-                )
 
         return text
 
@@ -992,14 +1012,14 @@ class Class(Type):
             raise ValueError(f"Property '{name}' already exists in class '{self.name}'")
 
         if bad_name != good_name:
-            if self.syntax_override is None:
-                self.syntax_override = {}
+            if self.alias is None:
+                self.alias = {}
 
-            module.imports.any()
+            module.imports.proxy()
             # Note for syntax overrides we still want to define the hint so its
             #   available from the class object, the property hint is only accessible
             #   on an instance of the class
-            self.syntax_override[bad_name] = good_name
+            self.alias[good_name] = bad_name
             self.properties[good_name] = annotation
         else:
             self.properties[name] = annotation
@@ -1074,7 +1094,7 @@ class Class(Type):
             docs=docs if docs else None,
             properties={},
             required=required or None,
-            syntax_override=None,
+            alias=None,
         )
         # Add the class to the module
         module.add(class_)
@@ -1348,55 +1368,44 @@ class Module(Type, File):
         # For modules the file path is just the path
         return self.path
 
-    def ordered_classes(self) -> Generator[Class, None, None]:
+    @property
+    def class_order(self) -> list[Class]:
         """
-        Generator that yields classes in an order that allows for Python to properly
-        load the module without forward reference issues.
-        """
+        List the classes in the module in order such that dependencies of a class
+        (including its annotations) appear before the class itself.
 
-        # The independent classes are those that do not inherit from any other
-        #   classes in this module
-        independent_classes = []
+        This allows us to run `get_type_hints` on a class at class creation time
+        rather than class initialization time. This has the benefit of also ensuring
+        that the generated module will not have issues when Python attempts to import
+        it even if `get_type_hints` is not called on any of the classes.
+        """
+        classes: list[Class] = []
         for cls in self.classes.values():
-            for base in cls.bases or []:
-                if base in self.classes:
+            for index, existing in enumerate(classes):
+                if cls.name in existing.dependencies:
+                    classes.insert(index, cls)
                     break
             else:
-                independent_classes.append(cls.name)
+                classes.append(cls)
 
-        # Yield all the independent classes first
-        for name in independent_classes:
-            yield self.classes[name]
-
-        # The dependent classes need to be ordered such that their bases are defined
-        #  before they are defined
-        dependent_classes: list[str] = []
-        for cls in self.classes.values():
-            # Skip independent classes
-            if cls.name not in independent_classes:
-                # Create set of all indices that we might need to insert after based
-                # on the bases of this class
-                base_indices = set()
-                for base in cls.bases or []:
-                    # If the base is in dependent classes we need to insert in the
-                    #    position after it, if its missing we may be able to insert
-                    #    at the start
-                    if base in dependent_classes:
-                        base_indices.add(dependent_classes.index(base) + 1)
-                    else:
-                        base_indices.add(0)
-
-                # Insert the class after the maximum index of its bases
-                insert_index = max(base_indices)
-                dependent_classes.insert(insert_index, cls.name)
-
-        # Yield all the dependent classes in order
-        for name in dependent_classes:
-            yield self.classes[name]
+        return classes
 
     def text(self) -> str:
+        # Start with the auto-generated file warning
+        text = dedent(
+            f"""\
+            \"\"\"
+            This module was auto-generated by the RAD code generator based on the schema with URI:
+                {self.uri}
+
+            DO NOT EDIT THIS FILE DIRECTLY. Instead, modify the schema and reinstall RAD to
+            regenerate this file.
+            \"\"\"
+            """
+        )
+
         # Add import statements at top of the file
-        text = f"{self.imports.text()}\n"
+        text += f"{self.imports.text()}\n"
 
         # Add the __all__ definition for the public API of the module
         text += f"__all__ = ('{self.type}',)\n\n"
@@ -1412,7 +1421,7 @@ class Module(Type, File):
         # Add all the classes next
         if self.classes:
             # Add them in an order that allows python to read the file
-            for cls in self.ordered_classes():
+            for cls in self.class_order:
                 text += f"{cls.text()}\n"
 
         return text
@@ -1511,6 +1520,9 @@ class Module(Type, File):
         if module.annotations:
             module.imports.type_alias()
 
+        # Finally apply the schema URI to the module's primary class if it exists
+        module.apply_uris(uri)
+
         return module
 
     def process(self, name: str, schema: dict[str, Any], package: Package) -> Type:
@@ -1578,6 +1590,22 @@ class Module(Type, File):
             case _:
                 # Something has gone very wrong if we get here
                 raise ValueError(f"Schema for {name} has unsupported type '{type_}'")
+
+    def apply_uris(self, schema_uri: str, tag_uri: str | None = None) -> None:
+        """
+        Apply the schema URI and tag URI to the module's primary class if it exists.
+
+        Parameters
+        ----------
+        schema_uri
+            The schema URI to apply
+        tag_uri
+            The tag URI to apply
+        """
+        if self.type in self.classes:
+            class_ = self.classes[self.type]
+            class_.uri = schema_uri
+            class_.tag = tag_uri
 
 
 @dataclass
@@ -1694,14 +1722,14 @@ class Package:
 
         self.modules[module.uri] = module
 
-    def add_ref(self, uri: str) -> None:
+    def add_ref(self, uri: str) -> Module:
         """Add a module based on a URI reference to a schema."""
 
         # Bail out early since we already have it
         #   This is needed when we are doing recursive references within the
         #   same schema as otherwise we can get infinite recursion
         if uri in self.modules:
-            return
+            return self.modules[uri]
 
         # Sanity check the URI that it is for RAD
         if not uri.startswith("asdf://stsci.edu/datamodels/roman/schemas/"):
@@ -1710,7 +1738,7 @@ class Package:
         # Use asdf to load the schema from the URI and pass it to the module constructor
         # As part of that it will add itself to the package
         schema = load_schema(uri)
-        Module.from_schema(schema, self)
+        return Module.from_schema(schema, self)
 
     def get_uri(self, uri: str) -> Module:
         """Get a module based on a URI reference to a schema."""
@@ -1764,7 +1792,10 @@ class Package:
         manifest = load_schema(uri)
 
         for item in manifest["tags"]:
-            package.add_ref(item["schema_uri"])
+            schema_uri = item["schema_uri"]
+            tag_uri = item["tag_uri"]
+            module = package.add_ref(schema_uri)
+            module.apply_uris(schema_uri, tag_uri)
 
         return package
 

@@ -29,14 +29,17 @@ class _NodeMixin:
     #    __slots__ is defined so that the subclasses will be fully slotted. You can't have the
     #    same slot attributed defined in both parent classes when they are mixed together.
     if TYPE_CHECKING:
-        __slots__ = ("_read_tag",)
+        __slots__ = ("_parent", "_read_tag")
     else:
         __slots__ = ()
 
     _read_tag: str | None
+    _parent: _NodeMixin | None
 
-    def __init__(self, *args, **kwargs):
-        self._read_tag = None
+    __tag__: str | None = None
+
+    def __init__(self, *args, read_tag: str | None = None, parent: _NodeMixin | None = None, **kwargs):
+        self._read_tag = read_tag
 
     @abstractmethod
     def __asdf_traverse__(self):
@@ -58,16 +61,27 @@ class _NodeMixin:
         Set the underlying data for this node
         """
 
-    def copy(self):
+    def copy(self, parent: _NodeMixin | None = None) -> _NodeMixin:
         """
         Create a copy of this node
         """
-        instance = self.__class__.__new__(self.__class__)
+        instance = type(self).__new__(type(self))
 
         instance._read_tag = self._read_tag
         instance._node_data = self._node_data.copy()
+        instance._parent = parent or self._parent
 
         return instance
+
+    @property
+    def _version_matches(self) -> bool:
+        """
+        Check if the version of this node matches the schema version.
+        """
+        if self._read_tag is None or self.__tag__ is None:
+            return self._parent is None or self._parent._version_matches
+        else:
+            return self._read_tag == self.__tag__
 
 
 class ObjectNode(MutableMapping, _NodeMixin):
@@ -75,13 +89,45 @@ class ObjectNode(MutableMapping, _NodeMixin):
     Base class for handling all "object" (dict-like) data nodes for RAD schemas.
     """
 
-    __slots__ = ("_data", "_read_tag", "_wrappers")
+    __slots__ = ("_data", "_parent", "_read_tag", "_wrappers")
 
-    _wrappers: MappingProxyType[str, type[ObjectNode]]
+    _wrappers: MappingProxyType[str, type[ObjectNode | ArrayNode]]
     _data: dict[str, Any]
 
-    def __init__(self, node=None):
-        super().__init__(node)
+    _required: tuple[str, ...] = ()
+    _alias: MappingProxyType[str, str] = MappingProxyType({})
+
+    __uri__: str | None = None
+    __required__: tuple[str, ...] = ()
+    __alias__: MappingProxyType[str, str] = MappingProxyType({})
+
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(*args, **kwargs)
+
+        # Gather up the required and alias information recursively from base classes
+        required = set(cls.__required__)
+        alias = dict(cls.__alias__)
+        for cls_ in cls.__bases__:
+            if (base_required := cls._required) is not None:
+                required.update(set(base_required))
+
+            if (base_alias := cls_._alias) is not None:
+                alias.update(base_alias)
+
+        cls._required = tuple(sorted(required))
+        cls._alias = MappingProxyType(alias)
+
+        # Gather up the wrappers for this class
+        cls._wrappers = MappingProxyType(
+            {
+                key: type_
+                for key, type_ in get_type_hints(cls).items()
+                if isclass(type_) and (issubclass(type_, ObjectNode) or issubclass(type_, ArrayNode))
+            }
+        )
+
+    def __init__(self, node=None, *, read_tag: str | None = None, parent: ObjectNode | ArrayNode | None = None):
+        super().__init__(node, read_tag=read_tag, parent=parent)
 
         # Handle if we are passed different data types
         if node is None:
@@ -91,49 +137,85 @@ class ObjectNode(MutableMapping, _NodeMixin):
         else:
             raise ValueError("Initializer only accepts dicts")
 
-        self._wrappers = MappingProxyType(
-            {
-                key: type_
-                for key, type_ in get_type_hints(self.__class__).items()
-                if isclass(type_) and (issubclass(type_, ObjectNode) or issubclass(type_, ArrayNode))
-            }
-        )
+    def _in_data(self, key: str) -> bool:
+        if key in self._alias:
+            key = self._alias[key]
 
-    @classmethod
-    def _required(cls) -> tuple[str, ...]:
-        """
-        Return the required fields for this node, if any.
-        """
-        required = set(getattr(cls, "__required__", ()))
-        for cls_ in cls.__bases__:
-            base_required = getattr(cls_, "_required", None)
-            if base_required is not None:
-                required.update(base_required())
-        return tuple(sorted(required))
+        return key in self._data
 
-    def _needs_to_wrap(self, key: str, value: Any) -> bool:
+    def _get_data(self, key: str) -> Any:
+        if key in self._alias:
+            key = self._alias[key]
+
+        return self._data.get(key)
+
+    def _set_data(self, key: str, value: Any) -> None:
+        if key in self._alias:
+            key = self._alias[key]
+
+        self._data[key] = value
+
+    def _wrap(self, key: str, value: Any) -> tuple[Any, bool]:
         """
-        Determine if the given key/value pair needs to be wrapped into a node.
+        Wrap the given key/value pair into the appropriate node.
+
+        Parameters
+        ----------
+        key : str
+            The key to wrap.
+        value : Any
+            The value to wrap.
+
+        Returns
+        -------
+        tuple[Any, bool]
+            The wrapped value and a boolean indicating if wrapping was performed.
         """
-        return key in self._wrappers and not isinstance(value, self._wrappers[key])
+        # Only wrap if we are in the correct version and we have a wrapper defined
+        #   for this key
+        if self._version_matches and key in self._wrappers:
+            # If the value is not already wrapped, wrap it
+            if not isinstance(value, wrapper := self._wrappers[key]):
+                return wrapper(value, parent=self), True
+
+            # If the value is already wrapped but has the wrong parent, re-wrap it
+            #   with the correct parent being sure to copy it so we don't modify
+            #   the original node
+            if value._parent is not self:
+                return value.copy(parent=self), True
+
+        # Otherwise just return the value as is
+        return value, False
 
     def _get_node(self, key: str) -> Any:
         """
         Get the node value for the given key, wrapping it if necessary.
-        """
-        if key in self._data:
-            value = self._data[key]
-            if self._needs_to_wrap(key, value):
-                wrapped_value = self._wrappers[key](value)
-                self._data[key] = wrapped_value
 
-                return wrapped_value
+        Parameters
+        ----------
+        key : str
+            The key to get.
+
+        Returns
+        -------
+        Any
+            The value for the given key.
+
+        Side Effects
+        ------------
+        If the value is unwrapped, it will be wrapped and stored back into the node.
+        """
+        if self._in_data(key):
+            value, wrapped = self._wrap(key, self._get_data(key))
+            if wrapped:
+                self._set_data(key, value)
+
             return value
 
         # Raise the correct error for the attribute not being found
         raise AttributeError(f"No such attribute ({key}) found in node: {type(self)}")
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str):
         """
         Permit accessing dict keys as attributes, assuming they are legal Python
         variable names.
@@ -146,10 +228,23 @@ class ObjectNode(MutableMapping, _NodeMixin):
         return self._get_node(key)
 
     def _set_node(self, key: str, value: Any) -> None:
-        if self._needs_to_wrap(key, value):
-            value = self._wrappers[key](value)
+        """
+        Set the node value for the given key, wrapping it if necessary.
 
-        self._data[key] = value
+        Parameters
+        ----------
+        key : str
+            The key to set.
+        value : Any
+
+        Side Effects
+        ------------
+        If the value needs to be wrapped, it will be wrapped before being set.
+        """
+        # Wrap the value if necessary
+        value, _ = self._wrap(key, value)
+
+        self._set_data(key, value)
 
     def __setattr__(self, key, value):
         """
@@ -250,6 +345,9 @@ class ObjectNode(MutableMapping, _NodeMixin):
 
     def __delitem__(self, key):
         """Dictionary style access delete data"""
+        if key in self._alias:
+            key = self._alias[key]
+
         del self._data[key]
 
     def __dir__(self):
@@ -270,12 +368,12 @@ class ArrayNode(MutableSequence, _NodeMixin):
     Base class for handling all "array" (list-like) data nodes for RAD schemas.
     """
 
-    __slots__ = ("_read_tag", "data")
+    __slots__ = ("_parent", "_read_tag", "data")
 
     data: list[Any]
 
-    def __init__(self, node=None):
-        super().__init__(node=node)
+    def __init__(self, node=None, *, read_tag: str | None = None, parent: ObjectNode | ArrayNode | None = None):
+        super().__init__(node=node, read_tag=read_tag, parent=parent)
 
         if node is None:
             self.data = []

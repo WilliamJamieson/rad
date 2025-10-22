@@ -419,7 +419,7 @@ class Class(Type):
     docs: str | None
     properties: dict[str, Annotation]
     required: list[str] | None
-    syntax_override: dict[str, tuple[str, Annotation]] | None = None
+    syntax_override: dict[str, str] | None = None
 
     @property
     def annotation(self):
@@ -458,14 +458,19 @@ class Class(Type):
             text += "\n"
 
         if self.syntax_override:
-            for bad_name, (good_name, annotation) in self.syntax_override.items():
+            for bad_name, good_name in self.syntax_override.items():
                 text += indent(
                     dedent(
                         f"""\
                         @property
-                        def {good_name}(self) -> {annotation}:
+                        def {good_name}(self) -> Any:
                             \"\"\"Alias for `{bad_name}` to avoid syntax issues.\"\"\"
                             return self['{bad_name}']
+
+
+                        @{good_name}.setter
+                        def {good_name}(self, value: Any) -> None:
+                            self['{bad_name}'] = value
                         """
                     ),
                     "    ",
@@ -473,7 +478,7 @@ class Class(Type):
 
         return text
 
-    def add_property(self, name: str, annotation: Annotation) -> None:
+    def add_property(self, name: str, annotation: Annotation, module: Module) -> None:
         bad_name, good_name = self._sanitize_name(name)
 
         if good_name in self.properties:
@@ -483,7 +488,9 @@ class Class(Type):
             if self.syntax_override is None:
                 self.syntax_override = {}
 
-            self.syntax_override[bad_name] = (good_name, annotation)
+            module.imports.any()
+            self.syntax_override[bad_name] = good_name
+            self.properties[good_name] = annotation
         else:
             self.properties[name] = annotation
 
@@ -511,14 +518,14 @@ class Class(Type):
         if description:
             docs += f"{indent(description, '    ') if docs else description}\n"
 
-        required = schema.get("required")
+        required = [cls._sanitize_name(name)[1] for name in schema.get("required", [])]
 
         class_ = cls(
             name=name,
             bases=None,
             docs=docs if docs else None,
             properties={},
-            required=required,
+            required=required or None,
             syntax_override=None,
         )
         module.add(class_)
@@ -537,7 +544,7 @@ class Class(Type):
 
         for prop_name, prop_schema in schema.get("properties", {}).items():
             cls_name = cls.class_name(prop_name)
-            class_.add_property(prop_name, module.process(f"{name}_{cls_name}", prop_schema, package).annotation)
+            class_.add_property(prop_name, module.process(f"{name}_{cls_name}", prop_schema, package).annotation, module)
 
         pattern_properties = {}
         for index, (pattern, pattern_schema) in enumerate(schema.get("patternProperties", {}).items()):
@@ -549,11 +556,11 @@ class Class(Type):
                 if required not in class_.properties:
                     for pattern, annotation in pattern_properties.items():
                         if match(pattern, required):
-                            class_.add_property(required, annotation)
+                            class_.add_property(required, annotation, module)
                             break
                     else:
                         module.imports.any()
-                        class_.add_property(required, Annotation.empty())
+                        class_.add_property(required, Annotation.empty(), module)
 
         return class_
 

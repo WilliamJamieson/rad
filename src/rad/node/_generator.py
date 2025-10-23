@@ -17,7 +17,11 @@ from typing import TYPE_CHECKING
 from asdf.schema import load_schema
 from asdf.tags.core.ndarray import asdf_datatype_to_numpy_dtype
 
+from rad import node
+
 from . import _mixins as mixins
+from ._base import ArrayNode, ObjectNode
+from ._metadata import ArchiveCatalog, Metadata
 from ._utils import name_from_uri
 
 if TYPE_CHECKING:
@@ -208,21 +212,21 @@ class Import(Base):
 
     def object_node(self) -> None:
         """Add the `from rad.node import ObjectNode` statement"""
-        self.add_import("rad.node", "ObjectNode")
+        self.add_import(node.__name__, ObjectNode.__name__)
 
     def array_node(self) -> None:
         """Add the `from rad.node import ArrayNode` statement"""
-        self.add_import("rad.node", "ArrayNode")
+        self.add_import(node.__name__, ArrayNode.__name__)
 
     def metadata(self) -> None:
         """Add the `from rad.node import Metadata` statement"""
-        self.add_import("rad.node", "Metadata")
+        self.add_import(node.__name__, Metadata.__name__)
 
     def archive_catalog(self) -> None:
         """
         Add the `from rad.node import ArchiveCatalog` statement
         """
-        self.add_import("rad.node", "ArchiveCatalog")
+        self.add_import(node.__name__, ArchiveCatalog.__name__)
 
     def mixin(self, mixin: str) -> None:
         """
@@ -234,7 +238,7 @@ class Import(Base):
             The string name of the mixin to import
         """
 
-        self.add_import("rad.node._mixins", mixin)
+        self.add_import(mixins.__name__, mixin)
 
 
 @dataclass
@@ -822,7 +826,7 @@ class Annotation(Type):
 
             arguments = annotation.annotations
 
-        annotations = [TypeAnnotation("ArrayNode", arguments)]
+        annotations = [TypeAnnotation(ArrayNode.__name__, arguments)]
         return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
 
     @classmethod
@@ -945,7 +949,7 @@ class Class(Type):
         if self.bases:
             text += f"({', '.join(self.bases)}):\n"
         else:
-            text += "(ObjectNode):\n"
+            text += f"({ObjectNode.__name__}):\n"
 
         # Add the docstring if we have any
         #    Note this will be indented inside the class definition
@@ -1408,7 +1412,8 @@ class Module(Type, File):
         text += f"{self.imports.text()}\n"
 
         # Add the __all__ definition for the public API of the module
-        text += f"__all__ = ('{self.type}',)\n\n"
+        text += f"__all__ = ('{self.type}',)\n"
+        text += f"__uri__ = {self.uri!r}\n\n"
 
         # Add all the type aliases first, this is necessary if we have things that
         #    are from schemas that define a decorated scalar type

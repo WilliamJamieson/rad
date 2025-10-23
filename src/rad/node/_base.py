@@ -9,7 +9,7 @@ from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
 from inspect import isclass
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, get_type_hints
+from typing import TYPE_CHECKING, Any, Self, get_type_hints
 
 import numpy as np
 from asdf.lazy_nodes import AsdfDictNode, AsdfListNode
@@ -40,6 +40,7 @@ class _NodeMixin:
 
     def __init__(self, *args, read_tag: str | None = None, parent: _NodeMixin | None = None, **kwargs):
         self._read_tag = read_tag
+        self._parent = parent
 
     @abstractmethod
     def __asdf_traverse__(self):
@@ -73,15 +74,38 @@ class _NodeMixin:
 
         return instance
 
-    @property
-    def _version_matches(self) -> bool:
+    def is_current(self) -> bool:
         """
         Check if the version of this node matches the schema version.
         """
         if self._read_tag is None or self.__tag__ is None:
-            return self._parent is None or self._parent._version_matches
+            return self._parent is None or self._parent.is_current()
         else:
             return self._read_tag == self.__tag__
+
+    @classmethod
+    def sub_classes(cls) -> set[type[Self]]:
+        """
+        Get all subclasses of a NodeClass class.
+
+        This recursively gathers all the subclasses of this class. It excludes
+        any classes with "Model" in the name as those are the data model classes
+        and not considered node classes, though they do inherit from the node
+        classes.
+
+        This is used to gather all the node classes so they can be registered with
+        the ASDF converters. Note that one MUST import all the node classes we want
+        support before calling this method in the converter as ASDF will cache the
+        supported types upon loading the ASDF extension.
+        """
+        subclasses = {cls}
+
+        for subclass in cls.__subclasses__():
+            if "Model" not in subclass.__name__:
+                subclasses.add(subclass)
+                subclasses.update(subclass.sub_classes())
+
+        return subclasses
 
 
 class ObjectNode(MutableMapping, _NodeMixin):
@@ -89,11 +113,11 @@ class ObjectNode(MutableMapping, _NodeMixin):
     Base class for handling all "object" (dict-like) data nodes for RAD schemas.
     """
 
-    __slots__ = ("_data", "_parent", "_read_tag", "_wrappers")
+    __slots__ = ("_data", "_parent", "_read_tag")
 
-    _wrappers: MappingProxyType[str, type[ObjectNode | ArrayNode]]
     _data: dict[str, Any]
 
+    _wrappers: MappingProxyType[str, type[ObjectNode | ArrayNode]] = MappingProxyType({})
     _required: tuple[str, ...] = ()
     _alias: MappingProxyType[str, str] = MappingProxyType({})
 
@@ -173,7 +197,7 @@ class ObjectNode(MutableMapping, _NodeMixin):
         """
         # Only wrap if we are in the correct version and we have a wrapper defined
         #   for this key
-        if self._version_matches and key in self._wrappers:
+        if self.is_current() and key in self._wrappers:
             # If the value is not already wrapped, wrap it
             if not isinstance(value, wrapper := self._wrappers[key]):
                 return wrapper(value, parent=self), True

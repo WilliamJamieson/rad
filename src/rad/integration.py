@@ -1,4 +1,5 @@
 import importlib.resources as importlib_resources
+from contextlib import suppress
 
 from asdf.resource import DirectoryResourceMapping
 
@@ -38,3 +39,24 @@ def get_resource_mappings():
         RadDirectoryResourceMapping(resources_root / "schemas", "asdf://stsci.edu/datamodels/roman/schemas/", recursive=True),
         DirectoryResourceMapping(resources_root / "manifests", "asdf://stsci.edu/datamodels/roman/manifests/"),
     ]
+
+
+def get_extensions():
+    """
+    Get the extension instances for the RAD node classes.
+    """
+    # Try to import the data nodes to ensure the classes are all instantiated so they can
+    #   be registered with the converters.
+    #
+    # We surpess the import error in case we have not generated the data_nodes code yet.
+    #    This enables the RAD package to function with ASDF during the installation process.
+    #    where the data_nodes code is being generated.
+    #
+    # This import must come before the import of the NodeExtension below to ensure
+    #   all the node classes are registered with the converters.
+    with suppress(ImportError):
+        from . import data_nodes  # noqa: F401
+
+    from .node._converters import NodeExtension
+
+    return [NodeExtension()]

@@ -20,7 +20,7 @@ class WfiModeMixin(ObjectNode):
     # Every optical element is a grating or a filter
     #   There are less gratings than filters so its easier to list out the
     #   gratings.
-    _GRATING_OPTICAL_ELEMENTS: ClassVar[set[str]] = {"GRISM", "PRISM"}
+    _GRATING_OPTICAL_ELEMENTS: ClassVar[frozenset[str]] = frozenset({"GRISM", "PRISM"})
 
     @property
     def filter(self) -> str | None:

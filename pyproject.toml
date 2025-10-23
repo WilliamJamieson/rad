@@ -47,6 +47,9 @@ docs = [
 [project.entry-points."asdf.resource_mappings"]
 rad = "rad.integration:get_resource_mappings"
 
+[project.entry-points."asdf.extensions"]
+rad = "rad.integration:get_extensions"
+
 [build-system]
 requires = ["setuptools >=61", "setuptools_scm[toml] >=3.4"]
 build-backend = "setuptools.build_meta"

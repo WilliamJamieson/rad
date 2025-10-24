@@ -9,7 +9,7 @@ from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
 from inspect import isclass
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Self, get_type_hints
+from typing import TYPE_CHECKING, Any, Self, TypeVar, get_type_hints
 
 import numpy as np
 from asdf.lazy_nodes import AsdfDictNode, AsdfListNode
@@ -36,6 +36,7 @@ class _NodeMixin:
     _read_tag: str | None
     _parent: _NodeMixin | None
 
+    __uri__: str | None = None
     __tag__: str | None = None
 
     def __init__(self, *args, read_tag: str | None = None, parent: _NodeMixin | None = None, **kwargs):
@@ -117,13 +118,9 @@ class ObjectNode(MutableMapping, _NodeMixin):
 
     _data: dict[str, Any]
 
-    _wrappers: MappingProxyType[str, type[ObjectNode | ArrayNode]] = MappingProxyType({})
-    _required: tuple[str, ...] = ()
-    _alias: MappingProxyType[str, str] = MappingProxyType({})
-
-    __uri__: str | None = None
     __required__: tuple[str, ...] = ()
     __alias__: MappingProxyType[str, str] = MappingProxyType({})
+    __wrappers__: MappingProxyType[str, type[_NodeMixin]] = MappingProxyType({})
 
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(*args, **kwargs)
@@ -132,25 +129,18 @@ class ObjectNode(MutableMapping, _NodeMixin):
         required = set(cls.__required__)
         alias = dict(cls.__alias__)
         for cls_ in cls.__bases__:
-            if (base_required := cls._required) is not None:
-                required.update(set(base_required))
+            required.update(set(cls_.__required__))
+            alias.update(cls_.__alias__)
 
-            if (base_alias := cls_._alias) is not None:
-                alias.update(base_alias)
-
-        cls._required = tuple(sorted(required))
-        cls._alias = MappingProxyType(alias)
+        cls.__required__ = tuple(sorted(required))
+        cls.__alias__ = MappingProxyType(alias)
 
         # Gather up the wrappers for this class
-        cls._wrappers = MappingProxyType(
-            {
-                key: type_
-                for key, type_ in get_type_hints(cls).items()
-                if isclass(type_) and (issubclass(type_, ObjectNode) or issubclass(type_, ArrayNode))
-            }
+        cls.__wrappers__ = MappingProxyType(
+            {key: type_ for key, type_ in get_type_hints(cls).items() if isclass(type_) and issubclass(type_, _NodeMixin)}
         )
 
-    def __init__(self, node=None, *, read_tag: str | None = None, parent: ObjectNode | ArrayNode | None = None):
+    def __init__(self, node=None, *, read_tag: str | None = None, parent: _NodeMixin | None = None):
         super().__init__(node, read_tag=read_tag, parent=parent)
 
         # Handle if we are passed different data types
@@ -197,9 +187,9 @@ class ObjectNode(MutableMapping, _NodeMixin):
         """
         # Only wrap if we are in the correct version and we have a wrapper defined
         #   for this key
-        if self.is_current() and key in self._wrappers:
+        if self.is_current() and key in self.__wrappers__:
             # If the value is not already wrapped, wrap it
-            if not isinstance(value, wrapper := self._wrappers[key]):
+            if not isinstance(value, wrapper := self.__wrappers__[key]):
                 return wrapper(value, parent=self), True
 
             # If the value is already wrapped but has the wrong parent, re-wrap it
@@ -386,7 +376,10 @@ class ObjectNode(MutableMapping, _NodeMixin):
         return repr(self._data)
 
 
-class ArrayNode(MutableSequence, _NodeMixin):
+_ArrayItem = TypeVar("_ArrayItem")
+
+
+class ArrayNode(MutableSequence[_ArrayItem], _NodeMixin):
     """
 
     Base class for handling all "array" (list-like) data nodes for RAD schemas.
@@ -394,9 +387,9 @@ class ArrayNode(MutableSequence, _NodeMixin):
 
     __slots__ = ("_parent", "_read_tag", "data")
 
-    data: list[Any]
+    data: list[_ArrayItem]
 
-    def __init__(self, node=None, *, read_tag: str | None = None, parent: ObjectNode | ArrayNode | None = None):
+    def __init__(self, node=None, *, read_tag: str | None = None, parent: _NodeMixin | None = None):
         super().__init__(node=node, read_tag=read_tag, parent=parent)
 
         if node is None:
@@ -414,16 +407,16 @@ class ArrayNode(MutableSequence, _NodeMixin):
     def __setitem__(self, index, value):
         self.data[index] = value
 
-    def __delitem__(self, index):
+    def __delitem__(self, index) -> None:
         del self.data[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
     def insert(self, index, value):
         self.data.insert(index, value)
 
-    def __asdf_traverse__(self):
+    def __asdf_traverse__(self) -> list[_ArrayItem]:
         return list(self)
 
     @property

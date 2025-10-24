@@ -951,46 +951,50 @@ class Class(Type):
         else:
             text += f"({ObjectNode.__name__}):\n"
 
+        body = ""
         # Add the docstring if we have any
         #    Note this will be indented inside the class definition
         if self.docs:
-            text += indent('"""\n', "    ")
-            text += indent(f"{self.docs}\n", "    ")
-            text += indent('"""\n\n', "    ")
+            body += '"""\n'
+            body += dedent(self.docs)
+            body += '"""\n\n'
 
         # Add the schema URI if we have one
         if self.uri:
-            text += indent(f"__uri__ = {self.uri!r}\n", "    ")
-        else:
-            text += indent("__uri__ = None\n", "    ")
+            body += f"__uri__ = {self.uri!r}\n"
 
         # Add the schema tag if we have one
         if self.tag:
-            text += indent(f"__tag__ = {self.tag!r}\n", "    ")
-        else:
-            text += indent("__tag__ = None\n", "    ")
+            body += f"__tag__ = {self.tag!r}\n"
 
         # Add the required properties tuple
         if self.required:
-            text += indent(f"__required__ = {tuple(sorted(set(self.required)))}\n\n", "    ")
-        else:
-            text += indent("__required__ = ()\n\n", "    ")
+            body += f"__required__ = {tuple(sorted(set(self.required)))}\n"
+
+        if self.properties:
+            body += f"__keywords__ = {tuple(sorted(self.properties.keys()))}\n"
 
         # Add the Alias mapping if we have any
         if self.alias:
             # Add the alias dictionary if we have any syntax overrides
-            text += indent(f"__alias__ = MappingProxyType({self.alias})\n\n", "    ")
+            body += f"__alias__ = MappingProxyType({self.alias})\n"
+
+        # Add in a newline after all the __<object schema attributes>__ for the object
+        if any([self.uri, self.tag, self.required, self.properties, self.alias]):
+            body += "\n"
 
         # Add all the properties with their annotations
         #   These are simply type hints of the form:
         #     `<name>: <annotation>`
         for name, annotation in sorted(self.properties.items()):
-            text += indent(f"{name}: {annotation.text()}\n", "    ")
+            body += f"{name}: {annotation.text()}\n"
 
         if self.properties:
-            text += "\n"
+            body += "\n"
+        # If there is no body content we need to add a pass statement
+        body = body if body else "pass\n"
 
-        return text
+        return text + indent(body, "    ")
 
     def add_property(self, name: str, annotation: Annotation, module: Module) -> None:
         """

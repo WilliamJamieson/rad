@@ -344,10 +344,7 @@ class TestClass:
                 None,
                 dedent("""\
             class MyClass(ObjectNode):
-                __uri__ = None
-                __tag__ = None
-                __required__ = ()
-
+                pass
                    """),
             ),
             (
@@ -357,15 +354,12 @@ class TestClass:
                 None,
                 dedent("""\
             class MyClass(Base1):
-                __uri__ = None
-                __tag__ = None
-                __required__ = ()
-
+                pass
                    """),
             ),
             (
                 ["Base1", "Base2"],
-                "A docstring",
+                "A docstring\n",
                 {},
                 None,
                 dedent("""\
@@ -374,15 +368,11 @@ class TestClass:
                 A docstring
                 \"\"\"
 
-                __uri__ = None
-                __tag__ = None
-                __required__ = ()
-
                    """),
             ),
             (
                 ["Base1", "Base2"],
-                "A docstring",
+                "A docstring\n",
                 {"prop1": Annotation.empty("int"), "prop2": Annotation("str", [TypeAnnotation("str")], title="A string")},
                 None,
                 dedent("""\
@@ -391,9 +381,7 @@ class TestClass:
                 A docstring
                 \"\"\"
 
-                __uri__ = None
-                __tag__ = None
-                __required__ = ()
+                __keywords__ = ('prop1', 'prop2')
 
                 prop1: int
                 prop2: Annotated[str, Metadata(title='A string')]
@@ -402,7 +390,7 @@ class TestClass:
             ),
             (
                 ["Base1", "Base2"],
-                "A docstring",
+                "A docstring\n",
                 {"prop1": Annotation.empty("int"), "prop2": Annotation("str", [TypeAnnotation("str")], title="A string")},
                 ["prop1"],
                 dedent("""\
@@ -411,9 +399,8 @@ class TestClass:
                 A docstring
                 \"\"\"
 
-                __uri__ = None
-                __tag__ = None
                 __required__ = ('prop1',)
+                __keywords__ = ('prop1', 'prop2')
 
                 prop1: int
                 prop2: Annotated[str, Metadata(title='A string')]
@@ -508,7 +495,7 @@ class TestModule:
             "MyClass": Class(
                 name="MyClass",
                 bases=["Alpha", "Beta"],
-                docs="A docstring",
+                docs="A docstring\n",
                 properties={
                     "prop1": Annotation("Gamma", [TypeAnnotation("Gamma")], title="A property"),
                     "prop2": Annotation("str", [TypeAnnotation("str")]),
@@ -545,19 +532,15 @@ class TestModule:
                 A docstring
                 \"\"\"
 
-                __uri__ = None
-                __tag__ = None
                 __required__ = ('prop1',)
+                __keywords__ = ('prop1', 'prop2')
 
                 prop1: Annotated[Gamma, Metadata(title='A property')]
                 prop2: str
 
 
             class AnotherClass(ObjectNode):
-                __uri__ = None
-                __tag__ = None
-                __required__ = ()
-
+                pass
 
             """
         )
@@ -949,12 +932,11 @@ class TestModule:
                 \"\"\"
                 A simple object
                     This is an object schema
-
                 \"\"\"
 
                 __uri__ = 'asdf://stsci.edu/datamodels/roman/schemas/simple_object-1.0.0'
-                __tag__ = None
                 __required__ = ('a',)
+                __keywords__ = ('a', 'b')
 
                 a: Annotated[int, Metadata(title='An integer', archive_catalog=ArchiveCatalog(datatype='int', destination=('int_place',)))]
                 b: Annotated[str, Metadata(description='A string')]
@@ -1088,18 +1070,15 @@ class TestModule:
             __uri__ = 'asdf://stsci.edu/datamodels/roman/schemas/simple_multiple_allof-1.0.0'
 
             class SimpleMultipleAllof_allOf0(ObjectNode):
-                __uri__ = None
-                __tag__ = None
                 __required__ = ('a',)
+                __keywords__ = ('a', 'b')
 
                 a: Annotated[int, Metadata(title='An integer', archive_catalog=ArchiveCatalog(datatype='int', destination=('int_place',)))]
                 b: Annotated[str, Metadata(description='A string')]
 
 
             class SimpleMultipleAllof_allOf1(ObjectNode):
-                __uri__ = None
-                __tag__ = None
-                __required__ = ()
+                __keywords__ = ('c',)
 
                 c: float
 
@@ -1108,12 +1087,9 @@ class TestModule:
                 \"\"\"
                 A simple multiple allOf
                     This is a multiple allOf schema
-
                 \"\"\"
 
                 __uri__ = 'asdf://stsci.edu/datamodels/roman/schemas/simple_multiple_allof-1.0.0'
-                __tag__ = None
-                __required__ = ()
 
 
             """
@@ -1173,9 +1149,8 @@ class TestModule:
             __uri__ = 'asdf://stsci.edu/datamodels/roman/schemas/{uri_fragment}'
 
             class SimpleMultipleAllof_allOf1(ObjectNode):
-                __uri__ = None
-                __tag__ = None
                 __required__ = ('a',)
+                __keywords__ = ('a', 'b')
 
                 a: Annotated[int, Metadata(title='An integer', archive_catalog=ArchiveCatalog(datatype='int', destination=('int_place',)))]
                 b: Annotated[str, Metadata(description='A string')]
@@ -1185,12 +1160,9 @@ class TestModule:
                 \"\"\"
                 A simple multiple allOf
                     This is a multiple allOf schema
-
                 \"\"\"
 
                 __uri__ = 'asdf://stsci.edu/datamodels/roman/schemas/{uri_fragment}'
-                __tag__ = None
-                __required__ = ()
 
 
             """
@@ -1240,12 +1212,11 @@ class TestPackage:
             class RefSchema(ObjectNode):
                 \"\"\"
                 A schema to use as a $ref example
-
                 \"\"\"
 
                 __uri__ = 'asdf://stsci.edu/datamodels/roman/schemas/test_schemas/ref_schema-1.0.0'
-                __tag__ = None
                 __required__ = ('prop0', 'prop1', 'prop2')
+                __keywords__ = ('prop0', 'prop1', 'prop2')
 
                 prop0: float | None
                 prop1: str

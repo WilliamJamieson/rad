@@ -8,8 +8,8 @@ from abc import abstractmethod
 from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
 from inspect import isclass
-from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Self, TypeVar, get_type_hints
+from types import GenericAlias, MappingProxyType, UnionType
+from typing import TYPE_CHECKING, Any, Literal, Self, TypeVar, Union, get_args, get_origin, get_type_hints
 
 import numpy as np
 from asdf.lazy_nodes import AsdfDictNode, AsdfListNode
@@ -17,6 +17,17 @@ from asdf.tags.core import ndarray
 from astropy.time import Time
 
 __all__ = ("ArrayNode", "ObjectNode")
+
+_NOSTR = "?"
+_NONUM = -999999
+_NOBOOL = False
+
+
+class _NotSetType:
+    pass
+
+
+_NotSet = _NotSetType()
 
 
 class _NodeMixin:
@@ -108,6 +119,201 @@ class _NodeMixin:
 
         return subclasses
 
+    @abstractmethod
+    def _get_annotation(self, key: Any) -> Any:
+        """
+        Get the annotation for the given key.
+        """
+
+    @abstractmethod
+    def __setitem__(self, key, value) -> None:
+        pass
+
+    def fill_default(self, key: int | str, *, minimal: bool = False, **kwargs) -> None:
+        """
+        Fill in the default value for the given key.
+
+        Parameters
+        ----------
+        key : int | str
+            The key to fill the default value for.
+
+        minimal : bool, optional
+            If True, fill in the minimal default values.
+
+        Side Effects
+        ------------
+        The default value for the given key will be set in the node.
+        """
+        if (value := self._find_custom(str(key), minimal=minimal, **kwargs)) is _NotSet:
+            value = self._find_default(self._get_annotation(key), minimal=minimal, **kwargs)
+
+        if value is not _NotSet:
+            self[key] = value
+
+    def _find_custom(self, key: str, *, minimal: bool = False, **kwargs) -> Any:
+        """
+        Find a custom default value for the given key.
+
+        Parameters
+        ----------
+        key : str
+            The key to find the default value for.
+
+        minimal : bool, optional
+            If True, fill in the minimal default values.
+
+        Returns
+        -------
+        Any
+            The default value for the given key.
+        """
+        if hasattr(self, custom_finder := f"_find_default_{key}"):
+            return getattr(self, custom_finder)(minimal=minimal, **kwargs)
+
+        return _NotSet
+
+    def _find_default(self, annotation: Any, *, minimal: bool = False, **kwargs) -> Any:
+        """
+        Find in the default value for the given key.
+
+        Parameters
+        ----------
+        annotation : Any
+            The annotation to find the default value for.
+
+        minimal : bool, optional
+            If True, fill in the minimal default values.
+
+        Returns
+        -------
+        Any
+            The default value for the given key.
+        """
+        if isclass(annotation):
+            if annotation is type(None):
+                return None
+
+            if issubclass(annotation, int | float | str | bool):
+                return self._find_scalar_default(annotation, minimal=minimal)
+
+        origin = get_origin(annotation)
+        annotation_args = get_args(annotation)
+
+        if origin is np.ndarray:
+            return self._find_ndarray_default(annotation, **kwargs)
+
+        if origin is Literal:
+            return self._find_literal_default(annotation, **kwargs)
+
+        # In Python 3.14+ UnionType is an Alias for Union so we can drop the or
+        #   check for UnionType in the future
+        if origin is Union or origin is UnionType:
+            return self._find_default(next(arg for arg in annotation_args if arg is not type(None)), minimal=minimal, **kwargs)
+
+        raise ValueError(f"Cannot find default for key {annotation}, no node annotation found: {annotation}.")
+
+    def _find_scalar_default(
+        self, type_: type[int | float | str | bool], *, minimal: bool = False
+    ) -> int | float | str | bool | _NotSetType:
+        """
+        Find in the default value for a scalar key.
+
+        Parameters
+        ----------
+        type_ : type[int | float | str | bool]
+            The type to find the default value for.
+
+        minimal : bool, optional
+            If True, fill in the minimal default values.
+
+        Returns
+        -------
+        int | float | str | bool | _NotSet
+            The default value for the given key.
+        """
+
+        if minimal:
+            return _NotSet
+
+        if type_ is int:
+            return int(_NONUM)
+
+        if type_ is float:
+            return float(_NONUM)
+
+        if type_ is str:
+            return str(_NOSTR)
+
+        if type_ is bool:
+            return bool(_NOBOOL)
+
+        raise ValueError(f"Cannot find scalar default for type {type_}")
+
+    def _find_ndarray_default(
+        self, type_: GenericAlias, *, shape: tuple[int, ...] | None = None, **kwargs
+    ) -> np.ndarray | _NotSetType:
+        """
+        Find in the default value for an ndarray key.
+
+        Parameters
+        ----------
+        type_ : GenericAlias
+            The type to find the default value for.
+
+        shape : tuple[int, ...] | None, optional
+            The shape of the ndarray to create.
+
+        Returns
+        -------
+        np.ndarray | _NotSet
+            The default value for the given key.
+        """
+
+        if get_origin(type_) is not np.ndarray:
+            raise ValueError(f"Cannot find ndarray default for type {type_}")
+
+        shape_, dtype = get_args(type_)
+        if isinstance(dtype, GenericAlias) and get_origin(dtype) is np.dtype:
+            dtype = get_args(dtype)[0]
+
+        if get_origin(shape_) is not tuple:
+            raise ValueError(f"Cannot find ndarray default for type {type_}, shape is not a tuple")
+
+        dims = get_args(shape_)
+        ndims = None if dims[-1] is ... else len(dims)
+
+        if shape is None:
+            shape = (1,)
+            if ndims is not None:
+                shape = shape * ndims
+
+        if ndims is not None and len(shape) != ndims:
+            raise ValueError(f"Cannot find ndarray default for type {type_}, shape has incorrect number of dimensions")
+
+        return np.zeros(shape=shape, dtype=dtype)
+
+    def _find_literal_default(self, type_: GenericAlias, **kwargs) -> Any:
+        """
+        Find in the default value for a Literal key.
+
+        Parameters
+        ----------
+        type_ : Literal
+            The type to find the default value for.
+
+        Returns
+        -------
+        Any
+            The default value for the given key.
+        """
+
+        if get_origin(type_) is not Literal:
+            raise ValueError(f"Cannot find Literal default for type {type_}")
+
+        # Just return the first option listed
+        return get_args(type_)[0]
+
 
 class ObjectNode(MutableMapping, _NodeMixin):
     """
@@ -119,20 +325,24 @@ class ObjectNode(MutableMapping, _NodeMixin):
     _data: dict[str, Any]
 
     __required__: tuple[str, ...] = ()
+    __keywords__: tuple[str, ...] = ()
     __alias__: MappingProxyType[str, str] = MappingProxyType({})
     __wrappers__: MappingProxyType[str, type[_NodeMixin]] = MappingProxyType({})
 
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(*args, **kwargs)
 
-        # Gather up the required and alias information recursively from base classes
+        # Gather up the required, keywords, and alias information recursively from base classes
         required = set(cls.__required__)
+        keywords = set(cls.__keywords__)
         alias = dict(cls.__alias__)
         for cls_ in cls.__bases__:
             required.update(set(cls_.__required__))
+            keywords.update(set(cls_.__keywords__))
             alias.update(cls_.__alias__)
 
         cls.__required__ = tuple(sorted(required))
+        cls.__keywords__ = tuple(sorted(keywords))
         cls.__alias__ = MappingProxyType(alias)
 
         # Gather up the wrappers for this class
@@ -151,21 +361,40 @@ class ObjectNode(MutableMapping, _NodeMixin):
         else:
             raise ValueError("Initializer only accepts dicts")
 
+    def _get_annotation(self, key: str) -> Any:
+        """
+        Get the annotation for a given keyword
+
+        Parameters
+        ----------
+        key : str
+            The key to get the annotation for.
+
+        Returns
+        -------
+        Any
+            The annotation for the given key.
+        """
+        if key in self.__keywords__:
+            return get_type_hints(type(self)).get(key)
+
+        raise KeyError(f"No such keyword ({key}) found in node: {type(self)}")
+
     def _in_data(self, key: str) -> bool:
-        if key in self._alias:
-            key = self._alias[key]
+        if key in self.__alias__:
+            key = self.__alias__[key]
 
         return key in self._data
 
     def _get_data(self, key: str) -> Any:
-        if key in self._alias:
-            key = self._alias[key]
+        if key in self.__alias__:
+            key = self.__alias__[key]
 
         return self._data.get(key)
 
     def _set_data(self, key: str, value: Any) -> None:
-        if key in self._alias:
-            key = self._alias[key]
+        if key in self.__alias__:
+            key = self.__alias__[key]
 
         self._data[key] = value
 
@@ -359,8 +588,8 @@ class ObjectNode(MutableMapping, _NodeMixin):
 
     def __delitem__(self, key):
         """Dictionary style access delete data"""
-        if key in self._alias:
-            key = self._alias[key]
+        if key in self.__alias__:
+            key = self.__alias__[key]
 
         del self._data[key]
 

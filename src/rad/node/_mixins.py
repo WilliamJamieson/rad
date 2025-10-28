@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Literal
 
-from ._base import ObjectNode
+from ._node import ObjectNode
 
 __all__ = ("WfiModeMixin",)
 

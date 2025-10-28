@@ -20,8 +20,8 @@ from asdf.tags.core.ndarray import asdf_datatype_to_numpy_dtype
 from rad import node
 
 from . import _mixins as mixins
-from ._base import ArrayNode, ObjectNode
 from ._metadata import ArchiveCatalog, Metadata
+from ._node import ArrayNode, ObjectNode
 from ._utils import name_from_uri
 
 if TYPE_CHECKING:

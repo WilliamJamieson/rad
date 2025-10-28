@@ -10,7 +10,7 @@ from asdf.extension import Converter, Extension
 
 import rad
 
-from ._base import ArrayNode, ObjectNode
+from ._node import ArrayNode, ObjectNode
 
 if TYPE_CHECKING:
     from typing import ClassVar

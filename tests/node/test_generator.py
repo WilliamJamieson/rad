@@ -814,9 +814,9 @@ class TestModule:
 
                        from astropy.units import Unit
                        from rad.node import ArchiveCatalog, Metadata
-                       from typing import Annotated, TypeAlias
+                       from typing import Annotated, Literal, TypeAlias
                        """),
-                'Unit["Jy"] | Unit["mJy"]',
+                "Annotated[Unit, Literal['Jy', 'mJy']]",
             ),
             (
                 "tag:astropy.org:astropy/units/unit-1.*",
@@ -826,21 +826,25 @@ class TestModule:
 
                        from astropy.units import Unit
                        from rad.node import ArchiveCatalog, Metadata
-                       from typing import Annotated, TypeAlias
+                       from typing import Annotated, Literal, TypeAlias
                        """),
-                'Unit["DN"]',
+                "Annotated[Unit, Literal['DN']]",
             ),
             (
                 "tag:stsci.edu:asdf/unit/quantity-1.*",
-                {"unit": {"tag": "tag:astropy.org:astropy/units/unit-1.*", "enum": ["m"]}},
+                {
+                    "unit": {"tag": "tag:astropy.org:astropy/units/unit-1.*", "enum": ["m"]},
+                    "value": {"tag": "tag:stsci.edu:asdf/core/ndarray-1.*", "datatype": "float64", "ndim": 3},
+                },
                 dedent("""\
                        from __future__ import annotations
 
                        from astropy.units import Quantity, Unit
+                       from numpy import float64
                        from rad.node import ArchiveCatalog, Metadata
-                       from typing import Annotated, TypeAlias
+                       from typing import Annotated, Literal, TypeAlias
                        """),
-                'Quantity[Unit["m"]]',
+                "Annotated[Quantity, tuple[int, int, int], float64, Annotated[Unit, Literal['m']]]",
             ),
             (
                 "tag:stsci.edu:asdf/roman/schemas/simple_tag-1.0.0",

@@ -1,11 +1,15 @@
-from typing import Literal
+from __future__ import annotations
+
+from typing import Annotated, Literal
 
 import numpy as np
 import numpy.typing as npt
 import pytest
+from astropy import units as u
+from astropy.time import Time
 
 from rad.node import ObjectNode
-from rad.node._node import _NOBOOL, _NONUM, _NOSTR
+from rad.node._base import _NOBOOL, _NONUM, _NOSTR
 
 
 class ScalarNode(ObjectNode):
@@ -83,6 +87,16 @@ class LiteralNode(ObjectNode):
     literal_str: Literal["a", "b", "c"]
     literal_int: Literal[1, 2, 3]
     literal_bool: Literal[True]
+
+
+class TimeNode(ObjectNode):
+    """A node with Time values"""
+
+    __uri__ = "asdf://example.com/schemas/test/time-1.0.0"
+    __required__ = ("time_value",)
+    __keywords__ = ("time_value",)
+
+    time_value: Time
 
 
 @pytest.mark.parametrize(
@@ -202,3 +216,25 @@ def test_literal_fill(key, type_, expected):
     assert key in node
     assert isinstance(getattr(node, key), type_)
     assert getattr(node, key) == expected
+
+
+def test_time_fill():
+    """Test that filling works for Time"""
+    node = TimeNode()
+
+    assert "time_value" not in node
+    node.fill_default("time_value")
+    assert "time_value" in node
+    assert isinstance(node.time_value, Time)
+    assert node.time_value == "2020-01-01 00:00:00.000"
+
+
+class UnitNode(ObjectNode):
+    """A node with Unit values"""
+
+    __uri__ = "asdf://example.com/schemas/test/unit-1.0.0"
+    __required__ = ("unit_value",)
+    __keywords__ = ("unit_value",)
+
+    unit_value: Annotated[u.Unit, Literal["Jy", "mJy"]]
+    quantity_value: Annotated[u.Quantity, tuple[int, int], np.float32, Annotated[u.Unit, Literal["m"]]]

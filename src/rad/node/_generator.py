@@ -733,43 +733,46 @@ class Annotation(Type):
                 annotations = [TypeAnnotation("WCS")]
 
             case "tag:stsci.edu:asdf/core/ndarray-1.*":
-                dtype = schema.get("datatype")
-
-                # The schemas should always have a datatype for ndarrays
-                if not dtype:
-                    raise ValueError(f"Schema for {name} ndarray tag must have a datatype")
-
-                # Convert the ASDF datatype to a numpy dtype and then to a string to write an import
-                #   from
-                np_dtype = asdf_datatype_to_numpy_dtype(dtype).type.__name__
-                module.imports.dtype(np_dtype)
+                arguments = cls._formulate_array_items(schema, module)
 
                 # If we have an ndim specified we need to include that in the annotation as a tuple with ints listed
                 # for each dimension, otherwise we use the NDArray typing
-                if (ndim := schema.get("ndim")) is None:
+                if schema.get("ndim") is None:
                     module.imports.ndarray_type()
                     # The NDArray[<dtype>] is simply an alias to `ndarray[tuple[int, ...], <dtype>]`
-                    annotations = [TypeAnnotation("NDArray", [TypeAnnotation(np_dtype)])]
+                    annotations = [TypeAnnotation("NDArray", arguments)]
                 else:
                     module.imports.ndarray()
                     # This produces the annotation `ndarray[tuple[int, int, ..., int], <dtype>]` with the number
                     #   of `int` entries in the tuple equal to ndim
-                    annotations = [TypeAnnotation("ndarray", [TypeAnnotation(f"tuple[{', '.join(['int'] * ndim)}], {np_dtype}")])]
+                    annotations = [TypeAnnotation("ndarray", arguments)]
 
             case "tag:stsci.edu:asdf/unit/unit-1.*" | "tag:astropy.org:astropy/units/unit-1.*":
                 module.imports.unit()
 
-                annotations = [TypeAnnotation("Unit", [TypeAnnotation(f'"{u}"')]) for u in schema.get("enum", [])]
-                # If we don't have any enumerated units we just use Unit
-                if not annotations:
+                if enum := schema.get("enum"):
+                    module.imports.annotated()
+
+                    annotations = [
+                        TypeAnnotation(
+                            "Annotated",
+                            [TypeAnnotation(f"Unit, {cls._formulate_literal(enum, str, module)[0].text()}")],
+                        )
+                    ]
+
+                else:
                     annotations = [TypeAnnotation("Unit")]
 
             case "tag:stsci.edu:asdf/unit/quantity-1.*":
                 module.imports.quantity()
+                module.imports.annotated()
                 # The unit must be defined for Quantity in the schema so we can just reuse this constructor for
                 # it as well
-                arguments = cls.from_schema_tag(f"{name}Unit", schema.get("unit", {}), module, package).annotations
-                annotations = [TypeAnnotation("Quantity", arguments)]
+                arguments = [TypeAnnotation("Quantity")]
+                arguments += cls._formulate_array_items(schema.get("value", {}), module)
+                arguments += cls.from_schema_tag(f"{name}Unit", schema.get("unit", {}), module, package).annotations
+
+                annotations = [TypeAnnotation("Annotated", [TypeAnnotation(", ".join([arg.text() for arg in arguments]))])]
 
             case _:
                 module.imports.any()
@@ -777,6 +780,39 @@ class Annotation(Type):
 
         # Finalize the construction with metadata
         return cls._from_metadata(name=name, schema=schema, annotations=annotations, module=module)
+
+    @classmethod
+    def _formulate_array_items(cls, schema: dict[str, Any], module: Module) -> list[TypeAnnotation]:
+        """
+        Formulate the TypeAnnotation list for the items of an array schema.
+
+        Parameters
+        ----------
+        schema
+            The schema dictionary representing the array
+        module
+            The module object to apply the imports to
+
+        Returns
+        -------
+            The list of TypeAnnotation objects representing the items of the array
+        """
+        dtype = schema.get("datatype")
+
+        # The schemas should always have a datatype for ndarrays
+        if not dtype:
+            raise ValueError("Schema for ndarray tag must have a datatype")
+
+        # Convert the ASDF datatype to a numpy dtype and then to a string to write an import
+        #   from
+        np_dtype = asdf_datatype_to_numpy_dtype(dtype).type.__name__
+        module.imports.dtype(np_dtype)
+
+        if (ndim := schema.get("ndim")) is None:
+            # The NDArray[<dtype>] is simply an alias to `ndarray[tuple[int, ...], <dtype>]`
+            return [TypeAnnotation(np_dtype)]
+        else:
+            return [TypeAnnotation(f"tuple[{', '.join(['int'] * ndim)}], {np_dtype}")]
 
     @classmethod
     def from_schema_array(cls, name: str, schema: dict[str, Any], module: Module, package: Package) -> Annotation:

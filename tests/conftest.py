@@ -534,8 +534,8 @@ _EXPOSURE_TYPE_ELEMENTS = tuple(
     _CURRENT_RESOURCES[_get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/exposure_type")]["enum"]
 )
 _P_EXPTYPE_PATTERN = _CURRENT_RESOURCES[
-    _get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure_type")
-]["properties"]["exposure"]["properties"]["p_exptype"]["pattern"]
+    _get_latest_uri("asdf://stsci.edu/datamodels/roman/schemas/reference_files/ref_exposure")
+]["properties"]["p_exptype"]["pattern"]
 
 
 @pytest.fixture(scope="session")

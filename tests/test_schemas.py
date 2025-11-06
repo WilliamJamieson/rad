@@ -348,6 +348,49 @@ class TestSchemaContent:
 
         asdf.treeutil.walk(schema, callback)
 
+    def test_no_multi_level_mixes(self, schema):
+        """
+        Check that allOf combiners do not modify each other's contents instead they should just be
+        adding new properties
+        """
+
+        def get_properties(node):
+            if isinstance(node, Mapping) and "$ref" in node:
+                if "#/definitions/" in node["$ref"]:
+                    uri, def_key = node["$ref"].split("#/definitions/")
+                    return get_properties(asdf.schema.load_schema(uri)["definitions"][def_key])
+
+                if "#/definitions" in node["$ref"]:
+                    return get_properties(asdf.schema.load_schema(node["$ref"].split("#/definitions")[0])["definitions"])
+
+                return get_properties(asdf.schema.load_schema(node["$ref"]))
+
+            properties = []
+            if isinstance(node, Mapping) and "properties" in node:
+                for prop_name, prop_node in node["properties"].items():
+                    prop = get_properties(prop_node)
+                    if prop:
+                        properties.append((prop_name, prop))
+                    else:
+                        properties.append((prop_name, []))
+
+            if isinstance(node, Mapping) and "allOf" in node:
+                for sub_schema in node["allOf"]:
+                    sub_properties = get_properties(sub_schema)
+                    properties.extend(sub_properties)
+
+            return properties
+
+        def callback(node):
+            prop_names = []
+            for prop, sub_props in get_properties(node):
+                if prop in prop_names and sub_props:
+                    raise ValueError(f"Property {prop} is merging multiple levels")
+                elif prop not in prop_names:
+                    prop_names.append(prop)
+
+        asdf.treeutil.walk(schema, callback)
+
 
 class TestTaggedSchemaContent:
     """
